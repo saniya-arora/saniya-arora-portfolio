@@ -1,0 +1,1936 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Locksmith – Self-service identity for enterprise-scale platforms</title>
+  <meta name="description" content="Case study: Designing self-service identity for enterprise-scale platforms." />
+  <meta name="theme-color" content="#09090b" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root, [data-theme="dark"] {
+      --bg: #09090b;
+      --surface: #111113;
+      --surface2: #18181b;
+      --border: #27272a;
+      --border2: #3f3f46;
+      --text: #fafafa;
+      --text2: #a1a1aa;
+      --text3: #71717a;
+      --accent: #4ade80;
+      --accent-dim: rgba(74, 222, 128, 0.1);
+
+      --sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+      --max: 1100px;
+      --pad: clamp(16px, 3vw, 32px);
+      --section: clamp(56px, 7vw, 80px);
+      --r: 10px;
+      --r-lg: 14px;
+    }
+
+    [data-theme="light"] {
+      --bg: #fafafa;
+      --surface: #ffffff;
+      --surface2: #f4f4f5;
+      --border: #e4e4e7;
+      --border2: #d4d4d8;
+      --text: #09090b;
+      --text2: #52525b;
+      --text3: #a1a1aa;
+      --accent: #16a34a;
+      --accent-dim: rgba(22, 163, 74, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    img { max-width: 100%; height: auto; }
+
+    body {
+      font-family: var(--sans);
+      color: var(--text);
+      background: var(--bg);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-wrap: break-word;
+      word-wrap: break-word;
+    }
+
+    .dot-grid {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background-image: radial-gradient(circle, var(--border) 0.6px, transparent 0.6px);
+      background-size: 22px 22px;
+      opacity: 0.35;
+    }
+
+    /* ─── SCROLL PROGRESS ─── */
+    .scroll-progress {
+      position: fixed;
+      inset: 0 0 auto;
+      height: 2px;
+      z-index: 110;
+      pointer-events: none;
+    }
+    .scroll-progress__bar {
+      width: calc(var(--progress, 0) * 100%);
+      height: 100%;
+      background: var(--accent);
+      transition: width 80ms linear;
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid var(--border);
+      background: color-mix(in srgb, var(--bg) 82%, transparent);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .nav-inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 var(--pad);
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand {
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      flex-shrink: 0;
+      text-decoration: none;
+    }
+    .nav-back {
+      font-size: 13px;
+      color: var(--text3);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 8px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .nav-back:hover {
+      color: var(--text);
+      background: var(--surface2);
+    }
+    .theme-toggle {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      width: 34px;
+      height: 34px;
+      cursor: pointer;
+      color: var(--text3);
+      display: grid;
+      place-items: center;
+      transition: color 0.15s, border-color 0.15s;
+      flex-shrink: 0;
+    }
+    .theme-toggle:hover {
+      color: var(--text);
+      border-color: var(--border2);
+    }
+    .theme-toggle svg { width: 15px; height: 15px; }
+    .icon-sun, .icon-moon { display: none; }
+    [data-theme="dark"] .icon-sun { display: block; }
+    [data-theme="light"] .icon-moon { display: block; }
+
+    /* ─── LAYOUT ─── */
+    .wrap {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 var(--pad);
+      overflow: hidden;
+    }
+
+    /* ─── HERO ─── */
+    .article-hero {
+      padding: var(--section) 0 0;
+      text-align: center;
+    }
+    .hero-eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .hero-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+    .article-hero h1 {
+      font-size: clamp(24px, 3.2vw, 36px);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.15;
+      margin: 0 auto 16px;
+      max-width: 44rem;
+    }
+    .hero-subtitle {
+      color: var(--text2);
+      font-size: 15px;
+      line-height: 1.7;
+      max-width: 42rem;
+      margin: 0 auto 28px;
+    }
+    .hero-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 0 0 20px;
+    }
+    .hero-meta {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px 28px;
+      text-align: left;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .hero-meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .hero-meta-item--note {
+      grid-column: 1 / -1;
+      margin-top: 4px;
+    }
+    .hero-meta-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text3);
+    }
+    .hero-meta-value {
+      font-size: 14px;
+      color: var(--text2);
+    }
+
+    /* ─── METRICS STRIP ─── */
+    .metrics-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      padding: 32px 0 0;
+    }
+    .metric-card {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 22px;
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .metric-card__label {
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text3);
+    }
+    .metric-card__title {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      line-height: 1.2;
+    }
+    .metric-card__note {
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.5;
+    }
+
+    /* ─── ARTICLE LAYOUT (TOC + BODY) ─── */
+    .article-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 24px;
+      padding: var(--section) 0;
+      align-items: flex-start;
+    }
+    @media (min-width: 960px) {
+      .article-layout {
+        grid-template-columns: 220px minmax(0, 1fr);
+        gap: 36px;
+      }
+    }
+
+    /* ─── TOC ─── */
+    .article-toc__inner {
+      position: sticky;
+      top: 76px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .toc-bar {
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .toc-bar-dots { display: flex; gap: 5px; }
+    .toc-bar-dots span {
+      width: 8px; height: 8px; border-radius: 50%;
+      border: 1px solid var(--border2); background: transparent;
+    }
+    .toc-bar-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+    }
+    .toc-list {
+      list-style: none;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .toc-link {
+      display: block;
+      font-size: 13px;
+      text-decoration: none;
+      color: var(--text3);
+      padding: 6px 10px;
+      border-radius: 8px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .toc-link:hover {
+      color: var(--text);
+      background: var(--surface2);
+    }
+    .toc-link--active {
+      color: var(--text);
+      background: var(--accent-dim);
+    }
+
+    /* ─── ARTICLE ─── */
+    article {
+      display: flex;
+      flex-direction: column;
+      gap: 56px;
+      min-width: 0;
+    }
+
+    /* ─── SECTIONS ─── */
+    .cs-section { scroll-margin-top: 100px; min-width: 0; }
+    .section-eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+    }
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 12px;
+    }
+    .section-body {
+      color: var(--text2);
+      font-size: 15px;
+      line-height: 1.7;
+      min-width: 0;
+    }
+    .section-body p { margin: 0 0 14px; }
+    .section-body p:last-child { margin-bottom: 0; }
+
+    .cs-list {
+      margin: 8px 0 14px 1.1rem;
+      padding: 0;
+      font-size: 14px;
+      color: var(--text2);
+      line-height: 1.65;
+    }
+    .cs-list li + li { margin-top: 6px; }
+
+    .cs-inline-note {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text3);
+      margin-top: 12px;
+    }
+
+    /* ─── CALLOUT ─── */
+    .cs-callout {
+      margin: 20px 0;
+      padding: 24px 28px;
+      background: var(--surface);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 var(--r-lg) var(--r-lg) 0;
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--text2);
+      border-top: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .cs-callout strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* ─── FIGURES ─── */
+    .case-figure {
+      margin: 36px 0;
+    }
+    .case-figure__inner {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .case-figure__image {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: var(--r);
+    }
+    .case-figure__caption {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      text-align: center;
+    }
+
+    figure.cs-image { display: none; }
+
+    .cs-figure {
+      margin: 0;
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      padding: 14px;
+    }
+    .cs-figure img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: var(--r);
+    }
+
+    .cs-figure--inline {
+      display: block;
+      margin: 24px 0;
+    }
+    .cs-figure--inline img {
+      border-radius: var(--r);
+    }
+
+    /* ─── PROBLEM TABLE ─── */
+    .cs-problem__card {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      padding: 18px 20px;
+    }
+    .cs-problem__table {
+      display: flex;
+      flex-direction: column;
+    }
+    .cs-problem__row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 120px;
+      gap: 16px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      align-items: center;
+    }
+    .cs-problem__row:last-child { border-bottom: 0; padding-bottom: 0; }
+    .cs-problem__row--head {
+      padding-top: 0;
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text3);
+    }
+    .cs-problem__row--head .cs-problem__cell { font-size: 11px; }
+    .cs-problem__cell { font-size: 14px; color: var(--text2); }
+    .cs-problem__cell--severity { text-align: right; }
+    .cs-problem__severity {
+      display: flex;
+      justify-content: flex-end;
+      gap: 5px;
+    }
+    .cs-problem__severity span {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--border2);
+      display: inline-block;
+    }
+    .cs-problem__row--l2 .cs-problem__severity span:nth-child(-n+2),
+    .cs-problem__row--l3 .cs-problem__severity span:nth-child(-n+3),
+    .cs-problem__row--l4 .cs-problem__severity span:nth-child(-n+4),
+    .cs-problem__row--l5 .cs-problem__severity span:nth-child(-n+5) {
+      background: var(--accent);
+    }
+
+    /* ─── OWNED CARDS ─── */
+    .cs-owned-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    @media (min-width: 640px) {
+      .cs-owned-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    .cs-owned-card {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: border-color 0.2s;
+    }
+    .cs-owned-card:hover { border-color: var(--border2); }
+    .cs-owned-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: var(--accent-dim);
+      border: 1px solid var(--border);
+      display: grid;
+      place-items: center;
+    }
+    .cs-owned-icon svg {
+      width: 18px; height: 18px;
+      stroke: var(--accent);
+      stroke-width: 1.6;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .cs-owned-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+    .cs-owned-desc {
+      color: var(--text2);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    /* ─── PROCESS PILLS ─── */
+    .process-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 6px;
+      background: var(--accent);
+      color: var(--bg);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    /* ─── PERSONA CARDS ─── */
+    .cs-persona-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin: 20px 0;
+    }
+    .cs-persona-card {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 10px;
+      transition: border-color 0.2s;
+    }
+    .cs-persona-card:hover { border-color: var(--border2); }
+    .cs-persona-icon {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--accent-dim);
+      border: 1px solid var(--border);
+      display: grid;
+      place-items: center;
+    }
+    .cs-persona-icon svg {
+      width: 20px; height: 20px;
+      stroke: var(--accent);
+      stroke-width: 1.6;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .cs-persona-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .cs-persona-desc {
+      font-size: 12px;
+      color: var(--text3);
+      line-height: 1.45;
+    }
+
+    /* ─── SOLUTION CARDS ─── */
+    .cs-solution { display: flex; flex-direction: column; gap: 20px; margin-top: 8px; }
+    .cs-solution-visual {
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .cs-solution-figure {
+      margin: 0;
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      padding: 14px;
+    }
+    .cs-solution-figure img {
+      width: 100%;
+      display: block;
+      border-radius: var(--r);
+    }
+    .cs-solution-cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .cs-solution-card {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      transition: border-color 0.2s;
+    }
+    .cs-solution-card:hover { border-color: var(--border2); }
+    .cs-solution-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 12px;
+      border-radius: 6px;
+      background: var(--accent);
+      color: var(--bg);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      margin-bottom: 14px;
+      width: fit-content;
+    }
+    .cs-solution-card-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin: 0 0 12px;
+      color: var(--text);
+      line-height: 1.35;
+    }
+    .cs-solution-list {
+      margin: 0 0 0 1rem;
+      padding: 0;
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.6;
+    }
+    .cs-solution-list li + li { margin-top: 8px; }
+
+    /* ─── IMPACT SECTION ─── */
+    .cs-impact {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+      gap: 20px;
+      align-items: start;
+      margin-top: 8px;
+    }
+    .cs-impact__body {
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--text2);
+    }
+    .cs-impact__body p { margin: 0 0 14px; }
+    .cs-impact__body p:last-child { margin-bottom: 0; }
+    .cs-impact__card {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .cs-impact__card-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text3);
+    }
+    .cs-impact__card-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.4;
+    }
+    .cs-impact__card-desc {
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.6;
+    }
+
+    /* ─── ECOSYSTEM / AGENTIC ─── */
+    .cs-ecosystem-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin: 20px 0 10px;
+    }
+    .cs-ecosystem-metric {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .cs-ecosystem-metric__label {
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text3);
+    }
+    .cs-ecosystem-metric__value {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.45;
+    }
+    .cs-ecosystem-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .cs-ecosystem-figure {
+      margin: 0;
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      padding: 14px;
+    }
+    .cs-ecosystem-figure img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: var(--r);
+    }
+    .cs-ecosystem-feature {
+      margin: 16px auto 0;
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      padding: 14px;
+      max-width: 520px;
+    }
+    .cs-ecosystem-feature img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: var(--r);
+    }
+
+    /* ─── WAVE DEMO ─── */
+    .cs-wave-demo {
+      margin: 24px 0 8px;
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 32px 28px 28px;
+      overflow: hidden;
+      min-width: 0;
+    }
+    .cs-wave-demo__label {
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 20px;
+    }
+    .cs-wave-pipeline {
+      display: flex;
+      align-items: center;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .cs-wave-stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+      min-width: 100px;
+    }
+    .cs-wave-stage__icon {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .cs-wave-stage:hover .cs-wave-stage__icon {
+      background: rgba(255,255,255,0.14);
+      border-color: rgba(255,255,255,0.22);
+    }
+    .cs-wave-stage__icon svg {
+      width: 20px; height: 20px;
+      stroke: rgba(255,255,255,0.7);
+      stroke-width: 1.6;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .cs-wave-stage__name {
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.85);
+      text-align: center;
+    }
+    .cs-wave-stage__sub {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: rgba(255,255,255,0.38);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .cs-wave-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 36px;
+      position: relative;
+    }
+    .cs-wave-arrow__line {
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0.25), rgba(255,255,255,0.1));
+    }
+    .cs-wave-arrow__chevron {
+      position: absolute;
+      right: 2px;
+      font-size: 10px;
+      color: rgba(255,255,255,0.3);
+    }
+    .cs-wave-gate {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+      min-width: 50px;
+    }
+    .cs-wave-gate__dot {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      border: 2px solid rgba(74,222,128,0.5);
+      background: rgba(74,222,128,0.1);
+      display: grid;
+      place-items: center;
+    }
+    .cs-wave-gate__dot svg {
+      width: 13px; height: 13px;
+      stroke: rgba(74,222,128,0.8);
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .cs-wave-gate__label {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: rgba(74,222,128,0.6);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .cs-wave-thread {
+      margin-top: 16px;
+      padding: 12px 14px;
+      background: rgba(147,130,255,0.08);
+      border: 1px solid rgba(147,130,255,0.15);
+      border-radius: var(--r);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .cs-wave-thread__icon { width: 20px; height: 20px; flex-shrink: 0; }
+    .cs-wave-thread__icon svg {
+      width: 20px; height: 20px;
+      stroke: rgba(147,130,255,0.7);
+      stroke-width: 1.6;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .cs-wave-thread__text {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.45;
+    }
+    .cs-wave-context {
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+    .cs-wave-context__item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.45);
+    }
+    .cs-wave-context__dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .cs-wave-context__dot--stage {
+      background: rgba(255,255,255,0.25);
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .cs-wave-context__dot--gate {
+      background: rgba(74,222,128,0.4);
+      border: 1px solid rgba(74,222,128,0.3);
+    }
+    .cs-wave-context__dot--context {
+      background: rgba(147,130,255,0.4);
+      border: 1px solid rgba(147,130,255,0.3);
+    }
+
+    /* ─── NEXT SECTION ─── */
+    .cs-next-figure {
+      margin: 28px 0 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .cs-next-image {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: var(--r-lg);
+      border: 1px solid var(--border);
+    }
+    .cs-next-caption {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text3);
+      text-align: center;
+      font-style: italic;
+    }
+
+    /* ─── PASSWORD GATE ─── */
+    .password-gate {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+      font-family: var(--sans);
+    }
+    .password-gate.hidden { display: none; }
+    .password-gate h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .password-gate p {
+      font-size: 13px;
+      color: var(--text3);
+    }
+    .password-gate input {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: var(--mono);
+      outline: none;
+      width: 240px;
+      text-align: center;
+      background: var(--surface);
+      color: var(--text);
+    }
+    .password-gate input:focus {
+      border-color: var(--accent);
+    }
+    .password-gate button {
+      padding: 8px 20px;
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: var(--sans);
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .password-gate button:hover { opacity: 0.85; }
+    .password-gate .pw-error {
+      font-size: 12px;
+      color: #f87171;
+      min-height: 16px;
+    }
+
+    /* ─── REVEAL ─── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+    .reveal.in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ─── LINKS ─── */
+    .text-link {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+      transition: opacity 0.15s;
+    }
+    .text-link:hover { opacity: 0.8; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      .hero-meta { grid-template-columns: 1fr; }
+      .hero-meta-item--note { grid-column: auto; }
+      .metrics-strip { grid-template-columns: repeat(2, 1fr); }
+      .cs-persona-row { grid-template-columns: repeat(2, 1fr); }
+      .cs-solution-cards { grid-template-columns: 1fr; }
+      .cs-impact { grid-template-columns: 1fr; }
+      .cs-ecosystem-metrics { grid-template-columns: 1fr; }
+      .cs-ecosystem-grid { grid-template-columns: 1fr; }
+      .cs-problem__row { grid-template-columns: 1fr; }
+      .cs-problem__cell--severity { text-align: left; }
+      .cs-problem__severity { justify-content: flex-start; }
+      .article-toc__inner {
+        position: static;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        padding: 10px;
+      }
+      .toc-bar { display: none; }
+      .toc-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        padding: 0;
+      }
+    }
+    @media (max-width: 640px) {
+      .metrics-strip { grid-template-columns: 1fr; }
+      .cs-persona-row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 760px) {
+      .cs-wave-stage { min-width: 72px; }
+      .cs-wave-arrow { width: 20px; }
+      .cs-wave-gate { min-width: 36px; }
+      .cs-wave-demo { padding: 24px 18px 20px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .reveal { transition: none; opacity: 1; transform: none; }
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Password gate -->
+  <div class="password-gate" id="pwGate">
+    <h2>Protected Case Study</h2>
+    <p>Enter the password to view this case study.</p>
+    <input type="password" id="pwInput" placeholder="Password" autocomplete="off" />
+    <button id="pwSubmit">Enter</button>
+    <div class="pw-error" id="pwError"></div>
+  </div>
+
+  <div class="dot-grid" aria-hidden="true"></div>
+
+  <!-- Scroll progress -->
+  <div class="scroll-progress" data-scroll-progress>
+    <div class="scroll-progress__bar"></div>
+  </div>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <div class="nav-left">
+        <a href="index.html" class="brand">saniya.arora</a>
+        <a href="index.html#work" class="nav-back">
+          <span>&larr;</span>
+          <span>Back to work</span>
+        </a>
+      </div>
+      <button class="theme-toggle" aria-label="Toggle theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </nav>
+
+  <main class="wrap">
+
+    <!-- HERO -->
+    <header class="article-hero reveal">
+      <div class="hero-eyebrow">
+        <span class="hero-dot" aria-hidden="true"></span>
+        Case Study &middot; Identity Platform &middot; Internal Tools
+      </div>
+
+      <h1>
+        Locksmith: Designing Self Service Identity for Enterprise Platforms
+      </h1>
+
+      <p class="hero-subtitle">
+        An AI-prompted product design flow that helps teams move from vague, ambiguous needs
+        to clear, self-serve, production-ready identity configurations.
+      </p>
+
+      <div class="hero-divider" aria-hidden="true"></div>
+
+      <div class="hero-meta">
+        <div class="hero-meta-item">
+          <span class="hero-meta-label">Type</span>
+          <span class="hero-meta-value">Platform Product - Internal Tools</span>
+        </div>
+        <div class="hero-meta-item">
+          <span class="hero-meta-label">Role</span>
+          <span class="hero-meta-value">Lead Product Designer (co-led)</span>
+        </div>
+        <div class="hero-meta-item">
+          <span class="hero-meta-label">Team</span>
+          <span class="hero-meta-value">Identity Platform</span>
+        </div>
+        <div class="hero-meta-item hero-meta-item--note">
+          <span class="hero-meta-label">Note</span>
+          <span class="hero-meta-value">
+            I can't share production screens in this case study. Visuals here are conceptual but the story, constraints, and outcomes
+            are real. Happy to walk through details live.
+          </span>
+        </div>
+      </div>
+    </header>
+
+    <!-- METRICS STRIP -->
+    <section class="metrics-strip reveal">
+      <div class="metric-card">
+        <div class="metric-card__label">Onboarding &amp; QA</div>
+        <div class="metric-card__title">From 77 days to less than 1 day</div>
+        <div class="metric-card__note">
+          Time to onboard and QA identity configurations to reduce fraud risk.
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-card__label">Workflow Efficiency</div>
+        <div class="metric-card__title">70% workflow optimization</div>
+        <div class="metric-card__note">
+          Workflow optimization across multiple teams and stakeholders in the enterprise
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-card__label">Coverage</div>
+        <div class="metric-card__title">8+ teams</div>
+        <div class="metric-card__note">
+          PM's, Fraud, Governance, Engineering, Consumer Identity, Risk, &amp; more
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-card__label">Trajectory</div>
+        <div class="metric-card__title">MVP to Agents</div>
+        <div class="metric-card__note">
+          Created a foundation for agentic, intelligent tooling
+        </div>
+      </div>
+    </section>
+
+    <!-- BODY: TOC + ARTICLE -->
+    <div class="article-layout">
+
+      <!-- TOC -->
+      <aside>
+        <div class="article-toc__inner">
+          <div class="toc-bar">
+            <div class="toc-bar-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+            <span class="toc-bar-label">outline.md</span>
+          </div>
+          <ul class="toc-list">
+            <li><a href="#intro" class="toc-link">Setting the stage</a></li>
+            <li><a href="#problem" class="toc-link">The core problem</a></li>
+            <li><a href="#role" class="toc-link">What I owned</a></li>
+            <li><a href="#process" class="toc-link">Process</a></li>
+            <li><a href="#solution" class="toc-link">MVP solution</a></li>
+            <li><a href="#impact" class="toc-link">Impact</a></li>
+            <li><a href="#agentic" class="toc-link">Agentic development</a></li>
+            <li><a href="#next" class="toc-link">What's next</a></li>
+          </ul>
+        </div>
+      </aside>
+
+      <!-- ARTICLE -->
+      <article>
+
+        <!-- 01. Setting the stage -->
+        <section id="intro" class="cs-section reveal">
+          <div class="section-eyebrow">01 &middot; Setting the stage</div>
+          <h2 class="section-title">Enterprise identity: powerful, but fragile without the system behind it</h2>
+
+          <div class="section-body">
+            <p>
+              When I joined the Identity Platform team, one thing was clear: enterprise identity was powerful… but fragile.
+            </p>
+            <p>
+              The platform worked well for insiders, but teams across the org struggled to operate it safely without deep institutional knowledge. Launching or updating authentication policies required translation across product, fraud, governance, and engineering, and that translation created delays, rework, and risk.
+            </p>
+            <p>
+              Teams weren't blocked by UI. They were blocked by uncertainty: inconsistent mental models, unclear ownership, and a lack of a clear path from intent to configuration.
+            </p>
+            <div class="cs-callout">
+              They didn't need more screens. They needed <strong>a system that turns business intent into safe, auditable, production-ready identity configuration</strong>, with governance and risk decisions visible inside the flow.
+            </div>
+            <p>
+              I co-led the design effort to define that system: setting the end-to-end experience strategy,
+              shaping self-service foundations, and mapping the "moments that matter" across the authenticator
+              lifecycle.
+            </p>
+          </div>
+
+          <!-- <figure class="cs-image">
+            <img src="images/ai prompted workflow.png" alt="AI-prompted workflow guiding teams from intent to configuration" />
+            <div class="cs-image__meta">
+              <span class="cs-image__label">Concept visual · AI-prompted workflow</span>
+              <span class="cs-image__caption">
+                Conceptual workflow showing how AI prompts can guide teams from ambiguity to configuration,
+                without exposing internal UI.
+              </span>
+            </div>
+          </figure> -->
+
+          <p class="cs-inline-note">
+            All visuals in this case study are intentionally abstracted, but structurally close enough to
+            represent the real system.
+          </p>
+        </section>
+
+        <!-- <section class="case-figure reveal" aria-label="AI-prompted workflow example">
+          <div class="case-figure__inner">
+            <img
+              src="images/ai workflow.png"
+              alt="AI-prompted workflow guiding teams from intent to configuration"
+              class="case-figure__image"
+            />
+            <div class="case-figure__caption">Concept visual &middot; AI-prompted workflow</div>
+          </div>
+        </section> -->
+
+        <!-- 02. The core problem -->
+        <section id="problem" class="cs-section reveal">
+          <div class="section-eyebrow">02 &middot; The core problem</div>
+          <h2 class="section-title">This wasn't just a UX issue. It was a platform translation issue.</h2>
+
+          <div class="section-body">
+            <p>
+              Identity is the backbone of every digital experience, but internally, important work stalled in translation.
+            </p>
+          </div>
+
+          <div class="cs-problem__card" style="margin: 16px 0;">
+            <div class="cs-problem__table" role="table" aria-label="Core problem pain points and severity">
+              <div class="cs-problem__row cs-problem__row--head" role="row">
+                <div class="cs-problem__cell" role="columnheader">Pain Point</div>
+                <div class="cs-problem__cell cs-problem__cell--severity" role="columnheader">Severity</div>
+              </div>
+              <div class="cs-problem__row cs-problem__row--l4" role="row">
+                <div class="cs-problem__cell" role="cell">Low visibility into configuration decisions</div>
+                <div class="cs-problem__severity" role="cell" aria-label="Severity 4 of 5">
+                  <span></span><span></span><span></span><span></span><span></span>
+                </div>
+              </div>
+              <div class="cs-problem__row cs-problem__row--l5" role="row">
+                <div class="cs-problem__cell" role="cell">High dependency on subject matter experts</div>
+                <div class="cs-problem__severity" role="cell" aria-label="Severity 5 of 5">
+                  <span></span><span></span><span></span><span></span><span></span>
+                </div>
+              </div>
+              <div class="cs-problem__row cs-problem__row--l4" role="row">
+                <div class="cs-problem__cell" role="cell">Complex governance and unclear ownership</div>
+                <div class="cs-problem__severity" role="cell" aria-label="Severity 4 of 5">
+                  <span></span><span></span><span></span><span></span><span></span>
+                </div>
+              </div>
+              <div class="cs-problem__row cs-problem__row--l3" role="row">
+                <div class="cs-problem__cell" role="cell">Inconsistent mental models across teams</div>
+                <div class="cs-problem__severity" role="cell" aria-label="Severity 3 of 5">
+                  <span></span><span></span><span></span><span></span><span></span>
+                </div>
+              </div>
+              <div class="cs-problem__row cs-problem__row--l4" role="row">
+                <div class="cs-problem__cell" role="cell">Long onboarding timelines and slow time-to-value</div>
+                <div class="cs-problem__severity" role="cell" aria-label="Severity 4 of 5">
+                  <span></span><span></span><span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-body">
+            <p>
+              Product managers, fraud analysts, governance partners, and CI admins were looking at the same system through different lenses. Critical decisions lived across tools, people, and approvals, which created a predictable failure mode: configuration changes became slow, unclear, and risky.
+            </p>
+            <p>
+              The result wasn't just friction. It was fragility at scale. Teams needed a unified platform experience that could guide decisions, reduce SME dependency, standardize workflows, and make risk and ownership explicit.
+            </p>
+            <p>
+              We had the chance to build something foundational: a self-serve identity platform that moves from <strong>screen-by-screen UI</strong> to a <strong>scalable identity system</strong>.
+            </p>
+          </div>
+
+          <figure class="cs-figure cs-figure--inline">
+            <img src="images/oldworkflowdoc.png" alt="Conceptual representation of fragmented legacy workflow" />
+          </figure>
+        </section>
+
+        <!-- 03. What I owned -->
+        <section id="role" class="cs-section reveal">
+          <div class="section-eyebrow">03 &middot; What I owned</div>
+          <h2 class="section-title">Co-leading the self-service foundation and the path to intelligent tooling</h2>
+
+          <div class="section-body">
+            <p>I co-led the design effort across four connected tracks, spanning system strategy, lifecycle mapping, and the foundations required to scale self-service across the enterprise.</p>
+          </div>
+
+          <div class="cs-owned-grid">
+            <article class="cs-owned-card">
+              <div class="cs-owned-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 7h16M6 7v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7" />
+                  <path d="M9 11h6M9 15h4" />
+                </svg>
+              </div>
+              <h3 class="cs-owned-title">End-to-end self-service onboarding</h3>
+              <p class="cs-owned-desc">
+                Defining how teams enter the platform, declare intent, understand risk posture, and progress from onboarding → deploy with confidence.
+              </p>
+            </article>
+            <article class="cs-owned-card">
+              <div class="cs-owned-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M6 6h12v12H6z" />
+                  <path d="M6 12h12M12 6v12" />
+                  <path d="M12 12l4 4" />
+                </svg>
+              </div>
+              <h3 class="cs-owned-title">Moments that matter</h3>
+              <p class="cs-owned-desc">
+                Mapping critical decisions, risks, and ownership inflection points across the authenticator lifecycle, turning them into explicit platform surfaces.
+              </p>
+            </article>
+            <article class="cs-owned-card">
+              <div class="cs-owned-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M7 7h10v10H7z" />
+                  <path d="M5 5h14v14H5z" />
+                </svg>
+              </div>
+              <h3 class="cs-owned-title">MVP definition</h3>
+              <p class="cs-owned-desc">
+                Sequencing what must exist in V1 to create clarity and safety, and what responsibly waits for later phases (to avoid premature flexibility).
+              </p>
+            </article>
+            <article class="cs-owned-card">
+              <div class="cs-owned-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M7 8a5 5 0 0 1 10 0v5a5 5 0 0 1-10 0z" />
+                  <path d="M9 8h6" />
+                  <path d="M12 3v3" />
+                  <path d="M8 19h8" />
+                </svg>
+              </div>
+              <h3 class="cs-owned-title">Path to intelligent tooling</h3>
+              <p class="cs-owned-desc">
+                Designing toward AI-guided workflows and decision-support, where models are grounded in platform context and governance is embedded, not bolted on.
+              </p>
+            </article>
+          </div>
+
+          <p class="cs-inline-note" style="margin-top:18px;">
+            In parallel, I led early work on WAVE, an internal multi-agent delivery workflow that preserves context from PRD → research → design → architecture → development, with enterprise compliance gates at every step. <a href="wave.html" class="text-link">View the WAVE case study &rarr;</a>
+          </p>
+        </section>
+
+        <!-- 04. Process -->
+        <section id="process" class="cs-section reveal">
+          <div class="section-eyebrow">04 &middot; Process</div>
+          <h2 class="section-title">From assumptions to an aligned system strategy</h2>
+
+          <div class="section-body">
+            <div class="process-pill">Assumption mapping</div>
+            <p>
+              Because Locksmith was a true 0 → 1 effort, we started by aligning the room. I facilitated an
+              assumption mapping workshop with product, design, engineering, fraud, and governance.
+            </p>
+            <p>
+              We surfaced 40+ hidden assumptions about team needs, governance constraints, and technical
+              dependencies, then ranked each by <strong>confidence</strong> and <strong>risk</strong>.
+              This immediately clarified:
+            </p>
+
+            <ul class="cs-list">
+              <li>No-regret work we could start immediately</li>
+              <li>Medium-confidence areas requiring research validation</li>
+              <li>High-risk blockers requiring technical or governance alignment</li>
+            </ul>
+
+            <p>
+              This exercise became the backbone of our self-service strategy, research roadmap, and the system model we designed toward.
+            </p>
+          </div>
+
+          <figure class="cs-figure cs-figure--inline">
+            <img
+              src="images/assumptions.png"
+              alt="Assumption mapping workshop board"
+            />
+          </figure>
+
+          <div class="section-body" style="margin-top: 32px;">
+            <div class="process-pill">Rapid design jams</div>
+            <p>
+              Next, I led fast design jams to pressure-test flows in real time with constraints in the room. We sketched end-to-end journeys, mapped tasks by persona, and tagged every idea as:
+            </p>
+
+            <ul class="cs-list">
+              <li>Quick design change</li>
+              <li>Reusable pattern</li>
+              <li>System-level bet</li>
+              <li>Research question</li>
+            </ul>
+
+            <p>
+              The work evolved from messy whiteboards → structured journeys → an emerging platform language that could scale beyond a single interface.
+            </p>
+          </div>
+
+          <!-- <figure class="cs-figure cs-figure--inline">
+            <img
+              src="images/rapiddesign.png"
+              alt="Design jam sketches and flow explorations"
+            />
+          </figure> -->
+        </section>
+
+        <!-- 05. MVP Solution -->
+        <section id="solution" class="cs-section reveal">
+          <div class="section-eyebrow">05 &middot; The solution</div>
+          <h2 class="section-title">The MVP: clarity, control, and continuity</h2>
+
+          <div class="cs-solution">
+            <div class="section-body">
+              <p>
+                The MVP focused on three pillars, applied across four core personas. The goal was to reduce ambiguity, make governance explicit, and preserve continuity across the identity lifecycle.
+              </p>
+            </div>
+
+            <div class="cs-persona-row">
+              <div class="cs-persona-card">
+                <div class="cs-persona-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <p class="cs-persona-name">LOB PMs</p>
+                <p class="cs-persona-desc">Define business intent and launch requirements</p>
+              </div>
+
+              <div class="cs-persona-card">
+                <div class="cs-persona-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <p class="cs-persona-name">Fraud BAs</p>
+                <p class="cs-persona-desc">Assess risk posture and flag risky configurations</p>
+              </div>
+
+              <div class="cs-persona-card">
+                <div class="cs-persona-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                </div>
+                <p class="cs-persona-name">Governance</p>
+                <p class="cs-persona-desc">Approve policy changes and enforce compliance</p>
+              </div>
+
+              <div class="cs-persona-card">
+                <div class="cs-persona-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2zm10-10V7a4 4 0 0 0-8 0v4"/></svg>
+                </div>
+                <p class="cs-persona-name">CI Admins</p>
+                <p class="cs-persona-desc">Configure and deploy identity settings at scale</p>
+              </div>
+            </div>
+
+            <div class="cs-solution-visual">
+              <figure class="cs-solution-figure">
+                <img src="images/locksmithmvp.png" alt="Locksmith MVP onboarding and configuration flow" />
+              </figure>
+            </div>
+
+            <div class="cs-solution-cards">
+              <div class="cs-solution-card">
+                <div class="cs-solution-pill">Clarity</div>
+                <p class="cs-solution-card-title">UI moments that reduce ambiguity</p>
+                <ul class="cs-solution-list">
+                  <li>AI-guided prompts translate business intent into configuration options</li>
+                  <li>Inline definitions and "what this means" explanations at decision points</li>
+                  <li>Preview the impact of a change before it's committed</li>
+                </ul>
+              </div>
+
+              <div class="cs-solution-card">
+                <div class="cs-solution-pill">Control</div>
+                <p class="cs-solution-card-title">Guardrails without blocking progress</p>
+                <ul class="cs-solution-list">
+                  <li>Validation to prevent invalid or risky configurations</li>
+                  <li>Governance decisions surfaced explicitly (not hidden in backchannels)</li>
+                  <li>Role-aware views tailored to stakeholder responsibility and risk</li>
+                </ul>
+              </div>
+
+              <div class="cs-solution-card">
+                <div class="cs-solution-pill">Continuity</div>
+                <p class="cs-solution-card-title">A module within a larger ecosystem</p>
+                <ul class="cs-solution-list">
+                  <li>Patterns designed to extend into future modules and tools</li>
+                  <li>Configuration data modeled for reuse and automation</li>
+                  <li>A clear path from MVP screens → intelligent decision-support</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 06. Impact -->
+        <section id="impact" class="cs-section reveal">
+          <div class="section-eyebrow">06 &middot; Impact</div>
+          <h2 class="section-title">From 77 days to less than one</h2>
+
+          <div class="cs-impact">
+            <div class="cs-impact__body">
+              <p>The MVP unlocked both qualitative and quantitative shifts.</p>
+
+              <p>We reduced onboarding and QA timelines from 77 days to less than one, by moving identity work from ambiguous translation into a guided, inspectable platform flow.</p>
+
+              <p><strong>Key outcomes:</strong></p>
+
+              <ul class="cs-list">
+                <li>Clearer onboarding mental models across PM, fraud, and governance</li>
+                <li>Reduced dependency on identity SMEs for routine configuration decisions</li>
+                <li>Standardized workflows across 8+ teams and lines of business</li>
+                <li>A shared platform language for risk, ownership, and configuration</li>
+              </ul>
+
+              <p>A critical additional outcome: we moved governance from a black box to baked into the experience, increasing confidence while improving execution speed.</p>
+            </div>
+
+            <aside class="cs-impact__card">
+              <div class="cs-impact__card-label">Workflow efficiency</div>
+              <p class="cs-impact__card-title">
+                Governance automation &amp; compliance built into the flow
+              </p>
+              <p class="cs-impact__card-desc">
+                Workflow optimized to move governance from a black box to baked inside the experience
+              </p>
+            </aside>
+          </div>
+        </section>
+
+        <!-- 07. Agentic development -->
+        <section id="agentic" class="cs-section reveal">
+          <div class="section-eyebrow">07 &middot; From screen to ecosystem</div>
+          <h2 class="section-title">Designing the next layer: agentic, intelligent tooling</h2>
+
+          <div class="section-body">
+            <p>
+              The most exciting part of Locksmith is what comes next: shifting from static flows to an intelligent, assistive ecosystem.
+            </p>
+
+            <p>We explored a future where the platform can:</p>
+
+            <ul class="cs-list">
+              <li>Suggest configurations based on patterns and risk posture</li>
+              <li>Adapt guardrails dynamically based on context</li>
+              <li>Automate governance steps where appropriate without sacrificing auditability</li>
+              <li>Support a modular identity builder orchestrated by humans and agents</li>
+            </ul>
+
+            <p>
+              During a 48-hour vision sprint, we used intelligent tooling to prototype an end-to-end platform experience for a multi-user workflow. That sprint:
+            </p>
+          </div>
+
+          <div class="cs-ecosystem-metrics">
+            <div class="cs-ecosystem-metric">
+              <div class="cs-ecosystem-metric__label">Workflow efficiency</div>
+              <div class="cs-ecosystem-metric__value">Increased workflow optimization by over 70%, influenced product strategy and roadmap direction</div>
+            </div>
+            <div class="cs-ecosystem-metric">
+              <div class="cs-ecosystem-metric__label">Influence</div>
+              <div class="cs-ecosystem-metric__value">Influenced product strategy &amp; roadmap direction</div>
+            </div>
+            <div class="cs-ecosystem-metric">
+              <div class="cs-ecosystem-metric__label">AI driven research</div>
+              <div class="cs-ecosystem-metric__value">
+                Kicked off an AI-driven research process to validate prototypes faster
+              </div>
+            </div>
+          </div>
+
+          <div class="cs-ecosystem-grid">
+            <figure class="cs-ecosystem-figure">
+              <img src="images/experiencevisualizer.PNG" alt="Conceptual experience visualizer for identity ecosystem" />
+            </figure>
+
+            <figure class="cs-ecosystem-figure">
+              <img src="images/governance.PNG" alt="Conceptual governance and approvals view" />
+            </figure>
+          </div>
+
+          <figure class="cs-ecosystem-feature">
+            <img src="images/reviewpage.PNG" alt="Conceptual review and configuration summary page" />
+          </figure>
+        </section>
+
+        <!-- 08. What's next -->
+        <section id="next" class="cs-section reveal">
+          <div class="section-eyebrow">08 &middot; What's next</div>
+          <h2 class="section-title">A BMAD inspired workflow evolving into WAVE</h2>
+
+          <div class="section-body">
+            <p>
+              Our process loosely mirrored BMAD (Breakthrough Method for Agile AI-Driven Development), adapted to enterprise constraints. We used structured artifacts and role-based thinking to move quickly from concept → prototype → system model.
+            </p>
+            <p>
+              Over time, this evolved into WAVE, a multi-agent delivery workflow designed to preserve context across product, research, design, architecture, and development, with compliance gates and explicit human approval at each stage.
+            </p>
+          </div>
+
+          <!-- WAVE Conceptual Demo -->
+          <div class="cs-wave-demo">
+            <div class="cs-wave-demo__label">WAVE &middot; Multi-agent delivery workflow</div>
+
+            <div class="cs-wave-pipeline">
+              <div class="cs-wave-stage">
+                <div class="cs-wave-stage__icon">
+                  <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                </div>
+                <div class="cs-wave-stage__name">PRD</div>
+                <div class="cs-wave-stage__sub">Agent</div>
+              </div>
+              <div class="cs-wave-arrow"><div class="cs-wave-arrow__line"></div><div class="cs-wave-arrow__chevron">&rsaquo;</div></div>
+              <div class="cs-wave-gate">
+                <div class="cs-wave-gate__dot"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <div class="cs-wave-gate__label">Gate</div>
+              </div>
+              <div class="cs-wave-arrow"><div class="cs-wave-arrow__line"></div><div class="cs-wave-arrow__chevron">&rsaquo;</div></div>
+
+              <div class="cs-wave-stage">
+                <div class="cs-wave-stage__icon">
+                  <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                </div>
+                <div class="cs-wave-stage__name">Research</div>
+                <div class="cs-wave-stage__sub">Agent</div>
+              </div>
+              <div class="cs-wave-arrow"><div class="cs-wave-arrow__line"></div><div class="cs-wave-arrow__chevron">&rsaquo;</div></div>
+              <div class="cs-wave-gate">
+                <div class="cs-wave-gate__dot"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <div class="cs-wave-gate__label">Gate</div>
+              </div>
+              <div class="cs-wave-arrow"><div class="cs-wave-arrow__line"></div><div class="cs-wave-arrow__chevron">&rsaquo;</div></div>
+
+              <div class="cs-wave-stage">
+                <div class="cs-wave-stage__icon">
+                  <svg viewBox="0 0 24 24"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+                </div>
+                <div class="cs-wave-stage__name">Design</div>
+                <div class="cs-wave-stage__sub">Agent</div>
+              </div>
+              <div class="cs-wave-arrow"><div class="cs-wave-arrow__line"></div><div class="cs-wave-arrow__chevron">&rsaquo;</div></div>
+              <div class="cs-wave-gate">
+                <div class="cs-wave-gate__dot"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <div class="cs-wave-gate__label">Gate</div>
+              </div>
+              <div class="cs-wave-arrow"><div class="cs-wave-arrow__line"></div><div class="cs-wave-arrow__chevron">&rsaquo;</div></div>
+
+              <div class="cs-wave-stage">
+                <div class="cs-wave-stage__icon">
+                  <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                </div>
+                <div class="cs-wave-stage__name">Architecture</div>
+                <div class="cs-wave-stage__sub">Agent</div>
+              </div>
+              <div class="cs-wave-arrow"><div class="cs-wave-arrow__line"></div><div class="cs-wave-arrow__chevron">&rsaquo;</div></div>
+              <div class="cs-wave-gate">
+                <div class="cs-wave-gate__dot"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <div class="cs-wave-gate__label">Gate</div>
+              </div>
+              <div class="cs-wave-arrow"><div class="cs-wave-arrow__line"></div><div class="cs-wave-arrow__chevron">&rsaquo;</div></div>
+
+              <div class="cs-wave-stage">
+                <div class="cs-wave-stage__icon">
+                  <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                </div>
+                <div class="cs-wave-stage__name">Development</div>
+                <div class="cs-wave-stage__sub">Agent</div>
+              </div>
+            </div>
+
+            <div class="cs-wave-thread">
+              <div class="cs-wave-thread__icon">
+                <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              </div>
+              <div class="cs-wave-thread__text">
+                Shared context thread preserves decisions, rationale, and artifacts across every stage
+              </div>
+            </div>
+
+            <div class="cs-wave-context">
+              <div class="cs-wave-context__item">
+                <div class="cs-wave-context__dot cs-wave-context__dot--stage"></div>
+                Agent-driven stage
+              </div>
+              <div class="cs-wave-context__item">
+                <div class="cs-wave-context__dot cs-wave-context__dot--gate"></div>
+                Human compliance gate
+              </div>
+              <div class="cs-wave-context__item">
+                <div class="cs-wave-context__dot cs-wave-context__dot--context"></div>
+                Persistent context thread
+              </div>
+            </div>
+          </div>
+
+          <p class="cs-inline-note" style="margin-top:14px;">
+            If you're curious, I documented WAVE as a standalone case study here: <a href="wave.html" class="text-link">View WAVE &rarr;</a>
+          </p>
+
+          <div style="margin-top: 48px;">
+            <div class="section-eyebrow">What's next</div>
+            <h2 class="section-title">Using research agents to close the loop</h2>
+            <div class="section-body">
+              <p>
+                The next frontier for Locksmith is making experimentation continuous, not just for a single sprint.
+              </p>
+              <p>
+                That means baking learning into the platform itself: continuously testing flows with synthetic and real scenarios, refining guardrails, and letting the system improve over time without losing auditability.
+              </p>
+              <p>
+                If you're curious about this work, I'm happy to walk through deeper system diagrams and prototypes live.
+              </p>
+            </div>
+          </div>
+
+          <figure class="cs-next-figure">
+            <img
+              src="images/darkmode.PNG"
+              alt="Conceptual dark mode prototype of Locksmith ecosystem"
+              class="cs-next-image"
+            />
+            <figcaption class="cs-next-caption">and yes, we have dark mode ;)</figcaption>
+          </figure>
+        </section>
+
+      </article>
+    </div>
+
+  </main>
+
+  <script>
+    // Password gate
+    (function() {
+      var gate = document.getElementById('pwGate');
+      var input = document.getElementById('pwInput');
+      var btn = document.getElementById('pwSubmit');
+      var err = document.getElementById('pwError');
+      var PASS = 's@n';
+
+      function check() {
+        if (input.value === PASS) {
+          gate.classList.add('hidden');
+        } else {
+          err.textContent = 'Incorrect password';
+          input.value = '';
+          input.focus();
+        }
+      }
+
+      btn.addEventListener('click', check);
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') check();
+      });
+      input.focus();
+    })();
+  </script>
+
+  <script>
+    // Theme toggle
+    (function() {
+      var saved = localStorage.getItem('theme');
+      if (saved) {
+        document.documentElement.setAttribute('data-theme', saved);
+      } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+
+    document.querySelector('.theme-toggle').addEventListener('click', function() {
+      var html = document.documentElement;
+      var next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      document.querySelector('meta[name="theme-color"]').content =
+        next === 'dark' ? '#09090b' : '#fafafa';
+    });
+
+    // Scroll progress
+    (function() {
+      var bar = document.querySelector('[data-scroll-progress]');
+      function update() {
+        if (!bar) return;
+        var scrollTop = window.scrollY || document.documentElement.scrollTop;
+        var docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        var progress = docHeight > 0 ? scrollTop / docHeight : 0;
+        bar.style.setProperty('--progress', progress.toFixed(4));
+      }
+      window.addEventListener('scroll', update, { passive: true });
+      update();
+    })();
+
+    // Reveal animations
+    var io = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) {
+        if (e.isIntersecting) {
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.08 });
+
+    document.querySelectorAll('.reveal').forEach(function(el) { io.observe(el); });
+
+    // TOC: smooth scroll + active state
+    (function() {
+      var tocLinks = document.querySelectorAll('.toc-link');
+      tocLinks.forEach(function(link) {
+        link.addEventListener('click', function(e) {
+          var href = link.getAttribute('href');
+          if (!href || !href.startsWith('#')) return;
+          var target = document.querySelector(href);
+          if (!target) return;
+
+          e.preventDefault();
+          var top = target.getBoundingClientRect().top + window.scrollY - 80;
+          window.scrollTo({ top: top, behavior: 'smooth' });
+        });
+      });
+
+      var sections = Array.from(document.querySelectorAll('.cs-section[id]'));
+      var linkById = new Map();
+      tocLinks.forEach(function(link) {
+        var href = link.getAttribute('href');
+        if (href && href.startsWith('#')) {
+          linkById.set(href.slice(1), link);
+        }
+      });
+
+      if ('IntersectionObserver' in window && sections.length) {
+        var sectionObs = new IntersectionObserver(function(entries) {
+          entries.forEach(function(entry) {
+            var id = entry.target.id;
+            var link = linkById.get(id);
+            if (!link) return;
+            if (entry.isIntersecting) {
+              tocLinks.forEach(function(l) { l.classList.remove('toc-link--active'); });
+              link.classList.add('toc-link--active');
+            }
+          });
+        }, { threshold: 0.3, rootMargin: '-20% 0px -45% 0px' });
+
+        sections.forEach(function(s) { sectionObs.observe(s); });
+      }
+    })();
+  </script>
+</body>
+</html>

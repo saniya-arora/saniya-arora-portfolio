@@ -1,0 +1,1801 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>John Deere — Designing a Decision System for Factory Operators</title>
+  <meta name="description" content="Case study: Turning siloed telemetry into real-time, competitive operational intelligence across global manufacturing sites." />
+  <meta name="theme-color" content="#09090b" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root, [data-theme="dark"] {
+      --bg: #09090b;
+      --surface: #111113;
+      --surface2: #18181b;
+      --border: #27272a;
+      --border2: #3f3f46;
+      --text: #fafafa;
+      --text2: #a1a1aa;
+      --text3: #71717a;
+      --accent: #4ade80;
+      --accent-dim: rgba(74, 222, 128, 0.1);
+      --sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+      --max: 1060px;
+      --max-wide: 1200px;
+      --pad: clamp(16px, 3vw, 32px);
+      --section: clamp(64px, 8vw, 96px);
+      --r: 10px;
+      --r-lg: 14px;
+    }
+
+    [data-theme="light"] {
+      --bg: #fafafa;
+      --surface: #ffffff;
+      --surface2: #f4f4f5;
+      --border: #e4e4e7;
+      --border2: #d4d4d8;
+      --text: #09090b;
+      --text2: #52525b;
+      --text3: #a1a1aa;
+      --accent: #16a34a;
+      --accent-dim: rgba(22, 163, 74, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--sans);
+      color: var(--text);
+      background: var(--bg);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .dot-grid {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background-image: radial-gradient(circle, var(--border) 0.6px, transparent 0.6px);
+      background-size: 22px 22px;
+      opacity: 0.35;
+    }
+
+    .wrap {
+      max-width: var(--max-wide);
+      margin: 0 auto;
+      padding: 0 var(--pad);
+    }
+
+    /* ─── SCROLL PROGRESS ─── */
+    .scroll-progress {
+      position: fixed;
+      inset: 0 0 auto;
+      height: 2px;
+      z-index: 200;
+      pointer-events: none;
+    }
+    .scroll-progress__bar {
+      width: calc(var(--progress, 0) * 100%);
+      height: 100%;
+      background: var(--accent);
+      transition: width 80ms linear;
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid var(--border);
+      background: color-mix(in srgb, var(--bg) 82%, transparent);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .nav-inner {
+      max-width: var(--max-wide);
+      margin: 0 auto;
+      padding: 0 var(--pad);
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .brand {
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+    .nav-back {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text3);
+      text-decoration: none;
+      padding: 5px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      transition: color 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+    .nav-back:hover {
+      color: var(--text);
+      border-color: var(--border2);
+    }
+    .theme-toggle {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      width: 34px;
+      height: 34px;
+      cursor: pointer;
+      color: var(--text3);
+      display: grid;
+      place-items: center;
+      transition: color 0.15s, border-color 0.15s;
+      flex-shrink: 0;
+    }
+    .theme-toggle:hover {
+      color: var(--text);
+      border-color: var(--border2);
+    }
+    .theme-toggle svg { width: 15px; height: 15px; }
+    .icon-sun, .icon-moon { display: none; }
+    [data-theme="dark"] .icon-sun { display: block; }
+    [data-theme="light"] .icon-moon { display: block; }
+
+    /* ─── HERO ─── */
+    .hero {
+      padding: var(--section) 0 0;
+      text-align: center;
+    }
+    .hero-eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .hero-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+    .hero h1 {
+      font-size: clamp(26px, 3.5vw, 38px);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.15;
+      margin-bottom: 16px;
+      max-width: 48ch;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .hero-sub {
+      color: var(--text2);
+      font-size: 16px;
+      line-height: 1.7;
+      max-width: 54ch;
+      margin: 0 auto 28px;
+    }
+    .hero-divider {
+      height: 1px;
+      background: var(--border);
+      margin-bottom: 24px;
+    }
+    .hero-meta {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: left;
+    }
+    .hero-meta-item {
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 14px 16px;
+      background: var(--surface);
+    }
+    .hero-meta-item--full {
+      grid-column: 1 / -1;
+    }
+    .hero-meta-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+    .hero-meta-value {
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.5;
+    }
+
+    /* ─── METRICS STRIP ─── */
+    .metrics-strip {
+      padding-top: 40px;
+      padding-bottom: 0;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+    .metric-card {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 20px;
+      background: var(--surface);
+    }
+    .metric-card__label {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 10px;
+    }
+    .metric-card__value {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin-bottom: 6px;
+    }
+    .metric-card__note {
+      font-size: 12px;
+      color: var(--text2);
+      line-height: 1.5;
+    }
+
+    /* ─── ARTICLE LAYOUT ─── */
+    .article-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+      align-items: start;
+      padding-top: var(--section);
+    }
+    @media (min-width: 1024px) {
+      .article-layout {
+        grid-template-columns: 220px minmax(0, 1fr);
+        gap: 32px;
+      }
+    }
+
+    /* ─── TOC ─── */
+    .toc { position: relative; }
+    .toc-inner {
+      position: sticky;
+      top: 76px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 16px;
+      background: var(--surface);
+    }
+    .toc-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 12px;
+    }
+    .toc-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .toc-link {
+      display: block;
+      font-size: 12px;
+      text-decoration: none;
+      color: var(--text3);
+      padding: 6px 10px;
+      border-radius: 6px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .toc-link:hover {
+      background: var(--surface2);
+      color: var(--text);
+    }
+    .toc-link--active {
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+
+    /* ─── SECTIONS ─── */
+    article {
+      display: flex;
+      flex-direction: column;
+      gap: 56px;
+    }
+    .cs-section {
+      scroll-margin-top: 100px;
+    }
+    .section-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+    }
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 14px;
+      line-height: 1.25;
+    }
+    .section-body {
+      color: var(--text2);
+      font-size: 15px;
+      line-height: 1.7;
+      max-width: 64rem;
+    }
+    .section-body p { margin: 0 0 14px; }
+    .section-body p:last-child { margin-bottom: 0; }
+    .section-body strong { color: var(--text); font-weight: 600; }
+    .section-body em { color: var(--text2); }
+
+    .cs-list {
+      margin: 8px 0 14px 1.1rem;
+      padding: 0;
+      font-size: 15px;
+      color: var(--text2);
+      line-height: 1.7;
+    }
+    .cs-list li + li { margin-top: 4px; }
+
+    /* ─── CALLOUT ─── */
+    .cs-callout {
+      border-left: 3px solid var(--accent);
+      background: var(--surface);
+      border-radius: 0 var(--r) var(--r) 0;
+      padding: 20px 24px;
+      margin: 20px 0;
+      border-top: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .cs-callout--hero {
+      border-left: 4px solid var(--accent);
+      background: var(--accent-dim);
+      padding: 24px 28px;
+      margin: 24px 0;
+    }
+    .cs-callout__quote {
+      font-size: 15px;
+      font-weight: 600;
+      font-style: italic;
+      line-height: 1.5;
+      color: var(--text);
+      margin: 0 0 8px;
+    }
+    .cs-callout--hero .cs-callout__quote {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+    .cs-callout__attribution {
+      font-size: 13px;
+      color: var(--text3);
+      font-style: normal;
+      margin: 0;
+    }
+    .cs-callout--hero .cs-callout__attribution {
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ─── HMW / GOAL CARDS ─── */
+    .goal-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .goal-card {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 20px;
+      background: var(--surface);
+    }
+    .goal-card__label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .goal-card__text {
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--text2);
+      margin: 0;
+    }
+
+    /* ─── RETHINK VISUAL ─── */
+    .rethink {
+      margin-top: 32px;
+    }
+    .rethink__intro {
+      font-size: 15px;
+      color: var(--text2);
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+    .rethink__visual {
+      position: relative;
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      height: 400px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .rethink__center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: var(--accent-dim);
+      border: 2px solid var(--border2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+    .rethink__node {
+      position: absolute;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      z-index: 2;
+      white-space: nowrap;
+      transition: border-color 0.2s;
+    }
+    .rethink__node:hover { border-color: var(--accent); }
+    .rethink__node--top { top: 20px; left: 50%; transform: translateX(-50%); }
+    .rethink__node--right { top: 50%; right: 0; transform: translateY(-50%); }
+    .rethink__node--bottom { bottom: 20px; left: 50%; transform: translateX(-50%); }
+    .rethink__node--left { top: 50%; left: 0; transform: translateY(-50%); }
+    .rethink__lines {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .rethink__footnote {
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text3);
+      margin-top: 8px;
+    }
+
+    /* ─── CAROUSEL ─── */
+    .carousel-wrap {
+      margin-top: 20px;
+      max-width: 760px;
+      margin-left: auto;
+      margin-right: auto;
+      position: relative;
+    }
+    .carousel-window {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .carousel-bar {
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .carousel-dots-chrome { display: flex; gap: 5px; }
+    .carousel-dots-chrome span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      border: 1px solid var(--border2);
+    }
+    .carousel-bar-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+    }
+    .carousel-viewport {
+      height: clamp(320px, 50vh, 560px);
+    }
+    .carousel-track {
+      display: flex;
+      transition: transform 400ms ease-out;
+      height: 100%;
+    }
+    .carousel-slide {
+      min-width: 100%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 14px;
+    }
+    .carousel-slide img {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      display: block;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+    .carousel-arrow {
+      position: absolute;
+      top: 55%;
+      transform: translateY(-50%);
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: var(--text3);
+      z-index: 2;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .carousel-arrow:hover {
+      color: var(--text);
+      border-color: var(--border2);
+    }
+    .carousel-arrow--prev { left: -20px; }
+    .carousel-arrow--next { right: -20px; }
+    .carousel-nav-dots {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 14px;
+    }
+    .carousel-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--border2);
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .carousel-dot--active { background: var(--accent); }
+
+    /* ─── RESEARCH GRID ─── */
+    .research-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      background: var(--surface);
+    }
+    .research-col {
+      padding: 20px 22px;
+      border-right: 1px solid var(--border);
+    }
+    .research-col:last-child { border-right: none; }
+    .research-col-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+    .research-col-list {
+      list-style: disc;
+      margin: 0 0 0 1rem;
+      padding: 0;
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.6;
+    }
+    .research-col-list li + li { margin-top: 5px; }
+
+    /* ─── DISCOVERY QUOTES ─── */
+    .discovery-quotes {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .discovery-quote {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+    }
+    .discovery-quote-icon {
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+      border-radius: 8px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      display: grid;
+      place-items: center;
+    }
+    .discovery-quote-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--text3);
+      stroke-width: 1.6;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .discovery-quote-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .discovery-quote-text {
+      font-size: 12px;
+      color: var(--text3);
+      font-style: italic;
+      margin: 2px 0 0;
+      line-height: 1.5;
+    }
+
+    /* ─── PRIORITIZATION ─── */
+    .priority-items {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 8px;
+    }
+    .priority-item {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .priority-item-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .priority-item-desc {
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.5;
+    }
+    .focus-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 14px;
+    }
+    .focus-pill-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+      margin-bottom: 8px;
+      width: 100%;
+    }
+    .focus-pill {
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    /* ─── FIGURES ─── */
+    .cs-figure {
+      margin: 0;
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 14px;
+      background: var(--surface);
+    }
+    .cs-figure img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 8px;
+    }
+    .cs-figure figcaption {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .figure-pair {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    /* ─── QUESTION CARDS ─── */
+    .question-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 8px 0 16px;
+    }
+    .question-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 var(--r) var(--r) 0;
+      transition: border-color 0.2s;
+    }
+    .question-card:hover { border-color: var(--accent); }
+    .question-card__icon {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--accent-dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .question-card__text {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* ─── OWNED GRID ─── */
+    .owned-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .owned-card {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 12px;
+      transition: border-color 0.2s;
+    }
+    .owned-card:hover { border-color: var(--border2); }
+    .owned-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--accent-dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .owned-icon svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--accent);
+      stroke-width: 1.8;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .owned-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text2);
+      line-height: 1.45;
+    }
+
+    /* ─── COMPARISON GRID ─── */
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .comparison-col {
+      padding: 20px 22px;
+      background: var(--surface);
+    }
+    .comparison-col:first-child {
+      border-right: 1px solid var(--border);
+    }
+    .comparison-col-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+    .comparison-col-list {
+      list-style: disc;
+      margin: 0 0 0 1rem;
+      padding: 0;
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.6;
+    }
+    .comparison-col-list li + li { margin-top: 5px; }
+
+    /* ─── SUBSECTION ─── */
+    .subsection {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .subsection-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+    .subsection-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      padding: var(--section) 0 48px;
+      margin-top: var(--section);
+      border-top: 1px solid var(--border);
+    }
+    .foot-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .foot-back {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text3);
+      text-decoration: none;
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .foot-back:hover {
+      color: var(--text);
+      border-color: var(--border2);
+    }
+    .foot-copy {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+    }
+
+    /* ─── REVEAL ─── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+    .reveal.in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 1100px) {
+      .metrics-strip { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 900px) {
+      .metrics-strip { grid-template-columns: repeat(2, 1fr); }
+      .hero-meta { grid-template-columns: 1fr; }
+      .hero-meta-item--full { grid-column: auto; }
+      .goal-grid { grid-template-columns: 1fr; }
+      .research-grid { grid-template-columns: 1fr; }
+      .research-col { border-right: none; border-bottom: 1px solid var(--border); }
+      .research-col:last-child { border-bottom: none; }
+      .owned-grid { grid-template-columns: repeat(2, 1fr); }
+      .comparison-grid { grid-template-columns: 1fr; }
+      .comparison-col:first-child { border-right: none; border-bottom: 1px solid var(--border); }
+      .figure-pair { grid-template-columns: 1fr; }
+      .carousel-arrow--prev { left: 8px; }
+      .carousel-arrow--next { right: 8px; }
+    }
+    @media (max-width: 768px) {
+      .toc-inner {
+        position: static;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        align-items: center;
+      }
+      .toc-label { margin-bottom: 0; margin-right: 6px; }
+    }
+    @media (max-width: 640px) {
+      .metrics-strip { grid-template-columns: 1fr; }
+      .owned-grid { grid-template-columns: 1fr; }
+      .hero h1 { font-size: clamp(24px, 7vw, 34px); }
+    }
+    @media (max-width: 520px) {
+      .rethink__visual { max-width: 340px; height: 360px; }
+      .rethink__node { font-size: 11px; padding: 10px 14px; }
+      .rethink__center { width: 80px; height: 80px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .reveal { transition: none; opacity: 1; transform: none; }
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="dot-grid" aria-hidden="true"></div>
+
+  <!-- SCROLL PROGRESS -->
+  <div class="scroll-progress" data-scroll-progress>
+    <div class="scroll-progress__bar"></div>
+  </div>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <div class="nav-left">
+        <a href="index.html" class="brand">saniya.arora</a>
+        <a href="index.html#work" class="nav-back">&larr; Back to work</a>
+      </div>
+      <button class="theme-toggle" aria-label="Toggle theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </nav>
+
+  <main class="wrap">
+
+    <!-- HERO -->
+    <div class="hero reveal">
+      <div class="hero-eyebrow">
+        <span class="hero-dot" aria-hidden="true"></span>
+        Enterprise UX &middot; Data-heavy workflows &middot; Digital twin platform
+      </div>
+
+      <h1>Designing a Decision System for Factory&nbsp;Operators</h1>
+
+      <p class="hero-sub">
+        Turning siloed telemetry into real-time, competitive operational intelligence across global manufacturing sites.
+      </p>
+
+      <div class="hero-divider" aria-hidden="true"></div>
+
+      <div class="hero-meta">
+        <div class="hero-meta-item">
+          <div class="hero-meta-label">Role</div>
+          <div class="hero-meta-value">Lead Product Designer (End-to-End)</div>
+        </div>
+        <div class="hero-meta-item">
+          <div class="hero-meta-label">Scope</div>
+          <div class="hero-meta-value">IA redesign &middot; Heatmaps &middot; Analytics &middot; Interaction model &middot; Gamification pivot</div>
+        </div>
+        <div class="hero-meta-item">
+          <div class="hero-meta-label">Team</div>
+          <div class="hero-meta-value">Engineering &middot; Product &middot; Operations</div>
+        </div>
+        <div class="hero-meta-item hero-meta-item--full">
+          <div class="hero-meta-label">Note</div>
+          <div class="hero-meta-value">Some visuals and metrics simplified due to confidentiality.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- METRICS STRIP -->
+    <div class="metrics-strip reveal">
+      <div class="metric-card">
+        <div class="metric-card__label">Time to Insight</div>
+        <div class="metric-card__value">38% faster</div>
+        <div class="metric-card__note">Reduced time to critical insight for operators</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-card__label">Workflow Completion</div>
+        <div class="metric-card__value">+22% completion rate</div>
+        <div class="metric-card__note">Increased workflow completion across operator tasks</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-card__label">Feature Adoption</div>
+        <div class="metric-card__value">31% adoption</div>
+        <div class="metric-card__note">Achieved within first release cycle</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-card__label">Cognitive Load</div>
+        <div class="metric-card__value">Reduced friction</div>
+        <div class="metric-card__note">During time-sensitive operator tasks</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-card__label">Scale</div>
+        <div class="metric-card__value">Multi-region rollout</div>
+        <div class="metric-card__note">Scaled across multiple factory regions</div>
+      </div>
+    </div>
+
+    <!-- BODY: TOC + ARTICLE -->
+    <div class="article-layout">
+
+      <!-- TOC -->
+      <aside class="toc">
+        <div class="toc-inner">
+          <div class="toc-label">On this page</div>
+          <ul class="toc-list">
+            <li><a href="#problem" class="toc-link">The Real Problem</a></li>
+            <li><a href="#opportunity" class="toc-link">Strategic Opportunity</a></li>
+            <li><a href="#research" class="toc-link">Research &amp; Discovery</a></li>
+            <li><a href="#intelligence" class="toc-link">Intelligence Layer</a></li>
+            <li><a href="#outcome-flows" class="toc-link">Outcome-Based Flows</a></li>
+            <li><a href="#pivot" class="toc-link">The Pivot</a></li>
+            <li><a href="#impact" class="toc-link">Impact &amp; Outcomes</a></li>
+            <li><a href="#next" class="toc-link">What's Next</a></li>
+          </ul>
+        </div>
+      </aside>
+
+      <!-- ARTICLE -->
+      <article>
+
+        <!-- 1. The Real Problem -->
+        <section id="problem" class="cs-section reveal">
+          <div class="section-label">01 &mdash; The Real Problem</div>
+          <h2 class="section-title">Data Was Abundant. Decisions Were Slow.</h2>
+
+          <div class="section-body">
+            <p>
+              John Deere had invested heavily in telemetry and real-time factory data.
+              The digital twin platform aggregated everything &mdash; downtime events, incident reports, asset tracking, operational metrics, and cross-factory analytics.
+            </p>
+            <p>
+              But operators weren't struggling with data access. They were struggling with: <strong>What should I do right now?</strong>
+            </p>
+            <p>
+              The platform optimized for data completeness &mdash; not decision clarity.
+            </p>
+          </div>
+
+          <blockquote class="cs-callout cs-callout--hero">
+            <p class="cs-callout__quote">
+              "This is the data that exists." &mdash; The system
+            </p>
+            <p class="cs-callout__attribution">
+              What operators actually needed: "What action should I take?"
+            </p>
+          </blockquote>
+
+          <div class="section-body">
+            <p>Operators had to:</p>
+            <ul class="cs-list">
+              <li>Interpret raw metrics manually</li>
+              <li>Cross-reference multiple panels</li>
+              <li>Infer severity without clear hierarchy</li>
+              <li>Navigate static dashboards during time-sensitive moments</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- 2. Strategic Opportunity -->
+        <section id="opportunity" class="cs-section reveal">
+          <div class="section-label">02 &mdash; Strategic Opportunity</div>
+          <h2 class="section-title">From Dashboard &rarr; To Decision System</h2>
+
+          <div class="section-body">
+            <p>
+              Instead of asking <em>"How do we display more data?"</em> we reframed the problem: <strong>How do we change operator behavior at scale?</strong>
+            </p>
+          </div>
+
+          <div class="goal-grid">
+            <div class="goal-card">
+              <div class="goal-card__label">Goal 1</div>
+              <p class="goal-card__text">
+                Reduce cognitive load during operational disruptions
+              </p>
+            </div>
+            <div class="goal-card">
+              <div class="goal-card__label">Goal 2</div>
+              <p class="goal-card__text">
+                Prioritize insight over information &mdash; enable faster action without increasing friction
+              </p>
+            </div>
+            <div class="goal-card">
+              <div class="goal-card__label">Goal 3</div>
+              <p class="goal-card__text">
+                Create competitive visibility across factories to drive behavioral change
+              </p>
+            </div>
+          </div>
+
+          <div class="rethink">
+            <p class="rethink__intro">This required rethinking:</p>
+            <div class="rethink__visual">
+              <div class="rethink__node rethink__node--top">Information architecture</div>
+              <div class="rethink__node rethink__node--right">Alert logic</div>
+              <div class="rethink__center">
+                <svg viewBox="0 0 64 64" width="56" height="56" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M32 6C20 6 12 16 12 26c0 6 3 10 6 13 2 2 3 5 3 7v4h22v-4c0-2 1-5 3-7 3-3 6-7 6-13 0-10-8-20-20-20z"/>
+                  <path d="M22 56h20" opacity="0.5"/>
+                  <path d="M24 50h16" opacity="0.3"/>
+                  <path d="M26 6c-2 8 0 14 6 18" opacity="0.4"/>
+                  <path d="M38 6c2 8 0 14-6 18" opacity="0.4"/>
+                  <circle cx="32" cy="28" r="3" fill="var(--accent)" stroke="none" opacity="0.3"/>
+                </svg>
+              </div>
+              <div class="rethink__node rethink__node--bottom">Interaction patterns</div>
+              <div class="rethink__node rethink__node--left">Behavioral incentives</div>
+              <svg class="rethink__lines" viewBox="0 0 400 400" fill="none" stroke="var(--border2)" stroke-width="1" stroke-dasharray="4 4">
+                <line x1="200" y1="100" x2="200" y2="170"/>
+                <line x1="300" y1="200" x2="230" y2="200"/>
+                <line x1="200" y1="300" x2="200" y2="230"/>
+                <line x1="100" y1="200" x2="170" y2="200"/>
+              </svg>
+            </div>
+            <p class="rethink__footnote">Not just visual design.</p>
+          </div>
+        </section>
+
+        <!-- Platform Overview — Carousel -->
+        <section class="cs-section reveal">
+          <div class="section-label">The Platform</div>
+          <h2 class="section-title">The digital twin platform &mdash; aggregating telemetry, incidents, and analytics across global factory sites</h2>
+
+          <div class="carousel-wrap" id="cs-carousel">
+            <div class="carousel-window">
+              <div class="carousel-bar">
+                <div class="carousel-dots-chrome" aria-hidden="true"><span></span><span></span><span></span></div>
+                <span class="carousel-bar-label">platform-overview</span>
+              </div>
+              <div class="carousel-viewport">
+                <div class="carousel-track" id="carousel-track">
+                  <div class="carousel-slide">
+                    <img src="images/image1.png" alt="Operation Digital Twin — factory map view with location pins" />
+                  </div>
+                  <div class="carousel-slide">
+                    <img src="images/image2.png" alt="Operation Digital Twin — monitoring dashboard" />
+                  </div>
+                  <div class="carousel-slide">
+                    <img src="images/image3.png" alt="Operation Digital Twin — data visualization tools" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button class="carousel-arrow carousel-arrow--prev" id="carousel-prev" aria-label="Previous slide">&lsaquo;</button>
+            <button class="carousel-arrow carousel-arrow--next" id="carousel-next" aria-label="Next slide">&rsaquo;</button>
+
+            <div class="carousel-nav-dots" id="carousel-dots">
+              <button class="carousel-dot carousel-dot--active" data-slide="0" aria-label="Go to slide 1"></button>
+              <button class="carousel-dot" data-slide="1" aria-label="Go to slide 2"></button>
+              <button class="carousel-dot" data-slide="2" aria-label="Go to slide 3"></button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. Research & Discovery -->
+        <section id="research" class="cs-section reveal">
+          <div class="section-label">03 &mdash; Research &amp; Discovery</div>
+          <h2 class="section-title">Competitive Landscape &amp; Operator Testing</h2>
+
+          <div class="section-body" style="margin-bottom: 20px;">
+            <p>I conducted a competitive analysis across digital twin platforms and enterprise monitoring systems to identify patterns, gaps, and opportunities.</p>
+          </div>
+
+          <figure class="cs-figure" style="margin-bottom: 20px;">
+            <img src="images/companalysis.png" alt="Competitive analysis — digital twin platforms and enterprise monitoring systems" />
+          </figure>
+
+          <div class="research-grid" style="margin-bottom: 28px;">
+            <div class="research-col">
+              <h4 class="research-col-title">Success factors</h4>
+              <ul class="research-col-list">
+                <li>IoT integration</li>
+                <li>Predictive modeling</li>
+                <li>Clear visualization tools</li>
+              </ul>
+            </div>
+            <div class="research-col">
+              <h4 class="research-col-title">Common failures</h4>
+              <ul class="research-col-list">
+                <li>Data-heavy, action-light interfaces</li>
+                <li>Poor cross-system integration</li>
+                <li>Limited scalability</li>
+              </ul>
+            </div>
+            <div class="research-col">
+              <h4 class="research-col-title">Key gap</h4>
+              <ul class="research-col-list">
+                <li>Competitive analysis alone wasn't enough &mdash; we needed to observe real operator behavior</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Operator Testing -->
+          <div class="subsection" style="margin-bottom: 28px;">
+            <h3 class="subsection-title">Operator Testing</h3>
+            <div class="section-body">
+              <p>
+                We ran moderated usability tests and first-click tests with real operator workflows. What we discovered changed the direction of the project.
+              </p>
+            </div>
+
+            <div class="discovery-quotes">
+              <div class="discovery-quote">
+                <div class="discovery-quote-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" /><path d="M8 21h8M12 17v4" /></svg>
+                </div>
+                <div>
+                  <span class="discovery-quote-label">Users clicked everywhere during time-sensitive tasks</span>
+                  <p class="discovery-quote-text">Alerts lacked clear severity hierarchy</p>
+                </div>
+              </div>
+              <div class="discovery-quote">
+                <div class="discovery-quote-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" /><path d="M20 21a8 8 0 1 0-16 0" /></svg>
+                </div>
+                <div>
+                  <span class="discovery-quote-label">Heatmaps were informative, but not actionable</span>
+                  <p class="discovery-quote-text">Analytics existed, but behavior didn't change</p>
+                </div>
+              </div>
+            </div>
+
+            <blockquote class="cs-callout">
+              <p class="cs-callout__quote">
+                The interface was logically correct. But behaviorally ineffective.
+              </p>
+            </blockquote>
+          </div>
+
+          <!-- Prioritization -->
+          <div class="subsection">
+            <h3 class="subsection-title">After synthesizing findings, I led a prioritization workshop with Product and Engineering</h3>
+
+            <div class="priority-items">
+              <div class="priority-item">
+                <p class="priority-item-title">1. Information Architecture Redesign</p>
+                <p class="priority-item-desc">Rebuilt the dashboard hierarchy around operator tasks instead of system data categories</p>
+              </div>
+              <div class="priority-item">
+                <p class="priority-item-title">2. Severity-Based Alert System</p>
+                <p class="priority-item-desc">Created severity-driven visual patterns and progressive disclosure logic</p>
+              </div>
+              <div class="priority-item">
+                <p class="priority-item-title">3. Action-Oriented Interaction Model</p>
+                <p class="priority-item-desc">Integrated contextual actions directly into insight surfaces</p>
+              </div>
+              <div class="priority-item">
+                <p class="priority-item-title">4. Cross-Factory Benchmarking</p>
+                <p class="priority-item-desc">Introduced competitive visibility across factory regions</p>
+              </div>
+            </div>
+
+            <div class="section-body" style="margin-top: 14px;">
+              <p><strong>We intentionally deprioritized:</strong> cosmetic enhancements and feature expansion without behavioral impact. The focus shifted to outcomes.</p>
+            </div>
+
+            <div class="focus-pills">
+              <div class="focus-pill-label">Features to focus on</div>
+              <span class="focus-pill">Heat maps</span>
+              <span class="focus-pill">User flows and navigation</span>
+              <span class="focus-pill">Analytics</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. Intelligence Layer -->
+        <section id="intelligence" class="cs-section reveal">
+          <div class="section-label">05 &mdash; Designing the Intelligence Layer</div>
+          <h2 class="section-title">Heatmaps: From Visualization to Insight</h2>
+
+          <div class="section-body" style="margin-bottom: 20px;">
+            <p>
+              The original heatmap provided location filters, category filters, date ranges, and a static legend. It answered: <em>"Where did events occur?"</em> but not: <strong>"Where should I focus?"</strong>
+            </p>
+          </div>
+
+          <!-- Flow diagram -->
+          <div class="subsection" style="margin-bottom: 28px;">
+            <h3 class="subsection-title">Outcome flow: Heat map functionality</h3>
+            <figure class="cs-figure">
+              <img src="images/heatmap1.png" alt="Outcome flow diagram — Heat Map Functionality mapped to business outcomes, goals, and opportunities" />
+              <figcaption>Outcome flow for heat map functionality</figcaption>
+            </figure>
+          </div>
+
+          <!-- Iteration 1 -->
+          <div class="subsection" style="margin-bottom: 28px;">
+            <h3 class="subsection-title">Iteration 1 &mdash; Customization Depth</h3>
+
+            <div style="margin-bottom: 16px;">
+              <span class="subsection-label">Initial MVP</span>
+            </div>
+            <figure class="cs-figure" style="margin-bottom: 16px;">
+              <img src="images/iteration1.png" alt="Initial heatmap MVP — Operations Digital Twin with heatmap panel" />
+              <figcaption>Base model for heat map feature</figcaption>
+            </figure>
+
+            <div class="section-body" style="margin-bottom: 16px;">
+              <p>We added:</p>
+              <ul class="cs-list">
+                <li>Aggregation levels (factory / department / station)</li>
+                <li>Severity segmentation</li>
+                <li>Adjustable thresholds</li>
+                <li>Opacity controls</li>
+              </ul>
+              <p>This increased flexibility &mdash; but flexibility alone didn't drive clarity.</p>
+            </div>
+
+            <div style="margin-bottom: 8px;">
+              <span class="subsection-label">Iterated design</span>
+            </div>
+            <figure class="cs-figure">
+              <img src="images/iteration2.png" alt="Iterated heatmap design — deeper customization controls" />
+              <figcaption>Refined heat map with deeper customization controls</figcaption>
+            </figure>
+          </div>
+
+          <!-- Severity & Prioritization -->
+          <div class="subsection">
+            <h3 class="subsection-title">Severity &amp; Prioritization Logic</h3>
+
+            <div class="section-body">
+              <p>We introduced:</p>
+              <ul class="cs-list">
+                <li>Hierarchical alert patterns</li>
+                <li>Progressive disclosure</li>
+                <li>Visual weighting by urgency</li>
+                <li>Contextual actions embedded directly in insight panels</li>
+              </ul>
+              <p>Now the system surfaced: <strong>what matters most</strong>, <strong>why it matters</strong>, and <strong>what to do next</strong>. The interface began guiding behavior.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. Outcome-Based Flows -->
+        <section id="outcome-flows" class="cs-section reveal">
+          <div class="section-label">06 &mdash; Outcome-Based Flows</div>
+          <h2 class="section-title">Every major feature was mapped to a behavioral outcome</h2>
+
+          <div class="section-body" style="margin-bottom: 16px;">
+            <p>We reframed design questions as:</p>
+          </div>
+
+          <div class="question-grid">
+            <div class="question-card">
+              <span class="question-card__icon">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+              </span>
+              <span class="question-card__text">What decision is being enabled?</span>
+            </div>
+            <div class="question-card">
+              <span class="question-card__icon">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+              </span>
+              <span class="question-card__text">What behavior is being reinforced?</span>
+            </div>
+            <div class="question-card">
+              <span class="question-card__icon">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+              </span>
+              <span class="question-card__text">What delay is being eliminated?</span>
+            </div>
+          </div>
+
+          <div class="section-body" style="margin-bottom: 24px;">
+            <p>This moved the product from <em>informational</em> to <em>operational</em>.</p>
+          </div>
+
+          <!-- Navigation redesign -->
+          <div class="subsection" style="margin-bottom: 28px;">
+            <h3 class="subsection-title">Navigation Redesign &rarr; Reduced cognitive friction</h3>
+
+            <figure class="cs-figure" style="margin-bottom: 16px;">
+              <img src="images/heatmap2.png" alt="Outcome flow diagram — User Flow & Navigation" />
+              <figcaption>Outcome flow for navigation redesign</figcaption>
+            </figure>
+
+            <div class="figure-pair">
+              <figure class="cs-figure">
+                <img src="images/iteration3.png" alt="Deliverable — heatmap overlay and filters" />
+              </figure>
+              <figure class="cs-figure">
+                <img src="images/iteration4.png" alt="Deliverable — streamlined navigation" />
+              </figure>
+            </div>
+          </div>
+
+          <!-- Analytics -->
+          <div class="subsection">
+            <h3 class="subsection-title">Analytics &rarr; Competitive accountability</h3>
+
+            <figure class="cs-figure" style="margin-bottom: 16px;">
+              <img src="images/heatmap3.png" alt="Outcome flow diagram — Analytics" />
+              <figcaption>Outcome flow for analytics functionality</figcaption>
+            </figure>
+
+            <blockquote class="cs-callout">
+              <p class="cs-callout__quote">
+                Heatmaps &rarr; Faster triage. Navigation redesign &rarr; Reduced cognitive friction. Analytics &rarr; Competitive accountability.
+              </p>
+            </blockquote>
+          </div>
+        </section>
+
+        <!-- 7. The Pivot -->
+        <section id="pivot" class="cs-section reveal">
+          <div class="section-label">07 &mdash; The Pivot</div>
+          <h2 class="section-title">Gamification as Accountability</h2>
+
+          <div class="section-body">
+            <p>
+              During early analytics testing, we observed something critical: factories had no visibility into each other's performance. Data was siloed by region.
+            </p>
+            <p>
+              We asked: <strong>What if visibility created motivation?</strong>
+            </p>
+          </div>
+
+          <div class="section-body">
+            <p>We introduced:</p>
+            <ul class="cs-list">
+              <li>"Most Viewed Factory" leaderboard</li>
+              <li>Cross-region performance rankings</li>
+              <li>Comparative metrics dashboards</li>
+            </ul>
+            <p>
+              This wasn't superficial gamification. It was <strong>strategic transparency</strong>.
+            </p>
+          </div>
+
+          <blockquote class="cs-callout cs-callout--hero">
+            <p class="cs-callout__quote">
+              Visibility &rarr; Accountability &rarr; Behavioral shift.
+            </p>
+            <p class="cs-callout__attribution">
+              Factories began competing to improve uptime and reduce incidents.
+            </p>
+          </blockquote>
+
+          <figure class="cs-figure">
+            <img src="images/final1.png" alt="Analytics dashboard — Operations Twin showing analytics with competitive benchmarking" />
+            <figcaption>Final analytics dashboard with competitive benchmarking</figcaption>
+          </figure>
+        </section>
+
+        <!-- 8. Impact & Outcomes -->
+        <section id="impact" class="cs-section reveal">
+          <div class="section-label">08 &mdash; Impact &amp; Outcomes</div>
+          <h2 class="section-title">From raw telemetry to operational intelligence</h2>
+
+          <div class="comparison-grid">
+            <div class="comparison-col">
+              <h4 class="comparison-col-title">Before</h4>
+              <ul class="comparison-col-list">
+                <li>Raw telemetry dashboards</li>
+                <li>Static data interpretation</li>
+                <li>High cognitive load</li>
+                <li>Limited cross-factory insight</li>
+              </ul>
+            </div>
+            <div class="comparison-col">
+              <h4 class="comparison-col-title">After</h4>
+              <ul class="comparison-col-list">
+                <li>Prioritized insights</li>
+                <li>Embedded contextual actions</li>
+                <li>Clear severity hierarchy</li>
+                <li>Competitive benchmarking</li>
+                <li>Faster decision cycles</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="goal-grid" style="margin-bottom: 20px;">
+            <div class="goal-card">
+              <div class="goal-card__label">38% faster</div>
+              <p class="goal-card__text">Time to critical insight</p>
+            </div>
+            <div class="goal-card">
+              <div class="goal-card__label">+22%</div>
+              <p class="goal-card__text">Increase in workflow completion</p>
+            </div>
+            <div class="goal-card">
+              <div class="goal-card__label">31% adoption</div>
+              <p class="goal-card__text">Feature adoption in first release cycle</p>
+            </div>
+          </div>
+
+          <div class="section-body">
+            <p>
+              The platform reached <strong>100,000+ views in 6 months</strong> with increased cross-factory alignment. More importantly: operators reported faster resolution times and clearer operational priorities.
+            </p>
+          </div>
+        </section>
+
+        <!-- What I Owned -->
+        <section class="cs-section reveal">
+          <div class="section-label">What I Owned</div>
+          <h2 class="section-title">This was not a visual refresh. It was a systems redesign.</h2>
+
+          <div class="section-body" style="margin-bottom: 20px;">
+            <p>As Lead Product Designer, I:</p>
+          </div>
+
+          <div class="owned-grid">
+            <div class="owned-card">
+              <div class="owned-icon">
+                <svg viewBox="0 0 24 24"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg>
+              </div>
+              <span class="owned-label">Defined the IA redesign</span>
+            </div>
+            <div class="owned-card">
+              <div class="owned-icon">
+                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
+              <span class="owned-label">Led prioritization workshop</span>
+            </div>
+            <div class="owned-card">
+              <div class="owned-icon">
+                <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              </div>
+              <span class="owned-label">Designed alert logic &amp; severity hierarchy</span>
+            </div>
+            <div class="owned-card">
+              <div class="owned-icon">
+                <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              </div>
+              <span class="owned-label">Structured outcome-based flows</span>
+            </div>
+            <div class="owned-card">
+              <div class="owned-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+              </div>
+              <span class="owned-label">Introduced gamification pivot</span>
+            </div>
+            <div class="owned-card">
+              <div class="owned-icon">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </div>
+              <span class="owned-label">Conducted usability &amp; first-click testing</span>
+            </div>
+            <div class="owned-card">
+              <div class="owned-icon">
+                <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+              </div>
+              <span class="owned-label">Iterated alongside engineering</span>
+            </div>
+            <div class="owned-card">
+              <div class="owned-icon">
+                <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              </div>
+              <span class="owned-label">Aligned product decisions with operator behavior</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Reflection -->
+        <section class="cs-section reveal">
+          <div class="section-label">Reflection</div>
+          <h2 class="section-title">Designing at enterprise scale requires a different lens</h2>
+
+          <div class="section-body">
+            <p>This project taught me:</p>
+            <ul class="cs-list">
+              <li>Translating telemetry into leverage</li>
+              <li>Designing for decision-making, not completeness</li>
+              <li>Balancing flexibility with clarity</li>
+              <li>Aligning behavioral incentives with business goals</li>
+            </ul>
+            <p>
+              This project transformed a data platform into an operational decision engine &mdash; and it shifted my thinking from interface design to systems design.
+            </p>
+          </div>
+        </section>
+
+        <!-- What's Next -->
+        <section id="next" class="cs-section reveal">
+          <div class="section-label">What's Next</div>
+          <h2 class="section-title">The next evolution: a digital twin that doesn't just reflect operations &mdash; it anticipates them</h2>
+
+          <div class="section-body">
+            <p>The long-term vision includes:</p>
+            <ul class="cs-list">
+              <li>Predictive downtime modeling</li>
+              <li>Anomaly detection across historical telemetry</li>
+              <li>Proactive alert surfacing</li>
+              <li>AI-assisted prioritization</li>
+            </ul>
+          </div>
+        </section>
+
+      </article>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="reveal">
+      <div class="foot-inner">
+        <a href="index.html#work" class="foot-back">&larr; Back to all work</a>
+        <span class="foot-copy">&copy; 2026 Saniya Arora &middot; Built with code + canvas + AI</span>
+      </div>
+    </footer>
+
+  </main>
+
+  <script>
+    (function() {
+      var saved = localStorage.getItem('theme');
+      if (saved) {
+        document.documentElement.setAttribute('data-theme', saved);
+      } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+
+    document.querySelector('.theme-toggle').addEventListener('click', function() {
+      var html = document.documentElement;
+      var next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      document.querySelector('meta[name="theme-color"]').content =
+        next === 'dark' ? '#09090b' : '#fafafa';
+    });
+
+    // Scroll progress bar
+    var progressRoot = document.querySelector('[data-scroll-progress]');
+    function updateScrollProgress() {
+      if (!progressRoot) return;
+      var doc = document.documentElement;
+      var scrollTop = window.scrollY || doc.scrollTop;
+      var docHeight = doc.scrollHeight - window.innerHeight;
+      var progress = docHeight > 0 ? scrollTop / docHeight : 0;
+      progressRoot.style.setProperty('--progress', progress.toFixed(4));
+    }
+    window.addEventListener('scroll', updateScrollProgress, { passive: true });
+    updateScrollProgress();
+
+    // Reveal on scroll
+    var io = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) {
+        if (e.isIntersecting) {
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.reveal').forEach(function(el) { io.observe(el); });
+
+    // TOC smooth scroll + active state
+    var tocLinks = document.querySelectorAll('.toc-link');
+    tocLinks.forEach(function(link) {
+      link.addEventListener('click', function(event) {
+        var href = link.getAttribute('href');
+        if (!href || !href.startsWith('#')) return;
+        var target = document.querySelector(href);
+        if (!target) return;
+        event.preventDefault();
+        var top = target.getBoundingClientRect().top + window.scrollY - 80;
+        window.scrollTo({ top: top, behavior: 'smooth' });
+      });
+    });
+
+    var sections = Array.from(document.querySelectorAll('.cs-section[id]'));
+    var linkById = new Map();
+    tocLinks.forEach(function(link) {
+      var href = link.getAttribute('href');
+      if (href && href.startsWith('#')) {
+        linkById.set(href.slice(1), link);
+      }
+    });
+
+    if ('IntersectionObserver' in window && sections.length) {
+      var sectionObs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          var id = entry.target.id;
+          var link = linkById.get(id);
+          if (!link) return;
+          if (entry.isIntersecting) {
+            tocLinks.forEach(function(l) { l.classList.remove('toc-link--active'); });
+            link.classList.add('toc-link--active');
+          }
+        });
+      }, { threshold: 0.3, rootMargin: '-20% 0px -45% 0px' });
+      sections.forEach(function(s) { sectionObs.observe(s); });
+    }
+
+    // Carousel
+    (function() {
+      var track = document.getElementById('carousel-track');
+      var prevBtn = document.getElementById('carousel-prev');
+      var nextBtn = document.getElementById('carousel-next');
+      var dotsContainer = document.getElementById('carousel-dots');
+      if (!track || !prevBtn || !nextBtn || !dotsContainer) return;
+
+      var slides = track.querySelectorAll('.carousel-slide');
+      var dots = dotsContainer.querySelectorAll('.carousel-dot');
+      var total = slides.length;
+      var current = 0;
+
+      function goTo(index) {
+        if (index < 0) index = total - 1;
+        if (index >= total) index = 0;
+        current = index;
+        track.style.transform = 'translateX(-' + (current * 100) + '%)';
+        dots.forEach(function(dot, i) {
+          dot.classList.toggle('carousel-dot--active', i === current);
+        });
+      }
+
+      prevBtn.addEventListener('click', function() { goTo(current - 1); });
+      nextBtn.addEventListener('click', function() { goTo(current + 1); });
+      dots.forEach(function(dot) {
+        dot.addEventListener('click', function() {
+          goTo(parseInt(dot.getAttribute('data-slide'), 10));
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,2304 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <title>WAVE – Operationalizing AI Inside Enterprise Guardrails</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#09090b" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root, [data-theme="dark"] {
+      --bg: #09090b;
+      --surface: #111113;
+      --surface2: #18181b;
+      --border: #27272a;
+      --border2: #3f3f46;
+      --text: #fafafa;
+      --text2: #a1a1aa;
+      --text3: #71717a;
+      --accent: #4ade80;
+      --accent-dim: rgba(74, 222, 128, 0.1);
+
+      --sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+      --max: 1060px;
+      --pad: clamp(16px, 3vw, 32px);
+      --section: clamp(72px, 9vw, 112px);
+      --r: 10px;
+      --r-lg: 14px;
+    }
+
+    [data-theme="light"] {
+      --bg: #fafafa;
+      --surface: #ffffff;
+      --surface2: #f4f4f5;
+      --border: #e4e4e7;
+      --border2: #d4d4d8;
+      --text: #09090b;
+      --text2: #52525b;
+      --text3: #a1a1aa;
+      --accent: #16a34a;
+      --accent-dim: rgba(22, 163, 74, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--sans);
+      color: var(--text);
+      background: var(--bg);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .dot-grid {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background-image: radial-gradient(circle, var(--border) 0.6px, transparent 0.6px);
+      background-size: 22px 22px;
+      opacity: 0.35;
+    }
+
+    /* ─── SCROLL PROGRESS ─── */
+    .scroll-progress {
+      position: fixed;
+      inset: 0 0 auto;
+      height: 2px;
+      z-index: 110;
+      pointer-events: none;
+    }
+    .scroll-progress__bar {
+      width: calc(var(--progress, 0) * 100%);
+      height: 100%;
+      background: var(--accent);
+      transform-origin: left;
+      transition: width 80ms linear;
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid var(--border);
+      background: color-mix(in srgb, var(--bg) 82%, transparent);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .nav-inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 var(--pad);
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand {
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      flex-shrink: 0;
+    }
+    .nav-back {
+      font-size: 13px;
+      color: var(--text3);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 8px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .nav-back:hover {
+      color: var(--text);
+      background: var(--surface2);
+    }
+    .theme-toggle {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      width: 34px;
+      height: 34px;
+      cursor: pointer;
+      color: var(--text3);
+      display: grid;
+      place-items: center;
+      transition: color 0.15s, border-color 0.15s;
+      flex-shrink: 0;
+    }
+    .theme-toggle:hover {
+      color: var(--text);
+      border-color: var(--border2);
+    }
+    .theme-toggle svg { width: 15px; height: 15px; }
+    .icon-sun, .icon-moon { display: none; }
+    [data-theme="dark"] .icon-sun { display: block; }
+    [data-theme="light"] .icon-moon { display: block; }
+
+    /* ─── LAYOUT ─── */
+    .wrap {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 var(--pad);
+    }
+
+    main {
+      padding-bottom: 80px;
+    }
+
+    /* ─── HERO ─── */
+    .article-hero {
+      padding: var(--section) 0 0;
+      text-align: center;
+    }
+    .hero-eyebrow {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .hero-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+    .article-hero h1 {
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.12;
+      margin-bottom: 14px;
+    }
+    .hero-subtitle {
+      color: var(--text2);
+      font-size: 16px;
+      line-height: 1.7;
+      max-width: 44ch;
+      margin: 0 auto 28px;
+    }
+    .hero-divider {
+      height: 1px;
+      background: var(--border);
+      width: 100%;
+      margin-bottom: 20px;
+    }
+
+    /* Hero meta */
+    .hero-meta {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      text-align: left;
+      max-width: 100%;
+    }
+    .hero-meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .hero-meta-item--note {
+      grid-column: 1 / -1;
+      margin-top: 4px;
+    }
+    .hero-meta-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text3);
+      font-weight: 500;
+    }
+    .hero-meta-value {
+      font-size: 14px;
+      color: var(--text2);
+      line-height: 1.55;
+    }
+
+    @media (max-width: 860px) {
+      .hero-meta {
+        grid-template-columns: 1fr;
+      }
+      .hero-meta-item--note {
+        grid-column: auto;
+      }
+    }
+
+    /* ─── METRICS STRIP ─── */
+    .metrics-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      padding: 40px 0 0;
+    }
+    .metric-card {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 22px;
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .metric-card__label {
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text3);
+    }
+    .metric-card__title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      line-height: 1.2;
+    }
+    .metric-card__note {
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.55;
+    }
+
+    @media (max-width: 900px) {
+      .metrics-strip { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 600px) {
+      .metrics-strip { grid-template-columns: 1fr; }
+    }
+
+    /* ─── ARTICLE LAYOUT ─── */
+    .article-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+      align-items: flex-start;
+      padding-top: var(--section);
+    }
+
+    @media (min-width: 1024px) {
+      .article-layout {
+        grid-template-columns: 220px minmax(0, 1fr);
+        gap: 36px;
+      }
+    }
+
+    /* ─── TOC ─── */
+    .article-toc__inner {
+      position: sticky;
+      top: 72px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      padding: 16px;
+    }
+    .article-toc__label {
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text3);
+      margin-bottom: 10px;
+    }
+    .article-toc__list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .article-toc__link {
+      display: block;
+      font-size: 13px;
+      text-decoration: none;
+      color: var(--text3);
+      padding: 5px 10px;
+      border-radius: 8px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .article-toc__link:hover {
+      background: var(--surface2);
+      color: var(--text);
+    }
+    .article-toc__link--active {
+      background: var(--accent-dim);
+      color: var(--text);
+    }
+
+    @media (max-width: 1023px) {
+      .article-toc__inner {
+        position: static;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+      }
+      .article-toc__label {
+        margin-bottom: 0;
+        margin-right: 4px;
+      }
+    }
+
+    /* ─── ARTICLE SECTIONS ─── */
+    article {
+      display: flex;
+      flex-direction: column;
+      gap: 56px;
+      min-width: 0;
+    }
+
+    .cs-section {
+      scroll-margin-top: 100px;
+    }
+
+    .cs-section__eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .cs-section__title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin: 0 0 14px;
+      line-height: 1.3;
+      color: var(--text);
+    }
+
+    .cs-section__body {
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--text2);
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+    .cs-section__body p {
+      margin: 0 0 14px;
+    }
+    .cs-section__body p:last-child {
+      margin-bottom: 0;
+    }
+    .cs-section__body strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .cs-list {
+      margin: 8px 0 14px 1.1rem;
+      padding: 0;
+      font-size: 15px;
+      color: var(--text2);
+      line-height: 1.7;
+    }
+    .cs-list li + li {
+      margin-top: 4px;
+    }
+    .cs-list li::marker {
+      color: var(--accent);
+    }
+    .cs-list strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .cs-inline-note {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text3);
+      margin-top: 8px;
+    }
+    .cs-inline-note a {
+      color: var(--text);
+      font-weight: 500;
+      transition: color 0.15s;
+    }
+    .cs-inline-note a:hover {
+      color: var(--accent);
+    }
+
+    /* ─── CALLOUT ─── */
+    .cs-callout {
+      margin: 24px 0;
+      padding: 24px 28px;
+      background: var(--surface);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 var(--r-lg) var(--r-lg) 0;
+      border-top: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--text2);
+    }
+    .cs-callout strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* ─── STAGE DETAIL CARDS (editor-panel style) ─── */
+    .cs-stage-detail {
+      margin: 18px 0;
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .cs-stage-detail:hover {
+      border-color: var(--border2);
+    }
+    .cs-stage-detail__header {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .cs-stage-detail__icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--accent-dim);
+      border: 1px solid var(--border);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+    .cs-stage-detail__icon svg {
+      width: 16px;
+      height: 16px;
+      stroke: var(--accent);
+      stroke-width: 1.6;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .cs-stage-detail__label {
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--accent);
+    }
+    .cs-stage-detail__name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0;
+      letter-spacing: -0.02em;
+    }
+    .cs-stage-detail__body {
+      padding: 22px 24px;
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text2);
+    }
+    .cs-stage-detail__body p {
+      margin: 0 0 12px;
+    }
+    .cs-stage-detail__body p:last-child {
+      margin-bottom: 0;
+    }
+    .cs-stage-detail__body strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+    .cs-stage-detail__body .cs-list {
+      font-size: 14px;
+    }
+
+    .cs-sub-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 18px 0 6px;
+    }
+
+    /* ─── WAVE PIPELINE DEMO ─── */
+    .cs-wave-demo {
+      margin: 28px 0 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 28px 24px 24px;
+      overflow: hidden;
+      min-width: 0;
+    }
+    .cs-wave-demo__label {
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text3);
+      margin-bottom: 20px;
+    }
+    .cs-wave-pipeline {
+      display: flex;
+      align-items: center;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .cs-wave-stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+      min-width: 100px;
+    }
+    .cs-wave-stage__icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      transition: border-color 0.2s;
+    }
+    .cs-wave-stage:hover .cs-wave-stage__icon {
+      border-color: var(--border2);
+    }
+    .cs-wave-stage__icon svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--text2);
+      stroke-width: 1.6;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .cs-wave-stage__name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      text-align: center;
+      line-height: 1.3;
+    }
+    .cs-wave-stage__sub {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      text-align: center;
+    }
+    .cs-wave-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 36px;
+      position: relative;
+    }
+    .cs-wave-arrow__line {
+      width: 100%;
+      height: 1px;
+      background: var(--border2);
+    }
+    .cs-wave-arrow__chevron {
+      position: absolute;
+      right: 2px;
+      font-size: 10px;
+      color: var(--text3);
+    }
+    .cs-wave-gate {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+      min-width: 50px;
+    }
+    .cs-wave-gate__dot {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      background: var(--accent-dim);
+      display: grid;
+      place-items: center;
+    }
+    .cs-wave-gate__dot svg {
+      width: 13px;
+      height: 13px;
+      stroke: var(--accent);
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .cs-wave-gate__label {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      text-align: center;
+      line-height: 1.2;
+      opacity: 0.7;
+    }
+
+    .cs-wave-thread {
+      margin-top: 18px;
+      padding: 12px 16px;
+      background: var(--accent-dim);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .cs-wave-thread__icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+    .cs-wave-thread__icon svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--accent);
+      stroke-width: 1.6;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .cs-wave-thread__text {
+      font-size: 12px;
+      color: var(--text2);
+      line-height: 1.45;
+    }
+
+    .cs-wave-context {
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .cs-wave-context__item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+    }
+    .cs-wave-context__dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .cs-wave-context__dot--stage {
+      background: var(--text3);
+      border: 1px solid var(--border2);
+    }
+    .cs-wave-context__dot--gate {
+      background: var(--accent);
+      border: 1px solid var(--accent);
+    }
+    .cs-wave-context__dot--context {
+      background: rgba(147, 130, 255, 0.6);
+      border: 1px solid rgba(147, 130, 255, 0.4);
+    }
+
+    @media (max-width: 760px) {
+      .cs-wave-stage { min-width: 74px; }
+      .cs-wave-arrow { width: 22px; }
+      .cs-wave-gate { min-width: 36px; }
+      .cs-wave-demo { padding: 22px 16px 20px; }
+    }
+
+    /* ─── SOLUTION CARDS ─── */
+    .cs-solution-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 24px;
+    }
+    .cs-solution-card {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      padding: 24px 22px;
+      display: flex;
+      flex-direction: column;
+      transition: border-color 0.2s;
+    }
+    .cs-solution-card:hover {
+      border-color: var(--border2);
+    }
+    .cs-solution-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 12px;
+      border-radius: 6px;
+      background: var(--accent-dim);
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      margin-bottom: 14px;
+      width: fit-content;
+    }
+    .cs-solution-card-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin: 0 0 12px;
+      color: var(--text);
+      line-height: 1.35;
+      letter-spacing: -0.02em;
+    }
+    .cs-solution-list {
+      margin: 0 0 0 1.1rem;
+      padding: 0;
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.6;
+    }
+    .cs-solution-list li + li {
+      margin-top: 6px;
+    }
+    .cs-solution-list li::marker {
+      color: var(--accent);
+    }
+
+    @media (max-width: 980px) {
+      .cs-solution-cards { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      .cs-solution-cards { grid-template-columns: 1fr; }
+    }
+
+    /* ─── PERSONA CARDS ─── */
+    .cs-persona-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 20px 0 8px;
+    }
+    .cs-persona-card {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      padding: 20px 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 10px;
+      transition: border-color 0.2s;
+    }
+    .cs-persona-card:hover {
+      border-color: var(--border2);
+    }
+    .cs-persona-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--accent-dim);
+      border: 1px solid var(--border);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+    .cs-persona-icon svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--accent);
+      stroke-width: 1.6;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .cs-persona-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 0;
+    }
+    .cs-persona-desc {
+      font-size: 12px;
+      color: var(--text2);
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    @media (max-width: 900px) {
+      .cs-persona-row { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 520px) {
+      .cs-persona-row { grid-template-columns: 1fr; }
+    }
+
+    /* ─── OWNED CARDS ─── */
+    .cs-owned-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .cs-owned-card {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: border-color 0.2s;
+    }
+    .cs-owned-card:hover {
+      border-color: var(--border2);
+    }
+    .cs-owned-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--accent-dim);
+      border: 1px solid var(--border);
+      display: grid;
+      place-items: center;
+    }
+    .cs-owned-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--accent);
+      stroke-width: 1.6;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .cs-owned-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 0;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+    .cs-owned-desc {
+      margin: 0;
+      color: var(--text2);
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    @media (min-width: 768px) {
+      .cs-owned-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* ─── IMPACT LAYOUT ─── */
+    .cs-impact {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 24px;
+      align-items: start;
+      margin-top: 12px;
+    }
+    .cs-impact__body {
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--text2);
+    }
+    .cs-impact__body p {
+      margin: 0 0 14px;
+    }
+    .cs-impact__body p:last-child {
+      margin-bottom: 0;
+    }
+    .cs-impact__card {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      padding: 22px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .cs-impact__card-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text3);
+    }
+    .cs-impact__card-title {
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.4;
+      margin: 0;
+      color: var(--text);
+    }
+    .cs-impact__card-desc {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text2);
+      margin: 0;
+    }
+
+    @media (max-width: 900px) {
+      .cs-impact { grid-template-columns: 1fr; }
+    }
+
+    .cs-outro {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text3);
+      margin-top: 8px;
+    }
+
+    /* ─── FAILURE / INSIGHT CARD GRIDS ─── */
+    .diagram-grid {
+      display: grid;
+      gap: 10px;
+      margin: 18px 0;
+    }
+    .diagram-grid--2 { grid-template-columns: 1fr 1fr; }
+    .diagram-grid--3 { grid-template-columns: repeat(3, 1fr); }
+    .diagram-grid--5 { grid-template-columns: repeat(5, 1fr); }
+    .diagram-card {
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      background: var(--surface);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: border-color 0.2s;
+    }
+    .diagram-card:hover { border-color: var(--border2); }
+    .diagram-card__indicator {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--accent);
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      background: var(--accent-dim);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+    .diagram-card__indicator--warn {
+      color: #f87171;
+      background: rgba(248, 113, 113, 0.1);
+    }
+    .diagram-card__text {
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.5;
+    }
+    .diagram-card__text strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+    .diagram-card__title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+    .diagram-card__desc {
+      font-size: 12px;
+      color: var(--text3);
+      line-height: 1.5;
+    }
+
+    /* ─── COMPARISON DIAGRAM ─── */
+    .compare {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      margin: 20px 0;
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      background: var(--surface);
+    }
+    .compare__col {
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .compare__heading {
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+    }
+    .compare__heading--left { color: var(--text3); }
+    .compare__heading--right { color: var(--accent); }
+    .compare__item {
+      font-size: 13px;
+      color: var(--text2);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .compare__item::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .compare__col:first-child .compare__item::before {
+      background: var(--text3);
+    }
+    .compare__col:last-child .compare__item::before {
+      background: var(--accent);
+    }
+    .compare__divider {
+      width: 1px;
+      background: var(--border);
+    }
+    .compare__arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+      color: var(--text3);
+      font-size: 16px;
+    }
+
+    /* ─── GATE STEPS DIAGRAM ─── */
+    .gate-steps {
+      display: flex;
+      flex-direction: column;
+      margin: 18px 0;
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .gate-step {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .gate-step:last-child { border-bottom: none; }
+    .gate-step__dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      background: var(--accent-dim);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      font-size: 10px;
+      color: var(--accent);
+    }
+    .gate-step__text {
+      font-size: 14px;
+      color: var(--text);
+      font-weight: 500;
+    }
+    .gate-step__num {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text3);
+      flex-shrink: 0;
+      min-width: 16px;
+    }
+
+    /* ─── PRINCIPLE CARDS ─── */
+    .principle-card {
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      background: var(--surface);
+      padding: 18px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      transition: border-color 0.2s;
+    }
+    .principle-card:hover { border-color: var(--border2); }
+    .principle-card__num {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      background: var(--accent-dim);
+      padding: 3px 8px;
+      border-radius: 5px;
+      flex-shrink: 0;
+    }
+    .principle-card__text {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    /* ─── CHIP TAGS ─── */
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 10px 0;
+    }
+    .chip {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 12px;
+      background: var(--surface2);
+    }
+
+    /* ─── ACTIVITY ROW ─── */
+    .activity-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin: 14px 0;
+    }
+    .activity-item {
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      background: var(--surface);
+      padding: 14px 12px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .activity-item__icon {
+      font-size: 16px;
+      color: var(--accent);
+    }
+    .activity-item__label {
+      font-size: 12px;
+      color: var(--text);
+      font-weight: 500;
+      line-height: 1.35;
+    }
+
+    /* ─── CONTRIBUTION CARDS ─── */
+    .contrib-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 16px 0;
+    }
+    .contrib-card {
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      background: var(--surface);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: border-color 0.2s;
+    }
+    .contrib-card:hover { border-color: var(--border2); }
+    .contrib-card__icon {
+      font-family: var(--mono);
+      font-size: 14px;
+      color: var(--accent);
+    }
+    .contrib-card__title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .contrib-card__desc {
+      font-size: 12px;
+      color: var(--text3);
+      line-height: 1.45;
+    }
+
+    @media (max-width: 900px) {
+      .diagram-grid--5 { grid-template-columns: repeat(3, 1fr); }
+      .compare { grid-template-columns: 1fr; }
+      .compare__divider { width: 100%; height: 1px; }
+      .compare__arrow { display: none; }
+      .activity-row { grid-template-columns: 1fr 1fr; }
+      .contrib-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      .diagram-grid--5 { grid-template-columns: 1fr 1fr; }
+      .diagram-grid--3 { grid-template-columns: 1fr; }
+      .diagram-grid--2 { grid-template-columns: 1fr; }
+      .activity-row { grid-template-columns: 1fr; }
+      .contrib-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ─── REVEAL ─── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+    .reveal.in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ─── PASSWORD GATE ─── */
+    .pw-gate {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--sans);
+    }
+    .pw-gate__inner {
+      text-align: center;
+      max-width: 340px;
+      padding: 24px;
+    }
+    .pw-gate__label {
+      font-family: var(--mono);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text3);
+      margin-bottom: 16px;
+    }
+    .pw-gate__desc {
+      font-size: 15px;
+      color: var(--text2);
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+    .pw-gate__input {
+      width: 100%;
+      padding: 10px 14px;
+      font-size: 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      font-family: var(--mono);
+      margin-bottom: 12px;
+      text-align: center;
+      background: var(--surface);
+      color: var(--text);
+      transition: border-color 0.15s;
+    }
+    .pw-gate__input:focus {
+      border-color: var(--accent);
+    }
+    .pw-gate__error {
+      font-size: 12px;
+      color: #f87171;
+      margin-bottom: 12px;
+      display: none;
+    }
+    .pw-gate__btn {
+      width: 100%;
+      padding: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      background: var(--text);
+      color: var(--bg);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: var(--sans);
+      transition: opacity 0.15s;
+    }
+    .pw-gate__btn:hover {
+      opacity: 0.88;
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 640px) {
+      .article-hero h1 { font-size: clamp(24px, 7vw, 36px); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .reveal { transition: none; opacity: 1; transform: none; }
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- PASSWORD GATE -->
+  <div id="pw-gate" class="pw-gate">
+    <div class="pw-gate__inner">
+      <div class="pw-gate__label">Protected Case Study</div>
+      <p class="pw-gate__desc">This work is under NDA. Enter the password to continue.</p>
+      <input id="pw-input" type="password" placeholder="Password" autofocus class="pw-gate__input">
+      <div id="pw-error" class="pw-gate__error">Incorrect password</div>
+      <button id="pw-submit" class="pw-gate__btn">Enter</button>
+    </div>
+  </div>
+  <script>
+    (function(){
+      var gate=document.getElementById('pw-gate'),inp=document.getElementById('pw-input'),err=document.getElementById('pw-error'),btn=document.getElementById('pw-submit');
+      function check(){if(inp.value==='s@n'){gate.remove();}else{err.style.display='block';inp.value='';inp.focus();}}
+      btn.addEventListener('click',check);
+      inp.addEventListener('keydown',function(e){if(e.key==='Enter')check();});
+    })();
+  </script>
+
+  <div class="dot-grid" aria-hidden="true"></div>
+
+  <!-- SCROLL PROGRESS -->
+  <div class="scroll-progress" data-scroll-progress>
+    <div class="scroll-progress__bar"></div>
+  </div>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <div class="nav-left">
+        <div class="brand">saniya.arora</div>
+        <a href="index.html#work" class="nav-back">
+          <span>←</span>
+          <span>Back to work</span>
+        </a>
+      </div>
+      <button class="theme-toggle" aria-label="Toggle theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </nav>
+
+  <main>
+    <div class="wrap">
+
+      <!-- HERO -->
+      <header class="article-hero reveal">
+        <div class="hero-eyebrow">
+          <span class="hero-dot" aria-hidden="true"></span>
+          Case study · AI Orchestration · Enterprise Workflow
+        </div>
+
+        <h1>WAVE</h1>
+
+        <p class="hero-subtitle">
+          Operationalizing AI Inside Enterprise Guardrails
+        </p>
+
+        <div class="hero-divider" aria-hidden="true"></div>
+
+        <div class="hero-meta">
+          <div class="hero-meta-item">
+            <span class="hero-meta-label">Type</span>
+            <span class="hero-meta-value">Multi-Agent Orchestration Framework</span>
+          </div>
+
+          <div class="hero-meta-item">
+            <span class="hero-meta-label">Role</span>
+            <span class="hero-meta-value">Leading Thought Partner &amp; Hands-on Executor</span>
+          </div>
+
+          <div class="hero-meta-item">
+            <span class="hero-meta-label">Team</span>
+            <span class="hero-meta-value">
+              1 PM · 1 Researcher · 2 Engineers · 1 Designer · Myself
+            </span>
+          </div>
+
+          <div class="hero-meta-item hero-meta-item--note">
+            <span class="hero-meta-label">Note</span>
+            <span class="hero-meta-value">
+              WAVE is an internal workflow framework. Visuals here are conceptual representations.
+              The structure, constraints, and methodology are real. Happy to walk through details live.
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <!-- METRICS STRIP -->
+      <section class="metrics-strip reveal">
+        <div class="metric-card">
+          <div class="metric-card__label">Core Problem</div>
+          <div class="metric-card__title">Translation tax</div>
+          <div class="metric-card__note">
+            Context compresses at every handoff — costing time, money, and risk exposure.
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-card__label">Architecture</div>
+          <div class="metric-card__title">5 structured stages</div>
+          <div class="metric-card__note">
+            PM → Research → Design → Architecture → Development with schema-bound artifacts.
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-card__label">Governance</div>
+          <div class="metric-card__title">Human-in-the-lead</div>
+          <div class="metric-card__note">
+            Hard human gates at every stage. No agent advances without explicit authorization.
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-card__label">Adoption</div>
+          <div class="metric-card__title">Cross-LOB influence</div>
+          <div class="metric-card__note">
+            Daily demos and workshops shifted AI from novelty to structured infrastructure.
+          </div>
+        </div>
+      </section>
+
+      <!-- BODY: TOC + ARTICLE -->
+      <section class="article-layout">
+
+        <!-- TOC -->
+        <aside class="article-toc">
+          <div class="article-toc__inner">
+            <div class="article-toc__label">On this page</div>
+            <ul class="article-toc__list">
+              <li><a href="#stage" class="article-toc__link">Setting the stage</a></li>
+              <li><a href="#problem" class="article-toc__link">The core problem</a></li>
+              <li><a href="#role" class="article-toc__link">My role</a></li>
+              <li><a href="#bmad" class="article-toc__link">From BMAD to WAVE</a></li>
+              <li><a href="#system" class="article-toc__link">The WAVE system</a></li>
+              <li><a href="#human" class="article-toc__link">Human in the lead</a></li>
+              <li><a href="#practice" class="article-toc__link">WAVE in practice</a></li>
+              <li><a href="#influence" class="article-toc__link">Organizational influence</a></li>
+              <li><a href="#impact" class="article-toc__link">Business impact</a></li>
+              <li><a href="#represents" class="article-toc__link">What this represents</a></li>
+            </ul>
+          </div>
+        </aside>
+
+        <!-- ARTICLE -->
+        <article>
+
+        <!-- 01 · Setting the Stage -->
+        <section id="stage" class="cs-section reveal">
+          <div class="cs-section__eyebrow">01 · Setting the Stage</div>
+          <h2 class="cs-section__title">AI promises acceleration — but acceleration without structure creates chaos</h2>
+
+          <div class="cs-section__body">
+            <p>
+              The biggest hidden cost of AI in product development today isn't model usage.
+              It's <strong>translation tax</strong>.
+            </p>
+            <p>Every time work moves between disciplines — PM to research, research to design, design to architecture, architecture to development — context gets compressed. Assumptions mutate. Nuance disappears.</p>
+            <p>With AI, this problem compounds:</p>
+            <ul class="cs-list">
+              <li>Prompts summarize instead of preserve.</li>
+              <li>Outputs vary depending on framing.</li>
+              <li>Teams regenerate work because prior reasoning wasn't inherited.</li>
+              <li>Compliance is reviewed after decisions are made.</li>
+            </ul>
+
+            <div class="cs-callout">
+              <strong>Translation tax costs time, money, and risk exposure.</strong><br>
+              AI can reduce that gap — but not without structure.
+            </div>
+
+            <p>
+              WAVE (<strong>Workflow for Agentic Value Engineering</strong>) was created to operationalize AI inside enterprise guardrails.
+            </p>
+          </div>
+        </section>
+
+        <!-- 02 · The Core Problem -->
+        <section id="problem" class="cs-section reveal">
+          <div class="cs-section__eyebrow">02 · The Core Problem</div>
+          <h2 class="cs-section__title">Enterprise AI workflows break in predictable ways</h2>
+
+          <div class="cs-section__body">
+            <div class="diagram-grid diagram-grid--5">
+              <div class="diagram-card">
+                <div class="diagram-card__indicator diagram-card__indicator--warn">✕</div>
+                <div class="diagram-card__text"><strong>Ungrounded outputs</strong></div>
+              </div>
+              <div class="diagram-card">
+                <div class="diagram-card__indicator diagram-card__indicator--warn">✕</div>
+                <div class="diagram-card__text"><strong>Artifact drift</strong> between stages</div>
+              </div>
+              <div class="diagram-card">
+                <div class="diagram-card__indicator diagram-card__indicator--warn">✕</div>
+                <div class="diagram-card__text"><strong>Narrative docs</strong> instead of structured context</div>
+              </div>
+              <div class="diagram-card">
+                <div class="diagram-card__indicator diagram-card__indicator--warn">✕</div>
+                <div class="diagram-card__text"><strong>Retrofitted compliance</strong> instead of enforced</div>
+              </div>
+              <div class="diagram-card">
+                <div class="diagram-card__indicator diagram-card__indicator--warn">✕</div>
+                <div class="diagram-card__text"><strong>Superficial oversight</strong> instead of authority</div>
+              </div>
+            </div>
+
+            <p>The deeper issue: there was no <strong>deterministic contract</strong> between stages of delivery. AI was being used as a productivity layer — not as an orchestrated system.</p>
+
+            <div class="diagram-grid diagram-grid--2" style="margin:18px 0 22px;">
+              <div class="diagram-card">
+                <div class="diagram-card__indicator diagram-card__indicator--warn">↑</div>
+                <div class="diagram-card__text">Translation tax &amp; model costs increase</div>
+              </div>
+              <div class="diagram-card">
+                <div class="diagram-card__indicator diagram-card__indicator--warn">↻</div>
+                <div class="diagram-card__text">Risk compounds, humans rework decisions repeatedly</div>
+              </div>
+            </div>
+
+            <div class="cs-callout">
+              We needed a system that <strong>preserves structured context</strong>, <strong>grounds AI outputs in schemas</strong>, <strong>enforces enterprise standards</strong>, and <strong>keeps humans in the lead</strong>.
+            </div>
+          </div>
+        </section>
+
+        <!-- 03 · My Role & Collaboration -->
+        <section id="role" class="cs-section reveal">
+          <div class="cs-section__eyebrow">03 · My Role &amp; Collaboration</div>
+          <h2 class="cs-section__title">First team inside the organization actively experimenting with structured AI orchestration</h2>
+
+          <div class="cs-section__body">
+            <p>
+              WAVE was developed by a small cross-functional team: 1 PM, 1 researcher, 2 engineers (lead + junior), 1 additional designer, and myself.
+            </p>
+            <p>
+              I served as a <strong>leading thought partner and hands-on executor</strong>, helping shape:
+            </p>
+
+            <div class="contrib-grid">
+              <div class="contrib-card">
+                <div class="contrib-card__icon">⚙</div>
+                <div class="contrib-card__title">Orchestration Architecture</div>
+                <div class="contrib-card__desc">Multi-agent orchestration design and stage sequencing</div>
+              </div>
+              <div class="contrib-card">
+                <div class="contrib-card__icon">⟡</div>
+                <div class="contrib-card__title">Artifact Contracts</div>
+                <div class="contrib-card__desc">PRD.md → research.md → design.md → architect.md</div>
+              </div>
+              <div class="contrib-card">
+                <div class="contrib-card__icon">◆</div>
+                <div class="contrib-card__title">Design Agent System</div>
+                <div class="contrib-card__desc">Orchestrator + specialized sub-agents</div>
+              </div>
+              <div class="contrib-card">
+                <div class="contrib-card__icon">⊘</div>
+                <div class="contrib-card__title">Human-in-the-Lead</div>
+                <div class="contrib-card__desc">Hard gating model at every stage transition</div>
+              </div>
+              <div class="contrib-card">
+                <div class="contrib-card__icon">✓</div>
+                <div class="contrib-card__title">Compliance Enforcement</div>
+                <div class="contrib-card__desc">Enterprise standards built into the workflow</div>
+              </div>
+            </div>
+
+            <p>
+              The PM partnered closely on stage definition and sequencing. The researcher shaped the evaluative vs generative framework. Engineering grounded validation logic and implementation constraints.
+            </p>
+            <p>
+              My primary focus was on designing <strong>deterministic structure between stages</strong> — ensuring AI accelerated work without breaking enterprise standards.
+            </p>
+
+            <p>Beyond building the framework, we also made it visible. For months, we ran:</p>
+
+            <div class="activity-row">
+              <div class="activity-item">
+                <div class="activity-item__icon">▶</div>
+                <div class="activity-item__label">Daily demos</div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-item__icon">⊞</div>
+                <div class="activity-item__label">Cross-LOB workshops</div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-item__icon">⊟</div>
+                <div class="activity-item__label">Artifact walkthroughs</div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-item__icon">⟐</div>
+                <div class="activity-item__label">Live orchestration reviews</div>
+              </div>
+            </div>
+
+            <p>
+              WAVE became both an operational model and a <strong>catalyst for responsible AI adoption</strong> across the organization.
+            </p>
+          </div>
+        </section>
+
+        <!-- 04 · From BMAD to WAVE -->
+        <section id="bmad" class="cs-section reveal">
+          <div class="cs-section__eyebrow">04 · From BMAD to WAVE</div>
+          <h2 class="cs-section__title">Where BMAD accelerates creation, WAVE operationalizes it inside enterprise guardrails</h2>
+
+          <div class="cs-section__body">
+            <p>
+              We initially drew inspiration from <strong>BMAD</strong> (Breakthrough Method for Agile AI-Driven Development) and explored its GitHub repository as a starting point.
+            </p>
+
+            <p>BMAD accelerates creation — but enterprise environments need more.</p>
+
+            <div class="compare">
+              <div class="compare__col">
+                <div class="compare__heading compare__heading--left">BMAD</div>
+                <div class="compare__item">Modular stages</div>
+                <div class="compare__item">Role-based agents</div>
+                <div class="compare__item">Iterative loops</div>
+              </div>
+              <div class="compare__arrow">→</div>
+              <div class="compare__col">
+                <div class="compare__heading compare__heading--right">Enterprise needs</div>
+                <div class="compare__item">Deterministic artifacts</div>
+                <div class="compare__item">Audit logging</div>
+                <div class="compare__item">Compliance checkpoints</div>
+                <div class="compare__item">Explicit human authority</div>
+                <div class="compare__item">Risk gating</div>
+              </div>
+            </div>
+
+            <div class="cs-callout">
+              Where BMAD accelerates creation,<br>
+              <strong>WAVE operationalizes it inside enterprise guardrails.</strong>
+            </div>
+          </div>
+        </section>
+
+        <!-- 05 · The WAVE System -->
+        <section id="system" class="cs-section reveal">
+          <div class="cs-section__eyebrow">05 · The WAVE System</div>
+          <h2 class="cs-section__title">Structured stages with deterministic handoffs</h2>
+
+          <div class="cs-section__body">
+            <p>
+              WAVE moves through structured stages: <strong>PM → Research → Design → Architecture → Development</strong>.
+            </p>
+            <p>Each stage:</p>
+            <ul class="cs-list">
+              <li>Inherits upstream structured artifacts</li>
+              <li>Produces schema-bound outputs</li>
+              <li>Passes forward deterministic context</li>
+              <li>Requires a hard human approval gate</li>
+            </ul>
+            <p>
+              <strong>AI accelerates structure. Humans authorize movement.</strong>
+            </p>
+          </div>
+
+          <!-- WAVE Pipeline Demo -->
+          <div class="cs-wave-demo">
+            <div class="cs-wave-demo__label">WAVE · Multi-agent delivery pipeline</div>
+
+            <div class="cs-wave-pipeline">
+              <!-- Stage 1: PM -->
+              <div class="cs-wave-stage">
+                <div class="cs-wave-stage__icon">
+                  <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                </div>
+                <div class="cs-wave-stage__name">PM</div>
+                <div class="cs-wave-stage__sub">PRD.md</div>
+              </div>
+
+              <div class="cs-wave-arrow"><div class="cs-wave-arrow__line"></div><div class="cs-wave-arrow__chevron">›</div></div>
+
+              <!-- Gate 1 -->
+              <div class="cs-wave-gate">
+                <div class="cs-wave-gate__dot"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <div class="cs-wave-gate__label">Gate</div>
+              </div>
+
+              <div class="cs-wave-arrow"><div class="cs-wave-arrow__line"></div><div class="cs-wave-arrow__chevron">›</div></div>
+
+              <!-- Stage 2: Research -->
+              <div class="cs-wave-stage">
+                <div class="cs-wave-stage__icon">
+                  <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                </div>
+                <div class="cs-wave-stage__name">Research</div>
+                <div class="cs-wave-stage__sub">research.md</div>
+              </div>
+
+              <div class="cs-wave-arrow"><div class="cs-wave-arrow__line"></div><div class="cs-wave-arrow__chevron">›</div></div>
+
+              <!-- Gate 2 -->
+              <div class="cs-wave-gate">
+                <div class="cs-wave-gate__dot"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <div class="cs-wave-gate__label">Gate</div>
+              </div>
+
+              <div class="cs-wave-arrow"><div class="cs-wave-arrow__line"></div><div class="cs-wave-arrow__chevron">›</div></div>
+
+              <!-- Stage 3: Design -->
+              <div class="cs-wave-stage">
+                <div class="cs-wave-stage__icon">
+                  <svg viewBox="0 0 24 24"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+                </div>
+                <div class="cs-wave-stage__name">Design</div>
+                <div class="cs-wave-stage__sub">design.md</div>
+              </div>
+
+              <div class="cs-wave-arrow"><div class="cs-wave-arrow__line"></div><div class="cs-wave-arrow__chevron">›</div></div>
+
+              <!-- Gate 3 -->
+              <div class="cs-wave-gate">
+                <div class="cs-wave-gate__dot"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <div class="cs-wave-gate__label">Gate</div>
+              </div>
+
+              <div class="cs-wave-arrow"><div class="cs-wave-arrow__line"></div><div class="cs-wave-arrow__chevron">›</div></div>
+
+              <!-- Stage 4: Architecture -->
+              <div class="cs-wave-stage">
+                <div class="cs-wave-stage__icon">
+                  <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                </div>
+                <div class="cs-wave-stage__name">Architecture</div>
+                <div class="cs-wave-stage__sub">architect.md</div>
+              </div>
+
+              <div class="cs-wave-arrow"><div class="cs-wave-arrow__line"></div><div class="cs-wave-arrow__chevron">›</div></div>
+
+              <!-- Gate 4 -->
+              <div class="cs-wave-gate">
+                <div class="cs-wave-gate__dot"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <div class="cs-wave-gate__label">Gate</div>
+              </div>
+
+              <div class="cs-wave-arrow"><div class="cs-wave-arrow__line"></div><div class="cs-wave-arrow__chevron">›</div></div>
+
+              <!-- Stage 5: Development -->
+              <div class="cs-wave-stage">
+                <div class="cs-wave-stage__icon">
+                  <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                </div>
+                <div class="cs-wave-stage__name">Development</div>
+                <div class="cs-wave-stage__sub">Epics &amp; Stories</div>
+              </div>
+            </div>
+
+            <!-- Context thread -->
+            <div class="cs-wave-thread">
+              <div class="cs-wave-thread__icon">
+                <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              </div>
+              <div class="cs-wave-thread__text">
+                Structured artifact contracts preserve decisions, rationale, and schemas across every stage
+              </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="cs-wave-context">
+              <div class="cs-wave-context__item">
+                <div class="cs-wave-context__dot cs-wave-context__dot--stage"></div>
+                Agent-driven stage
+              </div>
+              <div class="cs-wave-context__item">
+                <div class="cs-wave-context__dot cs-wave-context__dot--gate"></div>
+                Human approval gate
+              </div>
+              <div class="cs-wave-context__item">
+                <div class="cs-wave-context__dot cs-wave-context__dot--context"></div>
+                Deterministic context thread
+              </div>
+            </div>
+          </div>
+
+          <!-- Stage Details -->
+          <div class="cs-stage-detail">
+            <div class="cs-stage-detail__header">
+              <div class="cs-stage-detail__icon">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              </div>
+              <div>
+                <div class="cs-stage-detail__label">Stage 1</div>
+                <p class="cs-stage-detail__name">PM Agent</p>
+              </div>
+            </div>
+            <div class="cs-stage-detail__body">
+              <p>The PM Agent generates a structured <strong>PRD.md</strong> using enforced templates.</p>
+              <p>Templates require:</p>
+              <ul class="cs-list">
+                <li>Problem framing</li>
+                <li>Constraints</li>
+                <li>Risk tier</li>
+                <li>Compliance notes</li>
+                <li>Success metrics</li>
+              </ul>
+              <p>Outputs are structured, not narrative. <strong>Upstream clarity reduces downstream entropy.</strong></p>
+            </div>
+          </div>
+
+          <div class="cs-stage-detail">
+            <div class="cs-stage-detail__header">
+              <div class="cs-stage-detail__icon">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </div>
+              <div>
+                <div class="cs-stage-detail__label">Stage 2</div>
+                <p class="cs-stage-detail__name">Research Agent</p>
+              </div>
+            </div>
+            <div class="cs-stage-detail__body">
+              <p>The Research Agent:</p>
+              <ul class="cs-list">
+                <li>Classifies work as evaluative or generative</li>
+                <li>Applies a 10-question structured framework</li>
+                <li>Identifies assumption risk</li>
+                <li>Flags regulatory exposure</li>
+                <li>Produces a structured research brief</li>
+                <li>Consolidates findings into <strong>research.md</strong></li>
+              </ul>
+              <p><strong>Research becomes executable input — not slideware.</strong></p>
+            </div>
+          </div>
+
+          <div class="cs-stage-detail">
+            <div class="cs-stage-detail__header">
+              <div class="cs-stage-detail__icon">
+                <svg viewBox="0 0 24 24"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+              </div>
+              <div>
+                <div class="cs-stage-detail__label">Stage 3</div>
+                <p class="cs-stage-detail__name">Design Agent</p>
+              </div>
+            </div>
+            <div class="cs-stage-detail__body">
+              <p>The Design layer is an orchestrated system, not a single agent.</p>
+
+              <p class="cs-sub-label">Design Orchestrator Agent</p>
+              <p>The orchestrator receives PRD.md + research.md, generates <strong>design.md</strong>, then coordinates the full pipeline:</p>
+              <div class="chip-row">
+                <span class="chip">Route to sub-agents</span>
+                <span class="chip">Human communication</span>
+                <span class="chip">Design gate enforcement</span>
+                <span class="chip">Epic &amp; story generation</span>
+              </div>
+              <p>It coordinates — it does not operate alone.</p>
+
+              <p class="cs-sub-label">Design Sub-Agents</p>
+              <p>Sub-agents specialize in:</p>
+              <div class="chip-row">
+                <span class="chip">designSystem.md</span>
+                <span class="chip">Wireframes</span>
+                <span class="chip">State modeling</span>
+                <span class="chip">Token mapping</span>
+                <span class="chip">Intent modeling</span>
+                <span class="chip">Constraint validation</span>
+                <span class="chip">Version control</span>
+              </div>
+
+              <p>Structured outputs include system model definitions, guardrails, state transitions, token usage, explicit constraints, and version logs.</p>
+
+              <p><strong>Design becomes deterministic reasoning — not aesthetic interpretation.</strong></p>
+              <p>Once the design gate is approved by a human, the workflow advances.</p>
+            </div>
+          </div>
+
+          <div class="cs-stage-detail">
+            <div class="cs-stage-detail__header">
+              <div class="cs-stage-detail__icon">
+                <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+              </div>
+              <div>
+                <div class="cs-stage-detail__label">Stage 4</div>
+                <p class="cs-stage-detail__name">Architecture Agent</p>
+              </div>
+            </div>
+            <div class="cs-stage-detail__body">
+              <p>Architecture inherits design.md directly. It:</p>
+              <ul class="cs-list">
+                <li>Formalizes data models</li>
+                <li>Encodes validation logic</li>
+                <li>Defines compliance hooks</li>
+                <li>Generates epics and stories</li>
+                <li>Establishes audit logging requirements</li>
+              </ul>
+              <p><strong>No reinterpretation. No context loss.</strong></p>
+            </div>
+          </div>
+
+          <div class="cs-stage-detail">
+            <div class="cs-stage-detail__header">
+              <div class="cs-stage-detail__icon">
+                <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              </div>
+              <div>
+                <div class="cs-stage-detail__label">Stage 5</div>
+                <p class="cs-stage-detail__name">Development Agent</p>
+              </div>
+            </div>
+            <div class="cs-stage-detail__body">
+              <p>The Development Agent converts structured artifacts into executable work:</p>
+              <ul class="cs-list">
+                <li>Epics</li>
+                <li>Stories</li>
+                <li>Acceptance criteria</li>
+              </ul>
+              <p>Developers inject upstream artifacts into their IDE. They inherit reasoning — not summaries.</p>
+              <p><strong>Translation tax collapses.</strong></p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 06 · Human in the Lead -->
+        <section id="human" class="cs-section reveal">
+          <div class="cs-section__eyebrow">06 · Human in the Lead</div>
+          <h2 class="cs-section__title">Not human-in-the-loop. Human-in-the-lead.</h2>
+
+          <div class="cs-section__body">
+            <p>
+              Most AI systems rely on "human-in-the-loop." WAVE enforces <strong>human-in-the-lead</strong>.
+            </p>
+            <p>Each stage has a hard gate:</p>
+
+            <div class="gate-steps">
+              <div class="gate-step">
+                <div class="gate-step__dot">✓</div>
+                <div class="gate-step__num">01</div>
+                <div class="gate-step__text">PM approval</div>
+              </div>
+              <div class="gate-step">
+                <div class="gate-step__dot">✓</div>
+                <div class="gate-step__num">02</div>
+                <div class="gate-step__text">Research validation</div>
+              </div>
+              <div class="gate-step">
+                <div class="gate-step__dot">✓</div>
+                <div class="gate-step__num">03</div>
+                <div class="gate-step__text">Design gate</div>
+              </div>
+              <div class="gate-step">
+                <div class="gate-step__dot">✓</div>
+                <div class="gate-step__num">04</div>
+                <div class="gate-step__text">Architecture sign-off</div>
+              </div>
+              <div class="gate-step">
+                <div class="gate-step__dot">✓</div>
+                <div class="gate-step__num">05</div>
+                <div class="gate-step__text">Compliance checkpoint</div>
+              </div>
+            </div>
+
+            <div class="cs-callout">
+              No agent can advance without <strong>explicit human authorization</strong>.<br><br>
+              AI structures work. Humans control decisions.<br>
+              This distinction is critical in enterprise environments.
+            </div>
+          </div>
+        </section>
+
+        <!-- 07 · WAVE in Practice -->
+        <section id="practice" class="cs-section reveal">
+          <div class="cs-section__eyebrow">07 · WAVE in Practice</div>
+          <h2 class="cs-section__title">AI Transaction Summaries — a fintech-relevant example</h2>
+
+          <div class="cs-section__body">
+            <p>
+              To illustrate how WAVE works in a fintech-relevant context: a product team wants to launch AI-generated transaction summaries.
+            </p>
+            <p>Without structure, this introduces risk:</p>
+            <ul class="cs-list">
+              <li>Model hallucination</li>
+              <li>Misrepresentation of financial data</li>
+              <li>Regulatory scrutiny</li>
+              <li>Trust degradation</li>
+            </ul>
+          </div>
+
+          <div class="cs-solution-cards">
+            <div class="cs-solution-card">
+              <div class="cs-solution-pill">PM</div>
+              <p class="cs-solution-card-title">Define constraints in PRD.md</p>
+              <ul class="cs-solution-list">
+                <li>Problem framing for transaction summaries</li>
+                <li>Risk tier classification</li>
+                <li>Compliance requirements scoped</li>
+              </ul>
+            </div>
+
+            <div class="cs-solution-card">
+              <div class="cs-solution-pill">Research</div>
+              <p class="cs-solution-card-title">Flag hallucination &amp; compliance risks</p>
+              <ul class="cs-solution-list">
+                <li>Evaluative framework applied</li>
+                <li>Regulatory exposure identified</li>
+                <li>Assumption risk documented</li>
+              </ul>
+            </div>
+
+            <div class="cs-solution-card">
+              <div class="cs-solution-pill">Design</div>
+              <p class="cs-solution-card-title">Encode guardrails into design.md</p>
+              <ul class="cs-solution-list">
+                <li>Confidence thresholds defined</li>
+                <li>Schema-bound outputs enforced</li>
+                <li>Fallback logic specified</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="cs-section__body" style="margin-top:24px;">
+            <p>Architecture enforces validation rules. Development inherits deterministic acceptance criteria.</p>
+            <div class="cs-callout">
+              AI remains bounded. Risk is surfaced early. Compliance is proactive.<br>
+              <strong>Execution becomes structured, not reactive.</strong>
+            </div>
+          </div>
+        </section>
+
+        <!-- 08 · Organizational Influence -->
+        <section id="influence" class="cs-section reveal">
+          <div class="cs-section__eyebrow">08 · Organizational Influence</div>
+          <h2 class="cs-section__title">From fragmented experimentation to a shared mental model</h2>
+
+          <div class="cs-section__body">
+            <p>
+              When we began, AI experimentation inside the organization was fragmented. Teams were experimenting independently. Prompts varied widely. Outputs lacked consistency. Compliance had limited visibility.
+            </p>
+            <p>
+              WAVE created a <strong>shared mental model</strong>.
+            </p>
+            <p>Through sustained demos and workshops across multiple lines of business, we:</p>
+
+            <div class="diagram-grid diagram-grid--2">
+              <div class="diagram-card">
+                <div class="diagram-card__indicator">↓</div>
+                <div class="diagram-card__text">Demonstrated how structured artifacts <strong>reduce translation tax</strong></div>
+              </div>
+              <div class="diagram-card">
+                <div class="diagram-card__indicator">⇄</div>
+                <div class="diagram-card__text">Modeled <strong>deterministic agent handoffs</strong> between stages</div>
+              </div>
+              <div class="diagram-card">
+                <div class="diagram-card__indicator">⊘</div>
+                <div class="diagram-card__text">Showed <strong>human-in-the-lead</strong> enforcement in action</div>
+              </div>
+              <div class="diagram-card">
+                <div class="diagram-card__indicator">⊞</div>
+                <div class="diagram-card__text">Provided <strong>reusable input/output templates</strong> for adoption</div>
+              </div>
+            </div>
+            <p>
+              Over time, teams began adapting elements of WAVE into their own workflows. <strong>AI shifted from novelty to structured infrastructure.</strong>
+            </p>
+          </div>
+        </section>
+
+        <!-- 09 · Business Impact -->
+        <section id="impact" class="cs-section reveal">
+          <div class="cs-section__eyebrow">09 · Business Impact</div>
+          <h2 class="cs-section__title">Impact across three dimensions</h2>
+
+          <div class="cs-solution-cards">
+            <div class="cs-solution-card">
+              <div class="cs-solution-pill">Operational</div>
+              <p class="cs-solution-card-title">Efficiency gains across the pipeline</p>
+              <ul class="cs-solution-list">
+                <li>Reduced cross-functional translation overhead</li>
+                <li>Lowered regeneration loops</li>
+                <li>Reduced model token waste</li>
+                <li>Improved artifact fidelity</li>
+              </ul>
+            </div>
+
+            <div class="cs-solution-card">
+              <div class="cs-solution-pill">Risk &amp; Compliance</div>
+              <p class="cs-solution-card-title">Governance built into the workflow</p>
+              <ul class="cs-solution-list">
+                <li>Hard human gates at every stage</li>
+                <li>Embedded audit logging</li>
+                <li>Deterministic validation rules</li>
+                <li>Clear ownership boundaries</li>
+              </ul>
+            </div>
+
+            <div class="cs-solution-card">
+              <div class="cs-solution-pill">Strategic</div>
+              <p class="cs-solution-card-title">Scaled influence across the organization</p>
+              <ul class="cs-solution-list">
+                <li>Influenced AI adoption across multiple lines of business</li>
+                <li>Increased executive confidence in AI tooling</li>
+                <li>Established a scalable model for responsible AI acceleration</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="cs-section__body" style="margin-top:28px;">
+            <div class="cs-callout">
+              WAVE did not just improve velocity.<br>
+              <strong>It made AI sustainable inside enterprise standards.</strong>
+            </div>
+          </div>
+        </section>
+
+        <!-- 10 · What This Work Represents -->
+        <section id="represents" class="cs-section reveal">
+          <div class="cs-section__eyebrow">10 · What This Work Represents</div>
+          <h2 class="cs-section__title">Workflows, not models, determine enterprise AI success</h2>
+
+          <div class="cs-section__body">
+            <p>
+              Enterprise AI does not fail because models are weak. <strong>It fails because workflows are weak.</strong>
+            </p>
+
+            <p>WAVE represents my approach to AI-native systems design:</p>
+
+            <div class="diagram-grid diagram-grid--2">
+              <div class="principle-card">
+                <div class="principle-card__num">01</div>
+                <div class="principle-card__text">Structure before speed</div>
+              </div>
+              <div class="principle-card">
+                <div class="principle-card__num">02</div>
+                <div class="principle-card__text">Contracts before generation</div>
+              </div>
+              <div class="principle-card">
+                <div class="principle-card__num">03</div>
+                <div class="principle-card__text">Guardrails before scale</div>
+              </div>
+              <div class="principle-card">
+                <div class="principle-card__num">04</div>
+                <div class="principle-card__text">Humans in the lead</div>
+              </div>
+            </div>
+
+            <div class="cs-callout">
+              If Locksmith redesigned identity as programmable infrastructure,<br>
+              <strong>WAVE redesigned execution as programmable workflow.</strong>
+            </div>
+          </div>
+
+          <p class="cs-inline-note" style="margin-top:18px;">
+            WAVE grew out of the Locksmith project. <a href="locksmith.html">View the Locksmith case study →</a>
+          </p>
+        </section>
+
+        </article>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    // Theme persistence
+    (function() {
+      var saved = localStorage.getItem('theme');
+      if (saved) {
+        document.documentElement.setAttribute('data-theme', saved);
+      } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+
+    // Theme toggle
+    document.querySelector('.theme-toggle').addEventListener('click', function() {
+      var html = document.documentElement;
+      var next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      document.querySelector('meta[name="theme-color"]').content =
+        next === 'dark' ? '#09090b' : '#fafafa';
+    });
+
+    // Scroll progress bar
+    (function () {
+      var progressRoot = document.querySelector("[data-scroll-progress]");
+      function updateScrollProgress() {
+        if (!progressRoot) return;
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop;
+        var docHeight = doc.scrollHeight - window.innerHeight;
+        var progress = docHeight > 0 ? scrollTop / docHeight : 0;
+        progressRoot.style.setProperty("--progress", progress.toFixed(4));
+      }
+      window.addEventListener("scroll", updateScrollProgress, { passive: true });
+      updateScrollProgress();
+    })();
+
+    // Scroll reveal
+    var io = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) {
+        if (e.isIntersecting) {
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.reveal').forEach(function(el) { io.observe(el); });
+
+    // Smooth scroll for TOC links
+    document.querySelectorAll(".article-toc__link").forEach(function(link) {
+      link.addEventListener("click", function(event) {
+        var href = link.getAttribute("href");
+        if (!href || !href.startsWith("#")) return;
+        var target = document.querySelector(href);
+        if (!target) return;
+        event.preventDefault();
+        var offset = 72;
+        var top = target.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({ top: top, behavior: "smooth" });
+      });
+    });
+
+    // Active TOC state
+    (function() {
+      var tocLinks = document.querySelectorAll(".article-toc__link");
+      var sections = Array.from(document.querySelectorAll(".cs-section[id]"));
+      var linkById = new Map();
+      tocLinks.forEach(function(link) {
+        var href = link.getAttribute("href");
+        if (href && href.startsWith("#")) {
+          linkById.set(href.slice(1), link);
+        }
+      });
+
+      if ("IntersectionObserver" in window && sections.length) {
+        var sectionObserver = new IntersectionObserver(function(entries) {
+          entries.forEach(function(entry) {
+            var id = entry.target.id;
+            var link = linkById.get(id);
+            if (!link) return;
+            if (entry.isIntersecting) {
+              tocLinks.forEach(function(l) { l.classList.remove("article-toc__link--active"); });
+              link.classList.add("article-toc__link--active");
+            }
+          });
+        }, {
+          root: null,
+          threshold: 0.3,
+          rootMargin: "-20% 0px -45% 0px"
+        });
+        sections.forEach(function(section) { sectionObserver.observe(section); });
+      }
+    })();
+  </script>
+</body>
+</html>

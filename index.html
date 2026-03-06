@@ -1,0 +1,1744 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Saniya Arora — Code + Canvas</title>
+  <meta name="description" content="Product designer building platform systems at the intersection of code, canvas, and AI." />
+  <meta name="theme-color" content="#09090b" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root, [data-theme="dark"] {
+      --bg: #09090b;
+      --surface: #111113;
+      --surface2: #18181b;
+      --border: #27272a;
+      --border2: #3f3f46;
+      --text: #fafafa;
+      --text2: #a1a1aa;
+      --text3: #71717a;
+      --accent: #4ade80;
+      --accent-dim: rgba(74, 222, 128, 0.1);
+
+      --sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+      --max: 1060px;
+      --pad: clamp(16px, 3vw, 32px);
+      --section: clamp(72px, 9vw, 112px);
+      --r: 10px;
+      --r-lg: 14px;
+    }
+
+    [data-theme="light"] {
+      --bg: #fafafa;
+      --surface: #ffffff;
+      --surface2: #f4f4f5;
+      --border: #e4e4e7;
+      --border2: #d4d4d8;
+      --text: #09090b;
+      --text2: #52525b;
+      --text3: #a1a1aa;
+      --accent: #16a34a;
+      --accent-dim: rgba(22, 163, 74, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--sans);
+      color: var(--text);
+      background: var(--bg);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Dot-grid canvas background */
+    .dot-grid {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background-image: radial-gradient(circle, var(--border) 0.6px, transparent 0.6px);
+      background-size: 22px 22px;
+      opacity: 0.35;
+    }
+
+    .wrap {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 var(--pad);
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid var(--border);
+      background: color-mix(in srgb, var(--bg) 82%, transparent);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .nav-inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 var(--pad);
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .brand {
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      flex-shrink: 0;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+    .nav-links a {
+      text-decoration: none;
+      color: var(--text3);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 7px 12px;
+      border-radius: 8px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .nav-links a:hover {
+      color: var(--text);
+      background: var(--surface2);
+    }
+    .theme-toggle {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      width: 34px;
+      height: 34px;
+      cursor: pointer;
+      color: var(--text3);
+      display: grid;
+      place-items: center;
+      transition: color 0.15s, border-color 0.15s;
+      flex-shrink: 0;
+    }
+    .theme-toggle:hover {
+      color: var(--text);
+      border-color: var(--border2);
+    }
+    .theme-toggle svg { width: 15px; height: 15px; }
+    .icon-sun, .icon-moon { display: none; }
+    [data-theme="dark"] .icon-sun { display: block; }
+    [data-theme="light"] .icon-moon { display: block; }
+
+    /* ─── HERO ─── */
+    .hero {
+      padding: var(--section) 0;
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 40px;
+      align-items: center;
+    }
+    .hero-text { max-width: 560px; }
+    .hero-label {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--accent);
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .hero-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+    .hero h1 {
+      font-size: clamp(26px, 3.5vw, 38px);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.12;
+      margin-bottom: 20px;
+    }
+    .hero-sub {
+      color: var(--text2);
+      font-size: 16px;
+      line-height: 1.7;
+      max-width: 50ch;
+      margin-bottom: 32px;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* ─── LLM CHAT WINDOW ─── */
+    .chat-window {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      max-height: 420px;
+    }
+    .chat-bar {
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .chat-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .chat-bar-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+    }
+    .chat-bar-model {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--accent);
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: var(--accent-dim);
+    }
+    .chat-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .chat-user {
+      align-self: flex-end;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px 10px 4px 10px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--text);
+      max-width: 85%;
+    }
+    .chat-ai {
+      align-self: flex-start;
+      max-width: 95%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .chat-ai-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+    }
+    .chat-ai-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    .chat-ai-body {
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.65;
+    }
+    .chat-step {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 8px 0;
+    }
+    .chat-step-num {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      flex-shrink: 0;
+      padding-top: 1px;
+    }
+    .chat-step-content { min-width: 0; }
+    .chat-step-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .chat-step-desc {
+      font-size: 12px;
+      color: var(--text3);
+      line-height: 1.55;
+    }
+    .chat-cursor {
+      display: inline-block;
+      width: 6px;
+      height: 13px;
+      background: var(--accent);
+      margin-left: 2px;
+      vertical-align: text-bottom;
+      animation: blink-cursor 1s steps(2) infinite;
+      opacity: 0.7;
+    }
+    @keyframes blink-cursor {
+      0%, 49% { opacity: 0.7; }
+      50%, 100% { opacity: 0; }
+    }
+    .chat-input {
+      padding: 10px 14px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .chat-input-field {
+      flex: 1;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+      background: none;
+      border: none;
+      outline: none;
+      padding: 0;
+    }
+    .chat-input-send {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 4px 8px;
+      cursor: default;
+    }
+
+    /* ─── CHAT CHIPS + CTA ─── */
+    .chat-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding-top: 4px;
+    }
+    .chat-chip {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 6px 14px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      white-space: nowrap;
+    }
+    .chat-chip:hover {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+    .chat-cta {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--bg);
+      background: var(--accent);
+      border: none;
+      border-radius: 6px;
+      padding: 7px 14px;
+      margin-top: 10px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .chat-cta:hover { opacity: 0.85; }
+
+    /* ─── BUTTONS ─── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: var(--sans);
+      text-decoration: none;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      color: var(--text);
+      background: var(--surface);
+      transition: border-color 0.15s, background 0.15s;
+      cursor: pointer;
+    }
+    .btn:hover {
+      border-color: var(--border2);
+      background: var(--surface2);
+    }
+    .btn-primary {
+      background: var(--text);
+      color: var(--bg);
+      border-color: transparent;
+    }
+    .btn-primary:hover {
+      opacity: 0.88;
+      border-color: transparent;
+      background: var(--text);
+    }
+
+    /* ─── SECTIONS ─── */
+    section { padding: var(--section) 0 0; }
+    .section-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 10px;
+    }
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 10px;
+    }
+    .section-desc {
+      color: var(--text2);
+      font-size: 14px;
+      line-height: 1.7;
+      max-width: 100%;
+      margin-bottom: 36px;
+    }
+
+    /* ─── IMPACT ─── */
+    .impact-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .impact-card {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 22px;
+      background: var(--surface);
+    }
+    .impact-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .impact-value {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-top: 14px;
+      line-height: 1.1;
+    }
+    .impact-desc {
+      color: var(--text2);
+      font-size: 13px;
+      line-height: 1.55;
+      margin-top: 8px;
+    }
+
+    /* ─── WORK CARDS (editor-panel style) ─── */
+    .work-stack { display: flex; flex-direction: column; gap: 20px; }
+    .work-card {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .work-card:hover { border-color: var(--border2); }
+    .work-bar {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: var(--surface2);
+    }
+    .work-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .dots { display: flex; gap: 5px; flex-shrink: 0; }
+    .dots span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: transparent;
+      border: 1px solid var(--border2);
+    }
+    .work-path {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text3);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .work-bar-link {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text3);
+      text-decoration: none;
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      transition: color 0.15s, border-color 0.15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .work-bar-link:hover {
+      color: var(--text);
+      border-color: var(--border2);
+    }
+    .work-body { padding: 24px; }
+    .work-type {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
+    }
+    .work-title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      margin-bottom: 8px;
+    }
+    .work-desc {
+      color: var(--text2);
+      font-size: 14px;
+      line-height: 1.65;
+      max-width: 100%;
+      margin-bottom: 16px;
+    }
+    .work-impact {
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 1.6;
+      color: var(--text3);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 16px;
+    }
+    .work-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+    .work-tag {
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      color: var(--text3);
+    }
+
+    /* ─── SIDE QUESTS ─── */
+    .quest-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .quest-card {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 24px;
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: border-color 0.2s;
+    }
+    .quest-card:hover { border-color: var(--border2); }
+    .quest-icon {
+      font-family: var(--mono);
+      font-size: 14px;
+      color: var(--accent);
+    }
+    .quest-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .quest-desc {
+      color: var(--text2);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .quest-link {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text3);
+      text-decoration: none;
+      margin-top: auto;
+      padding-top: 6px;
+      transition: color 0.15s;
+    }
+    .quest-link:hover { color: var(--text); }
+
+    /* ─── ABOUT ─── */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .about-card {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 24px;
+      background: var(--surface);
+    }
+    .about-card h3 {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 14px;
+    }
+    .about-card p,
+    .about-card li {
+      color: var(--text2);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+    .thought-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .thought-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .thought-list li::before {
+      content: '\2192';
+      font-family: var(--mono);
+      color: var(--accent);
+      flex-shrink: 0;
+      line-height: 1.7;
+    }
+
+    /* ─── HOW I WORK ─── */
+    .hiw-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      align-items: stretch;
+      position: relative;
+    }
+    .hiw-panel {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .hiw-panel.in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .hiw-bar {
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .hiw-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .hiw-bar-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+    }
+    .hiw-badge {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--accent);
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: var(--accent-dim);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .hiw-badge-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: hiw-pulse 2s ease-in-out infinite;
+    }
+    @keyframes hiw-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+    .hiw-body {
+      padding: 14px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+    }
+
+    /* Canvas panel (chat brief) */
+    .hiw-brief-user {
+      align-self: flex-end;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px 10px 4px 10px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--text);
+      max-width: 90%;
+    }
+    .hiw-brief-block {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      background: var(--bg);
+    }
+    .hiw-brief-title {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
+    }
+    .hiw-brief-row {
+      display: flex;
+      gap: 6px;
+      align-items: baseline;
+      padding: 4px 0;
+    }
+    .hiw-brief-key {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+      flex-shrink: 0;
+      min-width: 72px;
+    }
+    .hiw-brief-val {
+      font-size: 12px;
+      color: var(--text2);
+      line-height: 1.5;
+    }
+
+    /* Specs panel (file tree + preview) */
+    .hiw-files {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .hiw-file {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+      transition: background 0.15s;
+      cursor: default;
+    }
+    .hiw-file:hover { background: var(--surface2); }
+    .hiw-file.active {
+      background: var(--accent-dim);
+      color: var(--text);
+    }
+    .hiw-file-icon {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      display: grid;
+      place-items: center;
+      font-size: 8px;
+      flex-shrink: 0;
+    }
+    .hiw-spec-preview {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      padding: 12px;
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 1.7;
+      color: var(--text3);
+      flex: 1;
+      overflow: hidden;
+    }
+    .hiw-spec-preview .line-key { color: var(--accent); }
+    .hiw-spec-preview .line-val { color: var(--text2); }
+
+    /* Agents panel */
+    .hiw-orchestrator {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      background: var(--accent-dim);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .hiw-orch-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: 1px solid var(--border2);
+      background: var(--surface);
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+    .hiw-orch-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .hiw-orch-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .hiw-orch-desc {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text3);
+    }
+    .hiw-route-line {
+      width: 1px;
+      height: 12px;
+      background: var(--border2);
+      margin: 0 auto;
+      position: relative;
+    }
+    .hiw-route-line::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -1px;
+      width: 3px;
+      height: 100%;
+      background: var(--accent);
+      opacity: 0;
+      animation: hiw-route-pulse 3s ease-in-out infinite;
+    }
+    @keyframes hiw-route-pulse {
+      0%, 100% { opacity: 0; top: -4px; }
+      40%, 60% { opacity: 0.6; top: 8px; }
+    }
+    .hiw-agents-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .hiw-agent {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      opacity: 0;
+      transform: translateX(8px);
+      transition: opacity 0.4s ease, transform 0.4s ease, border-color 0.3s;
+    }
+    .hiw-agent.in {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    .hiw-agent.thinking {
+      border-color: var(--border2);
+    }
+    .hiw-agent-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--border2);
+      flex-shrink: 0;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .hiw-agent.thinking .hiw-agent-dot {
+      background: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+      animation: hiw-think 1.2s ease-in-out infinite;
+    }
+    .hiw-agent.done .hiw-agent-dot {
+      background: var(--accent);
+    }
+    @keyframes hiw-think {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.6; }
+    }
+    .hiw-agent-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .hiw-agent-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .hiw-agent-ctx {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text3);
+      margin-top: 1px;
+    }
+    .hiw-agent-status {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text3);
+      flex-shrink: 0;
+      transition: color 0.3s;
+    }
+    .hiw-agent.thinking .hiw-agent-status { color: var(--accent); }
+    .hiw-agent.done .hiw-agent-status { color: var(--accent); }
+
+    /* Flow arrows between columns */
+    .hiw-flow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 2;
+      pointer-events: none;
+    }
+    .hiw-flow-1 { left: calc(33.33% - 5px); }
+    .hiw-flow-2 { left: calc(66.66% - 5px); }
+    .hiw-flow svg {
+      width: 10px;
+      height: 10px;
+      color: var(--text3);
+      opacity: 0.5;
+    }
+
+    /* Closing statement */
+    .hiw-closing {
+      margin-top: 40px;
+      text-align: center;
+    }
+    .hiw-closing-text {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.35;
+      max-width: 50ch;
+      margin: 0 auto;
+    }
+    .hiw-closing-sub {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text3);
+      margin-top: 12px;
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      padding: var(--section) 0 48px;
+      margin-top: var(--section);
+      border-top: 1px solid var(--border);
+    }
+    .foot-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .foot-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+    }
+    .foot-desc {
+      color: var(--text2);
+      font-size: 14px;
+      line-height: 1.7;
+      max-width: 44ch;
+    }
+    .foot-links {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .foot-bottom {
+      margin-top: 48px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+    }
+
+    /* ─── REVEAL ─── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+    .reveal.in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 920px) {
+      .hero {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+      .chat-window { max-height: 360px; }
+      .hiw-grid { grid-template-columns: 1fr; gap: 10px; }
+      .hiw-flow { display: none; }
+    }
+    @media (max-width: 860px) {
+      .impact-grid { grid-template-columns: 1fr 1fr; }
+      .quest-grid { grid-template-columns: 1fr; }
+      .about-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .nav-links { display: none; }
+      .impact-grid { grid-template-columns: 1fr; }
+      .hero h1 { font-size: clamp(32px, 8vw, 44px); }
+      .hiw-closing-text { font-size: 18px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .reveal { transition: none; opacity: 1; transform: none; }
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="dot-grid" aria-hidden="true"></div>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <div class="brand">saniya.arora</div>
+      <div class="nav-links">
+        <a href="#how-i-work">How I Work</a>
+        <a href="#impact">Impact</a>
+        <a href="#work">Work</a>
+        <a href="#quests">Side Quests</a>
+        <a href="#about">About</a>
+      </div>
+      <button class="theme-toggle" aria-label="Toggle theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </nav>
+
+  <main class="wrap">
+
+    <!-- HERO -->
+    <div class="hero reveal">
+      <div class="hero-text">
+        <div class="hero-label">
+          <span class="hero-dot" aria-hidden="true"></span>
+          Product Designer &middot; Code + Canvas + AI
+        </div>
+
+        <h1>Designing the next generation of products with code, canvas, and AI&nbsp;systems.</h1>
+
+        <p class="hero-sub">
+          Product designer building enterprise self-service platforms at Capital One using AI-assisted tooling.
+        </p>
+
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#work">View Work</a>
+          <a class="btn" href="#how-i-work">How I Work</a>
+        </div>
+      </div>
+
+      <div class="chat-window" aria-label="LLM chat demo">
+        <div class="chat-bar">
+          <div class="chat-bar-left">
+            <div class="dots" aria-hidden="true"><span></span><span></span><span></span></div>
+            <span class="chat-bar-label">chat</span>
+          </div>
+          <span class="chat-bar-model">claude-4</span>
+        </div>
+
+        <div class="chat-body" id="chat-body"></div>
+
+        <div class="chat-input">
+          <span class="chat-input-field">Ask me anything...</span>
+          <span class="chat-input-send">&crarr;</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOW I WORK -->
+    <section id="how-i-work" class="reveal">
+      <div class="section-label">How I work</div>
+      <h2 class="section-title">I design how products get designed.</h2>
+      <p class="section-desc">Three layers: frame the problem on canvas, structure specs in code, dispatch specialist agents to execute.</p>
+
+      <div class="hiw-grid" id="hiw-grid">
+
+        <!-- Flow arrows -->
+        <div class="hiw-flow hiw-flow-1" aria-hidden="true">
+          <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 5h6M6 3l2 2-2 2"/></svg>
+        </div>
+        <div class="hiw-flow hiw-flow-2" aria-hidden="true">
+          <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 5h6M6 3l2 2-2 2"/></svg>
+        </div>
+
+        <!-- COL 1: Canvas -->
+        <div class="hiw-panel" data-hiw-delay="0">
+          <div class="hiw-bar">
+            <div class="hiw-bar-left">
+              <span class="hiw-bar-label">canvas</span>
+            </div>
+            <span class="hiw-badge">brief</span>
+          </div>
+          <div class="hiw-body">
+            <div class="hiw-brief-user">Here's what I'm trying to build&hellip;</div>
+            <div class="hiw-brief-block">
+              <div class="hiw-brief-title">Design Brief</div>
+              <div class="hiw-brief-row">
+                <span class="hiw-brief-key">product</span>
+                <span class="hiw-brief-val">Self-serve onboarding platform</span>
+              </div>
+              <div class="hiw-brief-row">
+                <span class="hiw-brief-key">user need</span>
+                <span class="hiw-brief-val">Admins need governed team setup without bottlenecks</span>
+              </div>
+              <div class="hiw-brief-row">
+                <span class="hiw-brief-key">constraints</span>
+                <span class="hiw-brief-val">Roles, approvals, audit trail, multi-tenant</span>
+              </div>
+              <div class="hiw-brief-row">
+                <span class="hiw-brief-key">success</span>
+                <span class="hiw-brief-val">Testable prototype in 48h with trust surfaces</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- COL 2: Code / Specs -->
+        <div class="hiw-panel" data-hiw-delay="200">
+          <div class="hiw-bar">
+            <div class="hiw-bar-left">
+              <span class="hiw-bar-label">specs</span>
+            </div>
+            <span class="hiw-badge">structured</span>
+          </div>
+          <div class="hiw-body">
+            <div class="hiw-files">
+              <div class="hiw-file active"><span class="hiw-file-icon">#</span> brief.md</div>
+              <div class="hiw-file"><span class="hiw-file-icon">&#9670;</span> ux-strategy.md</div>
+              <div class="hiw-file"><span class="hiw-file-icon">&#9656;</span> interaction-spec.md</div>
+              <div class="hiw-file"><span class="hiw-file-icon">&#9646;</span> content-system.md</div>
+              <div class="hiw-file"><span class="hiw-file-icon">&#10003;</span> accessibility.md</div>
+            </div>
+            <div class="hiw-spec-preview">
+              <span class="line-key">## brief</span><br>
+              <span class="line-val">product: onboarding-platform</span><br>
+              <span class="line-val">type: governed-system</span><br>
+              <br>
+              <span class="line-key">## constraints</span><br>
+              <span class="line-val">- role-based access</span><br>
+              <span class="line-val">- approval workflows</span><br>
+              <span class="line-val">- audit trail required</span><br>
+              <br>
+              <span class="line-key">## agents</span><br>
+              <span class="line-val">dispatch: [ux, interaction,</span><br>
+              <span class="line-val">&nbsp; content, a11y, prototype]</span><span class="chat-cursor"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- COL 3: Agents -->
+        <div class="hiw-panel" data-hiw-delay="400">
+          <div class="hiw-bar">
+            <div class="hiw-bar-left">
+              <span class="hiw-bar-label">agents</span>
+            </div>
+            <span class="hiw-badge"><span class="hiw-badge-dot"></span> running</span>
+          </div>
+          <div class="hiw-body">
+            <div class="hiw-orchestrator">
+              <div class="hiw-orch-icon">&#9881;</div>
+              <div class="hiw-orch-text">
+                <div class="hiw-orch-name">Design Orchestrator</div>
+                <div class="hiw-orch-desc">Parses brief &rarr; dispatches agents</div>
+              </div>
+            </div>
+
+            <div class="hiw-route-line" aria-hidden="true"></div>
+
+            <div class="hiw-agents-list" id="hiw-agents">
+              <div class="hiw-agent" data-agent="0">
+                <span class="hiw-agent-dot"></span>
+                <div class="hiw-agent-info">
+                  <div class="hiw-agent-name">UX Strategy</div>
+                  <div class="hiw-agent-ctx">ctx: heuristics.db</div>
+                </div>
+                <span class="hiw-agent-status">idle</span>
+              </div>
+              <div class="hiw-agent" data-agent="1">
+                <span class="hiw-agent-dot"></span>
+                <div class="hiw-agent-info">
+                  <div class="hiw-agent-name">Interaction Design</div>
+                  <div class="hiw-agent-ctx">ctx: pattern-lib</div>
+                </div>
+                <span class="hiw-agent-status">idle</span>
+              </div>
+              <div class="hiw-agent" data-agent="2">
+                <span class="hiw-agent-dot"></span>
+                <div class="hiw-agent-info">
+                  <div class="hiw-agent-name">Content Systems</div>
+                  <div class="hiw-agent-ctx">ctx: tone-guide</div>
+                </div>
+                <span class="hiw-agent-status">idle</span>
+              </div>
+              <div class="hiw-agent" data-agent="3">
+                <span class="hiw-agent-dot"></span>
+                <div class="hiw-agent-info">
+                  <div class="hiw-agent-name">Accessibility</div>
+                  <div class="hiw-agent-ctx">ctx: wcag-2.2</div>
+                </div>
+                <span class="hiw-agent-status">idle</span>
+              </div>
+              <div class="hiw-agent" data-agent="4">
+                <span class="hiw-agent-dot"></span>
+                <div class="hiw-agent-info">
+                  <div class="hiw-agent-name">Prototyping</div>
+                  <div class="hiw-agent-ctx">ctx: component-kit</div>
+                </div>
+                <span class="hiw-agent-status">idle</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- IMPACT -->
+    <section id="impact" class="reveal">
+      <div class="section-label">Impact</div>
+      <h2 class="section-title">What moves when I'm involved</h2>
+      <p class="section-desc">Outcomes from platform design, AI-assisted workflows, and cross-functional leadership.</p>
+
+      <div class="impact-grid">
+        <div class="impact-card">
+          <div class="impact-label">Platforms</div>
+          <div class="impact-value">Multiple enterprise systems shipped</div>
+          <div class="impact-desc">Identity, governance, trust, and self-service onboarding — each designed to scale across teams.</div>
+        </div>
+        <div class="impact-card">
+          <div class="impact-label">Speed</div>
+          <div class="impact-value">~40% faster design cycles</div>
+          <div class="impact-desc">AI-assisted prototyping cut the time from feedback to testable artifact.</div>
+        </div>
+        <div class="impact-card">
+          <div class="impact-label">Products</div>
+          <div class="impact-value">Taking concepts from 0 &rarr; 1</div>
+          <div class="impact-desc">Took each from concept to shippable MVP — research, design, and prototype.</div>
+        </div>
+        <div class="impact-card">
+          <div class="impact-label">Alignment</div>
+          <div class="impact-value">Cross-org alignment</div>
+          <div class="impact-desc">United design, engineering, PM, and leadership around a shared system model.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WORK -->
+    <section id="work" class="reveal">
+      <div class="section-label">Selected work</div>
+      <h2 class="section-title">Work</h2>
+      <p class="section-desc">Impact first. Calm UI. System thinking underneath.</p>
+
+      <div class="work-stack">
+
+        <article class="work-card">
+          <div class="work-bar">
+            <div class="work-bar-left">
+              <div class="dots" aria-hidden="true"><span></span><span></span><span></span></div>
+              <span class="work-path">/case-studies/locksmith</span>
+            </div>
+            <a href="locksmith.html" class="work-bar-link">View &rarr;</a>
+          </div>
+          <div class="work-body">
+            <div class="work-type">Capital One</div>
+            <div class="work-title">Locksmith: Using AI to design self-service identity for enterprise-scale platforms</div>
+            <p class="work-desc">Locksmith helps teams move from vague needs to clear self-serve, production-ready identity configurations.</p>
+            <div class="work-impact">Cut the path to QA from ~77 days to less than one day, streamlined and automated the governance pipeline, and improved the design operational workflow by 70%+.</div>
+            <div class="work-tags">
+              <span class="work-tag">Governance</span>
+              <span class="work-tag">AI-driven design</span>
+              <span class="work-tag">System design</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="work-card">
+          <div class="work-bar">
+            <div class="work-bar-left">
+              <div class="dots" aria-hidden="true"><span></span><span></span><span></span></div>
+              <span class="work-path">/case-studies/wave</span>
+            </div>
+            <a href="wave.html" class="work-bar-link">View &rarr;</a>
+          </div>
+          <div class="work-body">
+            <div class="work-type">Capital One</div>
+            <div class="work-title">WAVE: Operationalizing AI inside enterprise guardrails</div>
+            <p class="work-desc">A multi-agent orchestration framework that replaces ad-hoc AI experimentation with structured, governed stages — so teams ship with confidence instead of chaos.</p>
+            <div class="work-impact">5 structured stages with schema-bound artifacts and hard human gates. Shifted AI adoption from novelty to infrastructure across multiple lines of business.</div>
+            <div class="work-tags">
+              <span class="work-tag">AI Orchestration</span>
+              <span class="work-tag">Enterprise Workflow</span>
+              <span class="work-tag">Governance</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="work-card">
+          <div class="work-bar">
+            <div class="work-bar-left">
+              <div class="dots" aria-hidden="true"><span></span><span></span><span></span></div>
+              <span class="work-path">/case-studies/john-deere</span>
+            </div>
+            <a href="johndeere.html" class="work-bar-link">View &rarr;</a>
+          </div>
+          <div class="work-body">
+            <div class="work-type">John Deere</div>
+            <div class="work-title">Designing for operators, not dashboards</div>
+            <p class="work-desc">A digital twin used to help teams make sense of complex equipment data without overwhelming the people who actually need to use it in the field.</p>
+            <div class="work-impact">A new product experience designed to help users reach insights faster and complete workflows more effectively, with strong adoption in its first release cycle.</div>
+            <div class="work-tags">
+              <span class="work-tag">Enterprise UX</span>
+              <span class="work-tag">Digital Twin</span>
+              <span class="work-tag">Data Heavy Workflows</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="work-card">
+          <div class="work-bar">
+            <div class="work-bar-left">
+              <div class="dots" aria-hidden="true"><span></span><span></span><span></span></div>
+              <span class="work-path">/case-studies/airkey</span>
+            </div>
+            <a href="airkey.html" class="work-bar-link">View &rarr;</a>
+          </div>
+          <div class="work-body">
+            <div class="work-type">Capital One</div>
+            <div class="work-title">Airkey: expanding verification across new channels</div>
+            <p class="work-desc">Redesigning verification flows so teams can plug into new channels without rebuilding trust, risk, and UX patterns from scratch.</p>
+            <div class="work-impact">Built a reusable cross-channel verification framework that aligned teams around shared trust principles, reframed friction as a trust signal, and eliminated redundant effort across channel teams.</div>
+            <div class="work-tags">
+              <span class="work-tag">Verification</span>
+              <span class="work-tag">Multi-channel</span>
+              <span class="work-tag">Research</span>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- SIDE QUESTS -->
+    <section id="quests" class="reveal">
+      <div class="section-label">Side quests</div>
+      <h2 class="section-title">Things I build on the side</h2>
+      <p class="section-desc">Experiments, frameworks, and projects that keep the thinking sharp.</p>
+
+      <div class="quest-grid">
+        <div class="quest-card">
+          <div class="quest-icon">&#9993;</div>
+          <div class="quest-title">Between</div>
+          <div class="quest-desc">A private letter-sharing app for staying connected without the noise. No feeds, no followers — just intentional letters shared at your own rhythm with people you trust.</div>
+          <a href="https://betweenai.netlify.app/" target="_blank" rel="noreferrer" class="quest-link">Visit Between &rarr;</a>
+        </div>
+        <div class="quest-card">
+          <div class="quest-icon">&#9670;</div>
+          <div class="quest-title">This Portfolio</div>
+          <div class="quest-desc">Built with code + canvas + AI. Dark-first, editor-aesthetic, practicing the workflow I preach.</div>
+          <span class="quest-link">You're looking at it</span>
+        </div>
+        <div class="quest-card">
+          <div class="quest-icon">$</div>
+          <div class="quest-title">FinanceHQ</div>
+          <div class="quest-desc">A prompt builder that generates structured, paste-ready financial coaching prompts for ChatGPT Projects — turning messy spending data into organized insights.</div>
+          <a href="https://financehq.netlify.app/" target="_blank" rel="noreferrer" class="quest-link">Try FinanceHQ &rarr;</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about" class="reveal">
+      <div class="section-label">About</div>
+      <h2 class="section-title">About me</h2>
+      <p class="section-desc">Designer who codes. Builder who designs. Human in the loop.</p>
+
+      <div class="about-grid">
+        <div class="about-card">
+          <h3>Background</h3>
+          <p>
+            I'm a product designer who builds at the intersection of code, canvas, and AI.
+            I've spent my career on platform problems — identity systems, governance workflows,
+            and trust surfaces that need to work at scale.
+          </p>
+          <br>
+          <p>
+            I don't just design screens. I design systems that ship — and I use AI to
+            compress the distance between insight and artifact without losing intention.
+          </p>
+        </div>
+        <div class="about-card">
+          <h3>Thought leadership</h3>
+          <ul class="thought-list">
+            <li>How AI agents are reshaping the design-to-code pipeline</li>
+            <li>Why governance is a design problem, not just an engineering one</li>
+            <li>Building multi-agent design workflows that actually ship</li>
+            <li>The future of design tools is code + canvas — not one or the other</li>
+            <li>Executable constraints over design guidelines</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer id="contact" class="reveal" aria-label="Contact">
+      <div class="foot-inner">
+        <div>
+          <p class="foot-title">Let's build systems that ship.</p>
+          <p class="foot-desc">
+            If you're building platform foundations, AI-native workflows, or high-trust
+            experiences — I'm happiest where complexity becomes clarity.
+          </p>
+        </div>
+        <div class="foot-links">
+          <a class="btn btn-primary" href="mailto:saniyaaroraux@gmail.com">Email</a>
+          <a class="btn" href="Saniya-Arora-Resume.pdf" target="_blank" rel="noreferrer">Resume</a>
+          <a class="btn" href="https://www.linkedin.com/in/saniya-arora-20" target="_blank" rel="noreferrer">LinkedIn</a>
+        </div>
+      </div>
+      <div class="foot-bottom">
+        &copy; 2026 Saniya Arora &middot; Built with code + canvas + AI
+      </div>
+    </footer>
+
+  </main>
+
+  <script>
+    (function() {
+      var saved = localStorage.getItem('theme');
+      if (saved) {
+        document.documentElement.setAttribute('data-theme', saved);
+      } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+
+    document.querySelector('.theme-toggle').addEventListener('click', function() {
+      var html = document.documentElement;
+      var next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      document.querySelector('meta[name="theme-color"]').content =
+        next === 'dark' ? '#09090b' : '#fafafa';
+    });
+
+    var io = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) {
+        if (e.isIntersecting) {
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.08 });
+
+    document.querySelectorAll('.reveal').forEach(function(el) { io.observe(el); });
+
+    // How I Work: staggered panel reveals + agent animation
+    (function() {
+      var hiwSection = document.getElementById('how-i-work');
+      if (!hiwSection) return;
+
+      var panels = hiwSection.querySelectorAll('.hiw-panel');
+      var agents = hiwSection.querySelectorAll('.hiw-agent');
+      var hiwStarted = false;
+
+      var hiwObs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(e) {
+          if (e.isIntersecting && !hiwStarted) {
+            hiwStarted = true;
+            hiwObs.unobserve(e.target);
+
+            panels.forEach(function(panel) {
+              var delay = parseInt(panel.getAttribute('data-hiw-delay') || '0', 10);
+              setTimeout(function() { panel.classList.add('in'); }, delay);
+            });
+
+            agents.forEach(function(agent, i) {
+              setTimeout(function() { agent.classList.add('in'); }, 600 + i * 120);
+            });
+
+            setTimeout(startAgentCycle, 1400);
+          }
+        });
+      }, { threshold: 0.15 });
+
+      hiwObs.observe(hiwSection);
+
+      function startAgentCycle() {
+        var agentEls = Array.from(agents);
+        var idx = 0;
+
+        function cycleNext() {
+          agentEls.forEach(function(a) {
+            a.classList.remove('thinking', 'done');
+            a.querySelector('.hiw-agent-status').textContent = 'idle';
+          });
+
+          var current = agentEls[idx];
+          current.classList.add('thinking');
+          current.querySelector('.hiw-agent-status').textContent = 'thinking...';
+
+          setTimeout(function() {
+            current.classList.remove('thinking');
+            current.classList.add('done');
+            current.querySelector('.hiw-agent-status').textContent = 'done';
+
+            setTimeout(function() {
+              idx = (idx + 1) % agentEls.length;
+              cycleNext();
+            }, 1200);
+          }, 1800);
+        }
+
+        cycleNext();
+      }
+    })();
+
+    // Interactive chat
+    (function() {
+      var body = document.getElementById('chat-body');
+      if (!body) return;
+
+      var speed = 20;
+      var responses = {
+        recruiter: {
+          text: "Hey, glad you\u2019re here! I design enterprise platforms at Capital One using AI-assisted tooling. The case studies below are the real stuff \u2014 governance, identity, verification at scale. Grab my resume if you\u2019re in a rush, or scroll if you\u2019ve got a sec.",
+          cta: 'View Resume', href: '#contact'
+        },
+        hiring: {
+          text: "Welcome! I\u2019d love to show you how I think. The work below covers real systems I\u2019ve shipped end-to-end. I also love geeking out about AI workflows \u2014 happy to walk through any of it live. Let\u2019s talk.",
+          cta: 'View Work', href: '#work'
+        },
+        designer: {
+          text: "Oh hey! Always nice to meet another designer. I nerd out about AI workflows, system design, and building things that actually ship. Poke around \u2014 and if you\u2019re ever in New York, let\u2019s grab coffee.",
+          cta: "Let\u2019s Connect", href: '#contact'
+        },
+        engineer: {
+          text: "Nice, welcome. I\u2019m the designer who actually reads your PRs. Check out how I bridge design and code below \u2014 and yes, I will absolutely geek out about AI tooling with you.",
+          cta: 'See How I Work', href: '#how-i-work'
+        },
+        browsing: {
+          text: "No pressure! Look around, click things, enjoy the dot grid. I\u2019m also always down for coffee if you\u2019re ever in New York. If something sparks, you know where to find me.",
+          cta: 'Keep Scrolling', href: '#how-i-work'
+        }
+      };
+
+      var chips = [
+        { id: 'recruiter', label: 'Recruiter' },
+        { id: 'hiring', label: 'Hiring Manager' },
+        { id: 'designer', label: 'Designer' },
+        { id: 'engineer', label: 'Engineer' },
+        { id: 'browsing', label: 'Just Browsing' }
+      ];
+
+      function typeText(el, text, cb) {
+        var i = 0;
+        function tick() {
+          if (i < text.length) {
+            el.textContent += text[i];
+            i++;
+            setTimeout(tick, speed);
+          } else if (cb) cb();
+        }
+        tick();
+      }
+
+      function addCursor(parent) {
+        var c = document.createElement('span');
+        c.className = 'chat-cursor';
+        parent.appendChild(c);
+        return c;
+      }
+
+      function removeCursor(c) { if (c && c.parentNode) c.parentNode.removeChild(c); }
+
+      function scrollChat() { body.scrollTop = body.scrollHeight; }
+
+      function showGreeting() {
+        var aiWrap = document.createElement('div');
+        aiWrap.className = 'chat-ai';
+
+        var header = document.createElement('div');
+        header.className = 'chat-ai-header';
+        header.innerHTML = '<span class="chat-ai-dot"></span> saniya.agent';
+        aiWrap.appendChild(header);
+
+        var aiBody = document.createElement('div');
+        aiBody.className = 'chat-ai-body';
+        aiWrap.appendChild(aiBody);
+        body.appendChild(aiWrap);
+
+        var greeting = "Hey! Welcome to my portfolio. Who are you?";
+        var cursor = addCursor(aiBody);
+
+        typeText(aiBody, greeting, function() {
+          removeCursor(cursor);
+          scrollChat();
+          setTimeout(showChips, 300);
+        });
+      }
+
+      function showChips() {
+        var chipsWrap = document.createElement('div');
+        chipsWrap.className = 'chat-chips';
+        chipsWrap.style.opacity = '0';
+        chipsWrap.style.transform = 'translateY(6px)';
+        chipsWrap.style.transition = 'opacity 0.35s, transform 0.35s';
+
+        chips.forEach(function(chip) {
+          var btn = document.createElement('button');
+          btn.className = 'chat-chip';
+          btn.textContent = chip.label;
+          btn.addEventListener('click', function() {
+            handleChipClick(chip, chipsWrap);
+          });
+          chipsWrap.appendChild(btn);
+        });
+
+        body.appendChild(chipsWrap);
+        scrollChat();
+
+        requestAnimationFrame(function() {
+          chipsWrap.style.opacity = '1';
+          chipsWrap.style.transform = 'translateY(0)';
+        });
+      }
+
+      function handleChipClick(chip, chipsWrap) {
+        chipsWrap.remove();
+
+        var userBubble = document.createElement('div');
+        userBubble.className = 'chat-user';
+        userBubble.textContent = chip.label;
+        body.appendChild(userBubble);
+        scrollChat();
+
+        setTimeout(function() { showResponse(chip.id); }, 500);
+      }
+
+      function showResponse(id) {
+        var r = responses[id];
+
+        var aiWrap = document.createElement('div');
+        aiWrap.className = 'chat-ai';
+
+        var header = document.createElement('div');
+        header.className = 'chat-ai-header';
+        header.innerHTML = '<span class="chat-ai-dot"></span> saniya.agent';
+        aiWrap.appendChild(header);
+
+        var aiBody = document.createElement('div');
+        aiBody.className = 'chat-ai-body';
+        aiWrap.appendChild(aiBody);
+        body.appendChild(aiWrap);
+        scrollChat();
+
+        var cursor = addCursor(aiBody);
+
+        typeText(aiBody, r.text, function() {
+          removeCursor(cursor);
+
+          var cta = document.createElement('a');
+          cta.className = 'chat-cta';
+          cta.textContent = r.cta;
+          cta.href = r.href;
+          cta.style.opacity = '0';
+          cta.style.transition = 'opacity 0.3s';
+          aiBody.appendChild(document.createElement('br'));
+          aiBody.appendChild(cta);
+          scrollChat();
+
+          requestAnimationFrame(function() {
+            cta.style.opacity = '1';
+          });
+        });
+      }
+
+      setTimeout(showGreeting, 600);
+    })();
+  </script>
+</body>
+</html>

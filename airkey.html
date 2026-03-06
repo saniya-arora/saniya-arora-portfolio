@@ -1,0 +1,1702 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AirKey — Designing a Channel-Agnostic Verification Framework</title>
+  <meta name="description" content="How I transformed a mobile-only authentication method into a reusable, cross-channel trust system." />
+  <meta name="theme-color" content="#09090b" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root, [data-theme="dark"] {
+      --bg: #09090b;
+      --surface: #111113;
+      --surface2: #18181b;
+      --border: #27272a;
+      --border2: #3f3f46;
+      --text: #fafafa;
+      --text2: #a1a1aa;
+      --text3: #71717a;
+      --accent: #4ade80;
+      --accent-dim: rgba(74, 222, 128, 0.1);
+
+      --sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+      --max: 1060px;
+      --pad: clamp(16px, 3vw, 32px);
+      --section: clamp(72px, 9vw, 112px);
+      --r: 10px;
+      --r-lg: 14px;
+    }
+
+    [data-theme="light"] {
+      --bg: #fafafa;
+      --surface: #ffffff;
+      --surface2: #f4f4f5;
+      --border: #e4e4e7;
+      --border2: #d4d4d8;
+      --text: #09090b;
+      --text2: #52525b;
+      --text3: #a1a1aa;
+      --accent: #16a34a;
+      --accent-dim: rgba(22, 163, 74, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--sans);
+      color: var(--text);
+      background: var(--bg);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .dot-grid {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background-image: radial-gradient(circle, var(--border) 0.6px, transparent 0.6px);
+      background-size: 22px 22px;
+      opacity: 0.35;
+    }
+
+    .wrap {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 var(--pad);
+    }
+
+    /* ─── SCROLL PROGRESS ─── */
+    .scroll-progress {
+      position: fixed;
+      inset: 0 0 auto;
+      height: 2px;
+      z-index: 200;
+      pointer-events: none;
+    }
+    .scroll-progress__bar {
+      width: calc(var(--progress, 0) * 100%);
+      height: 100%;
+      background: var(--accent);
+      transform-origin: left;
+      transition: width 80ms linear;
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid var(--border);
+      background: color-mix(in srgb, var(--bg) 82%, transparent);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .nav-inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 var(--pad);
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .brand {
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+    .nav-back {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text3);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .nav-back:hover {
+      color: var(--text);
+      border-color: var(--border2);
+      background: var(--surface2);
+    }
+    .theme-toggle {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      width: 34px;
+      height: 34px;
+      cursor: pointer;
+      color: var(--text3);
+      display: grid;
+      place-items: center;
+      transition: color 0.15s, border-color 0.15s;
+      flex-shrink: 0;
+    }
+    .theme-toggle:hover {
+      color: var(--text);
+      border-color: var(--border2);
+    }
+    .theme-toggle svg { width: 15px; height: 15px; }
+    .icon-sun, .icon-moon { display: none; }
+    [data-theme="dark"] .icon-sun { display: block; }
+    [data-theme="light"] .icon-moon { display: block; }
+
+    /* ─── HERO ─── */
+    .hero {
+      padding: var(--section) 0;
+      text-align: center;
+    }
+    .hero-eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .hero-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+    .hero h1 {
+      font-size: clamp(26px, 3.5vw, 38px);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.12;
+      margin-bottom: 20px;
+      max-width: 22ch;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .hero-sub {
+      color: var(--text2);
+      font-size: 16px;
+      line-height: 1.7;
+      max-width: 50ch;
+      margin: 0 auto 36px;
+    }
+    .hero-summary {
+      color: var(--text2);
+      font-size: 15px;
+      line-height: 1.7;
+      max-width: 56ch;
+      margin: 0 auto;
+      text-align: left;
+    }
+
+    /* ─── META GRID ─── */
+    .meta-section {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      overflow: hidden;
+      margin-top: 40px;
+    }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-bottom: 1px solid var(--border);
+    }
+    .meta-item {
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .meta-item + .meta-item {
+      border-left: 1px solid var(--border);
+    }
+    .meta-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .meta-value {
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .meta-note {
+      padding: 16px 24px;
+    }
+    .meta-note-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+    .meta-note-text {
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.6;
+    }
+
+    /* ─── OUTCOME CARDS ─── */
+    .outcome-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 40px;
+    }
+    .outcome-card {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 22px;
+      background: var(--surface);
+    }
+    .outcome-card-eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
+    }
+    .outcome-card-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+    .outcome-card-body {
+      color: var(--text2);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    /* ─── BODY LAYOUT (TOC + ARTICLE) ─── */
+    .body-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 24px;
+      align-items: flex-start;
+      padding-top: var(--section);
+    }
+    @media (min-width: 1024px) {
+      .body-layout {
+        grid-template-columns: 220px minmax(0, 1fr);
+        gap: 40px;
+      }
+    }
+
+    /* ─── TOC ─── */
+    .toc { position: relative; }
+    .toc-inner {
+      position: sticky;
+      top: 76px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      padding: 16px;
+    }
+    .toc-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
+    }
+    .toc-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .toc-link {
+      display: block;
+      font-size: 13px;
+      text-decoration: none;
+      color: var(--text3);
+      padding: 6px 10px;
+      border-radius: 8px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .toc-link:hover {
+      color: var(--text);
+      background: var(--surface2);
+    }
+    .toc-link--active {
+      color: var(--text);
+      background: var(--accent-dim);
+    }
+
+    /* ─── ARTICLE SECTIONS ─── */
+    .article { display: flex; flex-direction: column; gap: 0; }
+
+    .cs {
+      scroll-margin-top: 100px;
+      padding-bottom: var(--section);
+      border-bottom: 1px solid var(--border);
+    }
+    .cs:last-child { border-bottom: none; }
+    .cs + .cs { padding-top: 48px; }
+
+    .cs-eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 10px;
+    }
+    .cs-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.25;
+      margin-bottom: 16px;
+    }
+    .cs-body {
+      color: var(--text2);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+    .cs-body p { margin: 0 0 14px; }
+    .cs-body p:last-child { margin-bottom: 0; }
+    .cs-body strong { color: var(--text); font-weight: 600; }
+    .cs-body ul {
+      margin: 8px 0 14px 20px;
+      padding: 0;
+    }
+    .cs-body li {
+      margin-bottom: 4px;
+      line-height: 1.7;
+    }
+
+    /* ─── INTRO LAYOUT (image + text) ─── */
+    .intro-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 32px;
+      margin-top: 20px;
+      align-items: start;
+    }
+    @media (min-width: 768px) {
+      .intro-layout {
+        grid-template-columns: minmax(0, 0.42fr) minmax(0, 0.58fr);
+        gap: 36px;
+      }
+    }
+    .intro-img {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      background: var(--surface);
+      padding: 12px;
+    }
+    .intro-img img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: var(--r);
+    }
+    .intro-text {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .intro-text p {
+      color: var(--text2);
+      font-size: 15px;
+      line-height: 1.7;
+      margin: 0 0 14px;
+    }
+    .intro-text p:last-child { margin-bottom: 0; }
+    .intro-text strong { color: var(--text); font-weight: 600; }
+
+    /* ─── PROBLEM TABLE ─── */
+    .problem-table {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      overflow: hidden;
+      margin-top: 20px;
+    }
+    .problem-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 140px;
+      gap: 12px;
+      align-items: center;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      color: var(--text2);
+    }
+    .problem-row:last-child { border-bottom: none; }
+    .problem-row--head {
+      background: var(--surface2);
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text3);
+      padding: 12px 20px;
+    }
+    .severity {
+      display: flex;
+      gap: 4px;
+      justify-content: flex-end;
+    }
+    .severity span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--border);
+    }
+    .problem-row--l3 .severity span:nth-child(-n+3) { background: var(--text3); }
+    .problem-row--l4 .severity span:nth-child(-n+4) { background: var(--text2); }
+    .problem-row--l5 .severity span:nth-child(-n+5) { background: var(--accent); }
+
+    /* ─── PROBLEM FIGURE ─── */
+    .problem-figure {
+      margin: 28px auto 0;
+      max-width: 340px;
+    }
+    .problem-figure img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: var(--r-lg);
+      border: 1px solid var(--border);
+    }
+    .problem-figure-caption {
+      margin-top: 12px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+      text-align: center;
+      letter-spacing: 0.04em;
+    }
+
+    /* ─── CALLOUT ─── */
+    .callout {
+      background: var(--surface);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 var(--r-lg) var(--r-lg) 0;
+      padding: 22px 26px;
+      margin: 20px 0;
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--text);
+    }
+    .callout p { margin: 0 0 8px; }
+    .callout p:last-child { margin-bottom: 0; }
+    .callout strong { font-weight: 700; }
+    .callout em { font-style: italic; color: var(--text2); }
+
+    /* ─── OWNED GRID ─── */
+    .owned-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .owned-card {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 24px;
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: border-color 0.2s;
+    }
+    .owned-card:hover { border-color: var(--border2); }
+    .owned-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      display: grid;
+      place-items: center;
+    }
+    .owned-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--text3);
+      stroke-width: 1.6;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .owned-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .owned-desc {
+      color: var(--text2);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    /* ─── SHIFT BLOCK ─── */
+    .shift {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 20px;
+      align-items: center;
+      margin-top: 20px;
+      padding: 26px 28px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+    }
+    .shift-box { text-align: center; }
+    .shift-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+    }
+    .shift-value {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.3;
+    }
+    .shift-arrow {
+      font-size: 20px;
+      color: var(--accent);
+    }
+
+    /* ─── RESEARCH PLAN ─── */
+    .phase-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      border-radius: 8px;
+      background: var(--accent-dim);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 600;
+      margin: 0 0 20px;
+    }
+    .phase-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    .phase-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .phase-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text2);
+    }
+    .phase-meta-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--border2);
+    }
+    .research-cards {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0;
+      margin-bottom: 8px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+    }
+    .research-card {
+      padding: 24px;
+      background: var(--surface);
+    }
+    .research-card:first-child {
+      border-right: 1px solid var(--border);
+    }
+    .research-card--full {
+      grid-column: 1 / -1;
+      border-top: 1px solid var(--border);
+    }
+    .research-card-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin: 0 0 12px;
+      color: var(--text);
+    }
+    .research-card-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .research-card-list li {
+      position: relative;
+      padding-left: 14px;
+      font-size: 13px;
+      line-height: 1.65;
+      color: var(--text2);
+      margin-bottom: 4px;
+    }
+    .research-card-list li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 8px;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    .research-card-list li:last-child { margin-bottom: 0; }
+    .research-card-note {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 14px;
+    }
+    .phase-divider { height: 40px; }
+
+    /* ─── INSIGHT CARDS ─── */
+    .insight-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .insight-card {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 24px;
+      background: var(--surface);
+      transition: border-color 0.2s;
+    }
+    .insight-card:hover { border-color: var(--border2); }
+    .insight-number {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+    }
+    .insight-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+    .insight-body {
+      color: var(--text2);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+    .insight-body strong { color: var(--text); font-weight: 600; }
+
+    /* ─── PRINCIPLE CARDS ─── */
+    .principle-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .principle-card {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 24px;
+      background: var(--surface);
+    }
+    .principle-number {
+      font-family: var(--mono);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+    .principle-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+    .principle-body {
+      color: var(--text2);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    /* ─── CHANNEL CARDS ─── */
+    .channel-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 24px;
+    }
+    .channel-card {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .channel-card:hover { border-color: var(--border2); }
+    .channel-bar {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .channel-bar-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+    }
+    .channel-bar-badge {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--accent);
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: var(--accent-dim);
+    }
+    .channel-body { padding: 20px; }
+    .channel-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 14px;
+    }
+    .channel-card img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: var(--r);
+      border: 1px solid var(--border);
+    }
+    .channel-card img.img-contained {
+      max-height: 360px;
+      object-fit: contain;
+      background: var(--surface2);
+    }
+    .channel-desc {
+      margin-top: 14px;
+      color: var(--text2);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    /* ─── FIGURE ─── */
+    .cs-figure {
+      margin: 28px 0 0;
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      padding: 16px;
+    }
+    .cs-figure img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: var(--r);
+    }
+    .cs-figure-caption {
+      margin-top: 14px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+      text-align: center;
+      letter-spacing: 0.04em;
+    }
+
+    /* ─── FLOW STRIP ─── */
+    .flow-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 24px;
+    }
+    .flow-step {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .flow-step-img {
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      padding: 10px;
+    }
+    .flow-step-img img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: var(--r);
+    }
+    .flow-step-number {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .flow-step-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      padding: var(--section) 0 48px;
+      margin-top: var(--section);
+      border-top: 1px solid var(--border);
+    }
+    .foot-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .foot-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+    }
+    .foot-desc {
+      color: var(--text2);
+      font-size: 14px;
+      line-height: 1.7;
+      max-width: 44ch;
+    }
+    .foot-links {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .foot-bottom {
+      margin-top: 48px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+    }
+
+    /* ─── BUTTONS ─── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: var(--sans);
+      text-decoration: none;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      color: var(--text);
+      background: var(--surface);
+      transition: border-color 0.15s, background 0.15s;
+      cursor: pointer;
+    }
+    .btn:hover {
+      border-color: var(--border2);
+      background: var(--surface2);
+    }
+    .btn-primary {
+      background: var(--text);
+      color: var(--bg);
+      border-color: transparent;
+    }
+    .btn-primary:hover {
+      opacity: 0.88;
+      border-color: transparent;
+      background: var(--text);
+    }
+
+    /* ─── REVEAL ─── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+    .reveal.in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      .meta-grid { grid-template-columns: 1fr 1fr; }
+      .meta-item + .meta-item { border-left: none; }
+      .meta-item:nth-child(2) { border-left: 1px solid var(--border); }
+      .meta-grid .meta-item:nth-child(3) { grid-column: 1 / -1; border-top: 1px solid var(--border); }
+      .outcome-grid { grid-template-columns: repeat(2, 1fr); }
+      .problem-row { grid-template-columns: minmax(0, 1fr); }
+      .severity { justify-content: flex-start; }
+      .channel-grid { grid-template-columns: 1fr; }
+      .flow-strip { grid-template-columns: repeat(2, 1fr); }
+      .toc-inner {
+        position: static;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+      }
+      .toc-label { margin-bottom: 0; margin-right: 4px; }
+      .toc-list { flex-direction: row; flex-wrap: wrap; }
+    }
+    @media (max-width: 640px) {
+      .outcome-grid { grid-template-columns: 1fr; }
+      .meta-grid { grid-template-columns: 1fr; }
+      .meta-item + .meta-item { border-left: none; }
+      .meta-item:nth-child(2) { border-left: none; }
+      .meta-grid .meta-item:nth-child(n+2) { border-top: 1px solid var(--border); }
+      .owned-grid { grid-template-columns: 1fr; }
+      .principle-grid { grid-template-columns: 1fr; }
+      .research-cards { grid-template-columns: 1fr; }
+      .research-card:first-child { border-right: none; border-bottom: 1px solid var(--border); }
+      .shift {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+      .shift-arrow { transform: rotate(90deg); justify-self: center; }
+      .flow-strip { grid-template-columns: 1fr; }
+      .hero h1 { font-size: clamp(24px, 7vw, 34px); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .reveal { transition: none; opacity: 1; transform: none; }
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="dot-grid" aria-hidden="true"></div>
+
+  <!-- SCROLL PROGRESS -->
+  <div class="scroll-progress" data-scroll-progress>
+    <div class="scroll-progress__bar"></div>
+  </div>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <div class="nav-left">
+        <a href="index.html" class="brand">saniya.arora</a>
+        <a href="index.html#work" class="nav-back">&larr; Back to work</a>
+      </div>
+      <button class="theme-toggle" aria-label="Toggle theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </nav>
+
+  <main class="wrap">
+
+    <!-- HERO -->
+    <div class="hero reveal">
+      <div class="hero-eyebrow">
+        <span class="hero-dot" aria-hidden="true"></span>
+        Case Study &middot; Secondary Authentication &middot; Customer-Facing
+      </div>
+
+      <h1>Designing a Channel-Agnostic Verification Framework for Scalable Trust</h1>
+
+      <p class="hero-sub">
+        How I transformed a mobile-only authentication method into a reusable, cross-channel trust system.
+      </p>
+
+      <!-- META -->
+      <div class="meta-section">
+        <div class="meta-grid">
+          <div class="meta-item">
+            <div class="meta-label">Type</div>
+            <div class="meta-value">Secondary Auth &mdash; Customer-Facing</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">Role</div>
+            <div class="meta-value">Lead Researcher &amp; Experience Strategist</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">Team</div>
+            <div class="meta-value">Secondary Authentication</div>
+          </div>
+        </div>
+        <div class="meta-note">
+          <div class="meta-note-label">Note</div>
+          <p class="meta-note-text">
+            I can't share production screens in this case study. Visuals here are conceptual but the story, constraints, and outcomes are real. Happy to walk through details live.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- OUTCOME CARDS -->
+    <div class="outcome-grid reveal">
+      <div class="outcome-card">
+        <div class="outcome-card-eyebrow">Framework</div>
+        <h3 class="outcome-card-title">Reusable cross-channel verification standards</h3>
+        <p class="outcome-card-body">Established shared patterns that eliminated redundant design and engineering effort across channel teams.</p>
+      </div>
+      <div class="outcome-card">
+        <div class="outcome-card-eyebrow">Trust</div>
+        <h3 class="outcome-card-title">Reframed friction as an intentional trust signal</h3>
+        <p class="outcome-card-body">Shifted the org's understanding of friction — from obstacle to purposeful reassurance in identity flows.</p>
+      </div>
+      <div class="outcome-card">
+        <div class="outcome-card-eyebrow">Alignment</div>
+        <h3 class="outcome-card-title">Unified security, product, and engineering</h3>
+        <p class="outcome-card-body">Aligned cross-functional stakeholders on shared trust principles and friction language.</p>
+      </div>
+      <div class="outcome-card">
+        <div class="outcome-card-eyebrow">Velocity</div>
+        <h3 class="outcome-card-title">Accelerated new channel adoption</h3>
+        <p class="outcome-card-body">Enabled faster integration of new channels using shared experience models and standardized patterns.</p>
+      </div>
+    </div>
+
+    <!-- BODY: TOC + ARTICLE -->
+    <div class="body-layout">
+
+      <!-- TOC -->
+      <aside class="toc">
+        <div class="toc-inner">
+          <div class="toc-label">On this page</div>
+          <ul class="toc-list">
+            <li><a href="#context" class="toc-link">Context</a></li>
+            <li><a href="#problem" class="toc-link">The core problem</a></li>
+            <li><a href="#role" class="toc-link">My role</a></li>
+            <li><a href="#strategy" class="toc-link">Strategy</a></li>
+            <li><a href="#research" class="toc-link">Research approach</a></li>
+            <li><a href="#insights" class="toc-link">Key insights</a></li>
+            <li><a href="#solution" class="toc-link">The solution</a></li>
+            <li><a href="#ai" class="toc-link">AI-enabled workflow</a></li>
+            <li><a href="#impact" class="toc-link">Impact</a></li>
+            <li><a href="#reflection" class="toc-link">What this taught me</a></li>
+          </ul>
+        </div>
+      </aside>
+
+      <!-- ARTICLE -->
+      <div class="article">
+
+        <!-- CONTEXT -->
+        <section id="context" class="cs reveal">
+          <div class="cs-eyebrow">Context</div>
+          <h2 class="cs-title">A trusted authenticator with limited reach</h2>
+
+          <div class="intro-layout">
+            <div class="intro-img">
+              <img src="images/airkey .png" alt="AirKey card-tap verification on Capital One mobile app" />
+            </div>
+
+            <div class="intro-text">
+              <p>
+                AirKey (formerly Presto) allows customers to verify identity by tapping their card to their device. It was proven on mobile and trusted by customers — but constrained to a single channel.
+              </p>
+              <p>
+                Meanwhile, authentication volume outside mobile was growing. Fraud risk models were evolving. Channel teams were duplicating verification patterns independently. And user experiences varied across touchpoints.
+              </p>
+              <p>
+                <strong>The system worked — but it didn't scale.</strong>
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- THE CORE PROBLEM -->
+        <section id="problem" class="cs reveal">
+          <div class="cs-eyebrow">The core problem</div>
+          <h2 class="cs-title">AirKey was designed as a feature. The business needed it to function as infrastructure.</h2>
+
+          <div class="cs-body">
+            <p>
+              Every new channel integration required redefining risk posture, rebuilding UX patterns, revalidating mental models, and re-aligning engineering standards. This created compounding fragmentation:
+            </p>
+          </div>
+
+          <div class="problem-table">
+            <div class="problem-row problem-row--head" role="row">
+              <div role="columnheader">Fragmentation</div>
+              <div role="columnheader" style="text-align:right">Severity</div>
+            </div>
+            <div class="problem-row problem-row--l5" role="row">
+              <div>Inconsistent trust signals across channels</div>
+              <div class="severity" aria-label="Severity 5 of 5"><span></span><span></span><span></span><span></span><span></span></div>
+            </div>
+            <div class="problem-row problem-row--l4" role="row">
+              <div>Disconnected friction patterns confusing users</div>
+              <div class="severity" aria-label="Severity 4 of 5"><span></span><span></span><span></span><span></span><span></span></div>
+            </div>
+            <div class="problem-row problem-row--l4" role="row">
+              <div>Redundant design and engineering effort per channel</div>
+              <div class="severity" aria-label="Severity 4 of 5"><span></span><span></span><span></span><span></span><span></span></div>
+            </div>
+            <div class="problem-row problem-row--l4" role="row">
+              <div>Slower adoption of new channels</div>
+              <div class="severity" aria-label="Severity 4 of 5"><span></span><span></span><span></span><span></span><span></span></div>
+            </div>
+            <div class="problem-row problem-row--l5" role="row">
+              <div>Trust erosion compounding over time</div>
+              <div class="severity" aria-label="Severity 5 of 5"><span></span><span></span><span></span><span></span><span></span></div>
+            </div>
+          </div>
+
+          <div class="problem-figure">
+            <img src="images/cyoa.png" alt="Capital One 2-Step Verification method selection screen — multiple auth options with no cross-channel consistency" />
+            <div class="problem-figure-caption">Existing method selection — channel-specific, not scalable</div>
+          </div>
+
+          <div class="cs-body" style="margin-top: 24px;">
+            <p>
+              The real challenge wasn't "make it work on web." It was:
+            </p>
+            <div class="callout">
+              <p><strong>How might we design a reusable verification framework that scales across channels without eroding user trust?</strong></p>
+            </div>
+            <p>
+              If we failed, channel teams would continue duplicating authentication logic. Customers would experience inconsistent friction across touchpoints. Security-driven interruptions would feel arbitrary. And trust erosion would compound over time.
+            </p>
+            <p>
+              In high-risk identity flows, <strong>inconsistency is more damaging than friction.</strong>
+            </p>
+            <p>
+              We weren't redesigning UI. We were operationalizing trust across an ecosystem.
+            </p>
+          </div>
+        </section>
+
+        <!-- MY ROLE -->
+        <section id="role" class="cs reveal">
+          <div class="cs-eyebrow">My role</div>
+          <h2 class="cs-title">Lead Researcher &amp; Experience Strategist — Secondary Authentication</h2>
+
+          <div class="cs-body">
+            <p>
+              I owned the cross-channel expansion strategy across four tracks. My mandate was not just to design a flow — but to define a scalable experience standard.
+            </p>
+          </div>
+
+          <div class="owned-grid">
+            <article class="owned-card">
+              <div class="owned-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
+              </div>
+              <h3 class="owned-title">Channel-agnostic research</h3>
+              <p class="owned-desc">
+                Understanding how customers think about identity verification across web, mobile, and emerging channels — and where expectations break.
+              </p>
+            </article>
+
+            <article class="owned-card">
+              <div class="owned-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><line x1="3" y1="9" x2="21" y2="9" /><line x1="9" y1="21" x2="9" y2="9" /></svg>
+              </div>
+              <h3 class="owned-title">Verification pattern design</h3>
+              <p class="owned-desc">
+                Defining reusable, modular verification flows that adapt to each channel's constraints without sacrificing trust or consistency.
+              </p>
+            </article>
+
+            <article class="owned-card">
+              <div class="owned-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+              </div>
+              <h3 class="owned-title">Cross-functional alignment</h3>
+              <p class="owned-desc">
+                Bridging security, product, and engineering to define shared standards for risk, friction, and user guidance across channels.
+              </p>
+            </article>
+
+            <article class="owned-card">
+              <div class="owned-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" /></svg>
+              </div>
+              <h3 class="owned-title">User testing &amp; validation</h3>
+              <p class="owned-desc">
+                Running studies to validate that channel-switching met user mental models and that intentional friction felt purposeful, not punitive.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <!-- STRATEGY -->
+        <section id="strategy" class="cs reveal">
+          <div class="cs-eyebrow">Strategy</div>
+          <h2 class="cs-title">Reframing the question before scaling the system</h2>
+
+          <div class="cs-body">
+            <p>
+              Instead of jumping into interface design, I reframed the problem.
+            </p>
+          </div>
+
+          <div class="shift">
+            <div class="shift-box">
+              <div class="shift-label">From</div>
+              <div class="shift-value">How do we move AirKey to web?</div>
+            </div>
+            <div class="shift-arrow">&rarr;</div>
+            <div class="shift-box">
+              <div class="shift-label">To</div>
+              <div class="shift-value">What is the mental model users hold about channel switching and security?</div>
+            </div>
+          </div>
+
+          <div class="cs-body" style="margin-top: 24px;">
+            <p>
+              Before scaling friction, we needed to validate whether channel switching would break flow, reduce trust, or feel purposeful. We designed research to test mental models before scaling the system.
+            </p>
+          </div>
+        </section>
+
+        <!-- RESEARCH APPROACH -->
+        <section id="research" class="cs reveal">
+          <div class="cs-eyebrow">Research approach</div>
+          <h2 class="cs-title">Two phases of targeted validation</h2>
+
+          <div style="margin-top: 8px;">
+            <!-- Phase I -->
+            <div class="phase-badge"><span class="phase-dot"></span> Phase I — Rapid Signal Testing</div>
+
+            <div class="phase-meta">
+              <div class="phase-meta-item"><div class="phase-meta-dot"></div> 50 participants</div>
+              <div class="phase-meta-item"><div class="phase-meta-dot"></div> Express missions + chalk mark testing</div>
+              <div class="phase-meta-item"><div class="phase-meta-dot"></div> Auth preference &amp; channel-switching expectations</div>
+            </div>
+
+            <div class="research-cards">
+              <div class="research-card">
+                <h4 class="research-card-title">What we tested</h4>
+                <ul class="research-card-list">
+                  <li>Authentication method selection logic</li>
+                  <li>Emotional response to switching devices</li>
+                  <li>Tolerance for security friction</li>
+                </ul>
+              </div>
+              <div class="research-card">
+                <h4 class="research-card-title">Design decision</h4>
+                <ul class="research-card-list">
+                  <li>SMS OTP was removed from options to isolate perception of stronger verification methods</li>
+                </ul>
+                <p class="research-card-note">Focus was on higher-assurance methods and cross-channel switching behavior.</p>
+              </div>
+            </div>
+
+            <div class="phase-divider"></div>
+
+            <!-- Phase II -->
+            <div class="phase-badge"><span class="phase-dot"></span> Phase II — Moderated Concept Testing</div>
+
+            <div class="phase-meta">
+              <div class="phase-meta-item"><div class="phase-meta-dot"></div> 8 in-person participants</div>
+              <div class="phase-meta-item"><div class="phase-meta-dot"></div> 30-minute sessions</div>
+              <div class="phase-meta-item"><div class="phase-meta-dot"></div> Cross-channel flow simulation</div>
+            </div>
+
+            <div class="research-cards">
+              <div class="research-card">
+                <h4 class="research-card-title">Flows tested</h4>
+                <ul class="research-card-list">
+                  <li>Desktop &rarr; App Clip</li>
+                  <li>Agent &rarr; SMS &rarr; App Clip</li>
+                  <li>Mobile Web &rarr; App Clip</li>
+                </ul>
+                <p class="research-card-note">QR-based prototypes were used to simulate real transitions.</p>
+              </div>
+              <div class="research-card">
+                <h4 class="research-card-title">What we measured</h4>
+                <ul class="research-card-list">
+                  <li>Continuity across channel switches</li>
+                  <li>Clarity of instruction at each step</li>
+                  <li>Emotional interpretation of friction</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- KEY INSIGHTS -->
+        <section id="insights" class="cs reveal">
+          <div class="cs-eyebrow">Key insights</div>
+          <h2 class="cs-title">What the research revealed</h2>
+
+          <div class="insight-grid">
+            <div class="insight-card">
+              <div class="insight-number">Insight 01</div>
+              <h3 class="insight-title">Channel switching was a familiar mental model</h3>
+              <p class="insight-body">
+                Users already associated switching devices with increased security. It did not feel novel — it felt <strong>protective</strong>.
+              </p>
+            </div>
+
+            <div class="insight-card">
+              <div class="insight-number">Insight 02</div>
+              <h3 class="insight-title">Friction was acceptable — if it was explained</h3>
+              <p class="insight-body">
+                Participants tolerated "clunky" transitions when they understood why it was happening, felt prepared, and retained visibility into progress. The problem wasn't effort — it was <strong>unpredictability</strong>.
+              </p>
+            </div>
+
+            <div class="insight-card">
+              <div class="insight-number">Insight 03</div>
+              <h3 class="insight-title">Continuity mattered more than speed</h3>
+              <p class="insight-body">
+                Users prioritized clear guidance, visible state progression, and confirmation moments. Flow continuity was more important than raw efficiency.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- THE SOLUTION -->
+        <section id="solution" class="cs reveal">
+          <div class="cs-eyebrow">The solution</div>
+          <h2 class="cs-title">A modular, channel-agnostic verification framework</h2>
+
+          <div class="cs-body">
+            <p>
+              We designed a framework built around three core principles:
+            </p>
+          </div>
+
+          <div class="principle-grid">
+            <div class="principle-card">
+              <div class="principle-number">01</div>
+              <h3 class="principle-title">Preserve state across the switch</h3>
+              <p class="principle-body">Users must never feel reset or lost when transitioning between channels.</p>
+            </div>
+            <div class="principle-card">
+              <div class="principle-number">02</div>
+              <h3 class="principle-title">Make security rationale explicit</h3>
+              <p class="principle-body">Explain why verification is required — not just what to do.</p>
+            </div>
+            <div class="principle-card">
+              <div class="principle-number">03</div>
+              <h3 class="principle-title">Standardize trust signals across channels</h3>
+              <p class="principle-body">Visual and interaction patterns must reinforce familiarity across every touchpoint.</p>
+            </div>
+          </div>
+
+          <div class="cs-body" style="margin-top: 24px;">
+            <p>
+              The resulting experience: Desktop web generates QR &rarr; launches App Clip. Call center triggers SMS deep link. Mobile web transitions seamlessly. All paths converge into a unified verification moment.
+            </p>
+          </div>
+
+          <!-- Channel entry points -->
+          <div class="channel-grid">
+            <div class="channel-card">
+              <div class="channel-bar">
+                <span class="channel-bar-label">channel</span>
+                <span class="channel-bar-badge">desktop &rarr; QR</span>
+              </div>
+              <div class="channel-body">
+                <h4 class="channel-title">Web initiates card-tap via QR code</h4>
+                <img src="images/web qr.png" alt="Desktop web verification screen — QR code prompts user to continue on phone for card-tap verification" class="img-contained" />
+                <p class="channel-desc">On desktop, the user scans a QR code to launch the App Clip on their phone, bridging the channel gap seamlessly.</p>
+              </div>
+            </div>
+
+            <div class="channel-card">
+              <div class="channel-bar">
+                <span class="channel-bar-label">channel</span>
+                <span class="channel-bar-badge">agent &rarr; SMS</span>
+              </div>
+              <div class="channel-body">
+                <h4 class="channel-title">Call center triggers verification via text</h4>
+                <img src="images/messagekey.png" alt="SMS deep link from Capital One agent — prompts user to tap card on phone for verification" />
+                <p class="channel-desc">During a call, the agent triggers an SMS deep link. The customer opens it and verifies with their card — no app download required.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Unified App Clip flow -->
+          <figure class="cs-figure" style="margin-top: 24px;">
+            <img src="images/theflow.png" alt="Complete AirKey App Clip verification flow — from App Clip launch through confirmation, card scan, to verification complete" />
+            <figcaption class="cs-figure-caption">All channel paths converge into the same verification experience</figcaption>
+          </figure>
+
+          <!-- Step-by-step breakdown -->
+          <div class="flow-strip">
+            <div class="flow-step">
+              <div class="flow-step-img">
+                <img src="images/flow1.png" alt="Step 1 — App Clip launches with card-tap prompt" />
+              </div>
+              <div class="flow-step-number">Step 01</div>
+              <div class="flow-step-label">App Clip launches</div>
+            </div>
+            <div class="flow-step">
+              <div class="flow-step-img">
+                <img src="images/flow2.png" alt="Step 2 — User confirms intent before proceeding" />
+              </div>
+              <div class="flow-step-number">Step 02</div>
+              <div class="flow-step-label">Confirm intent</div>
+            </div>
+            <div class="flow-step">
+              <div class="flow-step-img">
+                <img src="images/flow3.png" alt="Step 3 — User places card on device for NFC scan" />
+              </div>
+              <div class="flow-step-number">Step 03</div>
+              <div class="flow-step-label">Place card to scan</div>
+            </div>
+            <div class="flow-step">
+              <div class="flow-step-img">
+                <img src="images/flow4.png" alt="Step 4 — Verification complete confirmation screen" />
+              </div>
+              <div class="flow-step-number">Step 04</div>
+              <div class="flow-step-label">Verification complete</div>
+            </div>
+          </div>
+
+          <!-- System Design Shift -->
+          <div style="margin-top: 36px;">
+            <h3 class="cs-title" style="font-size: 20px;">The bigger shift: from feature to infrastructure</h3>
+            <div class="cs-body">
+              <p>
+                The biggest outcome was not a flow — it was a framework.
+              </p>
+            </div>
+
+            <div class="shift">
+              <div class="shift-box">
+                <div class="shift-label">From</div>
+                <div class="shift-value">Feature-based authentication</div>
+              </div>
+              <div class="shift-arrow">&rarr;</div>
+              <div class="shift-box">
+                <div class="shift-label">To</div>
+                <div class="shift-value">Reusable verification architecture</div>
+              </div>
+            </div>
+
+            <div class="cs-body" style="margin-top: 20px;">
+              <p>
+                This framework reduced duplication across channel teams, standardized friction language, created shared definitions of "good friction," and enabled faster channel integration. Verification became infrastructure — not a one-off experience.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- AI-ENABLED WORKFLOW -->
+        <section id="ai" class="cs reveal">
+          <div class="cs-eyebrow">AI-enabled workflow</div>
+          <h2 class="cs-title">Amplifying strategic clarity with AI</h2>
+          <div class="cs-body">
+            <p>
+              To accelerate synthesis and iteration, I incorporated AI tooling throughout the process:
+            </p>
+            <ul>
+              <li>Used AI clustering to categorize 50+ qualitative responses</li>
+              <li>Generated copy variations for friction framing</li>
+              <li>Rapidly prototyped flow states and ran AI critique loops</li>
+              <li>Stress-tested edge cases through structured prompt simulation</li>
+            </ul>
+            <p>
+              AI reduced synthesis time and allowed faster iteration before moderated validation. This wasn't AI replacing research — it <strong>amplified strategic clarity</strong>.
+            </p>
+          </div>
+        </section>
+
+        <!-- IMPACT -->
+        <section id="impact" class="cs reveal">
+          <div class="cs-eyebrow">Impact</div>
+          <h2 class="cs-title">Operationalizing trust at scale</h2>
+          <div class="cs-body">
+            <p>
+              While production metrics are confidential, the work:
+            </p>
+            <ul>
+              <li>Established reusable cross-channel verification standards</li>
+              <li>Informed fraud and friction OKRs</li>
+              <li>Reduced pattern duplication across teams</li>
+              <li>Aligned security, product, and engineering on trust principles</li>
+              <li>Accelerated new channel adoption using shared experience models</li>
+            </ul>
+            <p>
+              More importantly: <strong>it shifted the org's framing of friction — from obstacle to intentional trust signal.</strong>
+            </p>
+          </div>
+        </section>
+
+        <!-- WHAT THIS TAUGHT ME -->
+        <section id="reflection" class="cs reveal">
+          <div class="cs-eyebrow">What this taught me</div>
+          <h2 class="cs-title">Friction is not the enemy. Arbitrariness is.</h2>
+          <div class="cs-body">
+            <p>
+              When users understand why security is happening, effort becomes reassurance. Designing scalable trust requires:
+            </p>
+            <ul>
+              <li>Mental model validation</li>
+              <li>Cross-functional alignment</li>
+              <li>Pattern standardization</li>
+              <li>Strategic restraint</li>
+            </ul>
+            <p>
+              <strong>Trust does not scale accidentally. It must be architected.</strong>
+            </p>
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="reveal" aria-label="Contact">
+      <div class="foot-inner">
+        <div>
+          <p class="foot-title">Let's build systems that ship.</p>
+          <p class="foot-desc">
+            If you're building platform foundations, AI-native workflows, or high-trust
+            experiences — I'm happiest where complexity becomes clarity.
+          </p>
+        </div>
+        <div class="foot-links">
+          <a class="btn btn-primary" href="mailto:saniyaaroraux@gmail.com">Email</a>
+          <a class="btn" href="Saniya-Arora-Resume.pdf" target="_blank" rel="noreferrer">Resume</a>
+          <a class="btn" href="https://www.linkedin.com/in/saniya-arora-20" target="_blank" rel="noreferrer">LinkedIn</a>
+        </div>
+      </div>
+      <div class="foot-bottom">
+        &copy; 2026 Saniya Arora &middot; Built with code + canvas + AI
+      </div>
+    </footer>
+
+  </main>
+
+  <script>
+    (function() {
+      var saved = localStorage.getItem('theme');
+      if (saved) {
+        document.documentElement.setAttribute('data-theme', saved);
+      } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+
+    document.querySelector('.theme-toggle').addEventListener('click', function() {
+      var html = document.documentElement;
+      var next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      document.querySelector('meta[name="theme-color"]').content =
+        next === 'dark' ? '#09090b' : '#fafafa';
+    });
+
+    // Scroll progress
+    (function() {
+      var bar = document.querySelector('[data-scroll-progress]');
+      if (!bar) return;
+      function update() {
+        var doc = document.documentElement;
+        var scrollTop = window.scrollY || doc.scrollTop;
+        var docHeight = doc.scrollHeight - window.innerHeight;
+        var progress = docHeight > 0 ? scrollTop / docHeight : 0;
+        bar.style.setProperty('--progress', progress.toFixed(4));
+      }
+      window.addEventListener('scroll', update, { passive: true });
+      update();
+    })();
+
+    // Reveal on scroll
+    var io = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) {
+        if (e.isIntersecting) {
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.08 });
+
+    document.querySelectorAll('.reveal').forEach(function(el) { io.observe(el); });
+
+    // TOC smooth scroll + active state
+    (function() {
+      var tocLinks = document.querySelectorAll('.toc-link');
+      tocLinks.forEach(function(link) {
+        link.addEventListener('click', function(e) {
+          var href = link.getAttribute('href');
+          if (!href || href.charAt(0) !== '#') return;
+          var target = document.querySelector(href);
+          if (!target) return;
+          e.preventDefault();
+          var top = target.getBoundingClientRect().top + window.scrollY - 100;
+          window.scrollTo({ top: top, behavior: 'smooth' });
+        });
+      });
+
+      var sections = Array.from(document.querySelectorAll('.cs[id]'));
+      var linkById = {};
+      tocLinks.forEach(function(link) {
+        var href = link.getAttribute('href');
+        if (href && href.charAt(0) === '#') linkById[href.slice(1)] = link;
+      });
+
+      if ('IntersectionObserver' in window && sections.length) {
+        var sObs = new IntersectionObserver(function(entries) {
+          entries.forEach(function(entry) {
+            var link = linkById[entry.target.id];
+            if (!link) return;
+            if (entry.isIntersecting) {
+              tocLinks.forEach(function(l) { l.classList.remove('toc-link--active'); });
+              link.classList.add('toc-link--active');
+            }
+          });
+        }, { threshold: 0.15, rootMargin: '-15% 0px -50% 0px' });
+
+        sections.forEach(function(s) { sObs.observe(s); });
+      }
+    })();
+  </script>
+</body>
+</html>
