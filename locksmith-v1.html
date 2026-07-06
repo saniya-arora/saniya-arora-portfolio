@@ -1,0 +1,1271 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Locksmith v1 — prototype</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Crect width='28' height='28' rx='7' fill='%231a2a4a'/%3E%3Ccircle cx='14' cy='11.5' r='3.6' fill='%23fff'/%3E%3Cpath d='M11.5 12.5 L16.5 12.5 L15.4 21 L12.6 21 Z' fill='%23fff'/%3E%3Ccircle cx='22.5' cy='6' r='2' fill='%237b9a8a'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Open+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Optimist is Capital One's proprietary brand font; loaded locally on devices that have it installed and falls back to Inter elsewhere. -->
+  <style>
+    @font-face {
+      font-family: 'Optimist';
+      src: local('Optimist'), local('Optimist Regular'), local('OptimistRegular');
+      font-weight: 400; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Optimist';
+      src: local('Optimist Medium'), local('OptimistMedium');
+      font-weight: 500; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Optimist';
+      src: local('Optimist SemiBold'), local('OptimistSemiBold'), local('Optimist Semibold');
+      font-weight: 600; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Optimist';
+      src: local('Optimist Bold'), local('OptimistBold');
+      font-weight: 700; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Optimist';
+      src: local('Optimist ExtraBold'), local('Optimist Extrabold'), local('OptimistExtraBold');
+      font-weight: 800; font-style: normal; font-display: swap;
+    }
+  </style>
+
+  <style>
+    :root {
+      /* ─── Identity Platform design tokens (extracted from marketing surface) ─── */
+      --bg: #ffffff;              /* clean white page background */
+      --surface: #ffffff;
+      --surface-2: #f6f6f4;       /* very subtle warm-neutral section */
+      --surface-3: #ececea;
+      --border: #e4e4e1;
+      --border-2: #c8c8c4;
+      --text: #1a2330;            /* near-black with subtle navy cast */
+      --text-2: #4a5562;
+      --text-3: #6e7986;
+      --text-4: #9aa3ad;
+
+      --slate: #1a2a4a;           /* dark navy primary (button fills) */
+      --slate-2: #0f1d3a;         /* deeper navy (hover) */
+      --slate-soft: #eef1f7;      /* light navy tint for active fills */
+      --slate-border: #c4cdde;
+
+      --sage: #7b9a8a;            /* sage/teal accent (numbered steps, success) */
+      --sage-2: #5e7e6e;
+      --sage-soft: #e6ede9;
+
+      --rose: #c47a6c;            /* dusty rose accent (illustration / warm callouts) */
+      --rose-soft: #f2e2dd;
+
+      /* mapped to internal names so the rest of the stylesheet keeps working */
+      --primary: var(--slate);
+      --primary-hover: var(--slate-2);
+      --primary-soft: var(--slate-soft);
+      --primary-soft-2: #d8dee5;
+      --primary-border: var(--slate-border);
+
+      --green: var(--sage-2);
+      --green-bg: var(--sage-soft);
+      --yellow: #b88a3c;
+      --yellow-bg: #f5ebd9;
+      --orange: #b06a4a;
+      --orange-bg: var(--rose-soft);
+      --red: #b14a3e;
+      --red-bg: var(--rose-soft);
+      --purple: #6e5a8a;
+      --purple-bg: #ebe5f0;
+
+      --sans: 'Optimist', 'Source Sans 3', 'Inter', -apple-system, system-ui, sans-serif;
+      --mono: 'Open Sans', 'Source Sans 3', 'Inter', -apple-system, system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--bg); color: var(--text); font-family: var(--sans); }
+    body {
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      font-variant-numeric: tabular-nums;
+    }
+    .app { width: 100%; background: var(--bg); min-height: 100vh; }
+
+    /* ─── TOP BAR ─── */
+    .topbar {
+      position: sticky; top: 0; z-index: 30;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px;
+      padding: 16px 32px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+    }
+    .brand {
+      display: flex; align-items: center; gap: 10px;
+      color: var(--text);
+    }
+    .brand-mark {
+      width: 26px; height: 26px;
+      display: grid; place-items: center;
+      flex-shrink: 0;
+    }
+    .brand-mark svg { display: block; }
+    .product-name {
+      font-family: var(--sans);
+      font-weight: 700;
+      font-size: 17px;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+    .top-link {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-2);
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .top-link:hover { color: var(--text); background: var(--surface-2); }
+    .icon-btn {
+      width: 36px; height: 36px;
+      border-radius: 4px;
+      background: transparent; border: none;
+      display: grid; place-items: center;
+      cursor: pointer; color: var(--text-2);
+      transition: background 0.15s, color 0.15s;
+    }
+    .icon-btn:hover { background: var(--surface-2); color: var(--text); }
+    .avatar {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: var(--slate);
+      color: #fff;
+      display: grid; place-items: center;
+      font-weight: 600; font-size: 13px;
+      letter-spacing: 0.01em;
+    }
+
+    /* ─── LAYOUT ─── */
+    .layout { display: block; min-height: calc(100vh - 56px); }
+
+    .content { padding: 32px clamp(20px, 4vw, 56px); min-width: 0; overflow-x: hidden; }
+    .content.fullbleed { padding: 0; }
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* ═══════════ DASHBOARD ═══════════ */
+    .dash-head {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      gap: 12px; flex-wrap: wrap;
+      margin-bottom: 22px;
+    }
+    .dash-h { font-size: 38px; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 8px; color: var(--text); line-height: 1.1; }
+    .dash-sub { color: var(--text-2); font-size: 15.5px; line-height: 1.6; max-width: 56ch; }
+
+    /* ─── Identity Platform buttons: rounded rectangles ─── */
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 22px;
+      background: var(--slate); color: #fff;
+      border: 1px solid var(--slate);
+      border-radius: 8px;
+      font-family: var(--sans); font-weight: 600; font-size: 14px;
+      letter-spacing: 0;
+      cursor: pointer; text-decoration: none;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .btn-primary:hover {
+      background: var(--slate-2); border-color: var(--slate-2);
+    }
+    .btn-primary:focus-visible {
+      outline: 2px solid var(--slate-2);
+      outline-offset: 2px;
+    }
+    .btn-primary svg { width: 14px; height: 14px; }
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 11px 20px;
+      background: transparent; color: var(--text);
+      border: 1px solid var(--border-2);
+      border-radius: 8px;
+      font-family: var(--sans); font-weight: 600; font-size: 14px;
+      cursor: pointer; text-decoration: none;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .btn-ghost:hover { background: var(--surface-2); border-color: var(--text-3); }
+    .btn-ghost:focus-visible {
+      outline: 2px solid var(--slate-2);
+      outline-offset: 2px;
+    }
+    .btn-link {
+      background: none; border: none;
+      color: var(--slate);
+      font-family: var(--sans); font-size: 14px; font-weight: 600;
+      cursor: pointer; padding: 0;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      text-decoration-thickness: 1px;
+    }
+    .btn-link:hover { color: var(--slate-2); }
+
+    .dash-toolbar {
+      display: flex; gap: 10px; align-items: center;
+      margin-bottom: 16px;
+    }
+    .search {
+      flex: 1; display: flex; align-items: center; gap: 10px;
+      padding: 11px 14px;
+      border: 1px solid var(--border-2); border-radius: 8px;
+      background: var(--surface);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .search:focus-within {
+      border-color: var(--slate);
+      box-shadow: 0 0 0 3px rgba(91, 107, 125, 0.18);
+    }
+    .search svg { width: 15px; height: 15px; color: var(--text-3); }
+    .search input {
+      flex: 1; background: transparent; border: none; outline: none;
+      font-family: var(--sans); font-size: 14.5px; color: var(--text);
+    }
+    .search input::placeholder { color: var(--text-4); }
+
+    .events-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px; overflow: hidden;
+    }
+    .events-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    .events-table th {
+      text-align: left;
+      font-family: var(--mono); font-size: 12px;
+      letter-spacing: 0.04em;
+      color: var(--text); padding: 14px 18px;
+      background: var(--surface-2);
+      border-bottom: 1.5px solid var(--border-2);
+      font-weight: 700;
+    }
+    .events-table td {
+      padding: 16px 18px; border-bottom: 1px solid var(--border);
+      color: var(--text-2); vertical-align: top;
+    }
+    .events-table tbody tr { cursor: pointer; transition: background 0.15s; }
+    .events-table tbody tr:hover { background: var(--surface-2); }
+    .events-table tr:last-child td { border-bottom: none; }
+    .event-name {
+      font-family: var(--mono); font-size: 12.5px;
+      color: var(--text); font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    .event-fqen {
+      font-family: var(--mono); font-size: 10.5px;
+      color: var(--text-3); margin-top: 4px;
+      letter-spacing: 0.02em;
+    }
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 3px 10px; border-radius: 3px;
+      font-family: var(--mono); font-size: 12px;
+      letter-spacing: 0; white-space: nowrap;
+      font-weight: 500;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-2);
+    }
+    .badge.web    { background: var(--slate-soft); color: var(--text); border-color: var(--slate-border); }
+    .badge.mobile { background: var(--sage-soft); color: var(--text); border-color: #c5d3cb; }
+    .badge.ivr    { background: var(--rose-soft); color: var(--text); border-color: #e5cdc6; }
+    .badge.qa     { background: var(--sage-soft); color: var(--text); border-color: #c5d3cb; }
+    .badge.prog   { background: var(--yellow-bg); color: var(--text); border-color: #e8d8b4; }
+    .badge.draft  { background: var(--surface-2); color: var(--text-3); }
+    .badge.appr   { background: var(--sage-soft); color: var(--text); border-color: #c5d3cb; }
+    .badge.ready  { background: var(--slate-soft); color: var(--text); border-color: var(--slate-border); }
+    .badge.pending{ background: var(--yellow-bg); color: var(--text); border-color: #e8d8b4; }
+    .config-cell { font-size: 12.5px; line-height: 1.55; }
+    .config-cell strong { color: var(--text); font-weight: 600; }
+
+    .events-foot {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 18px;
+      border-top: 1px solid var(--border);
+      background: var(--surface-2);
+      font-family: var(--mono); font-size: 11px; color: var(--text-3);
+    }
+    .pager { display: flex; gap: 4px; }
+    .pager span, .pager button {
+      min-width: 26px; height: 26px;
+      display: grid; place-items: center;
+      font-family: var(--mono); font-size: 11px;
+      border: 1px solid var(--border); border-radius: 5px;
+      background: var(--surface); color: var(--text-2);
+      cursor: pointer;
+    }
+    .pager .active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    /* ═══════════ WIZARD ═══════════ */
+    .wizard-head {
+      display: flex; align-items: center; gap: 12px;
+      padding: 18px clamp(20px, 4vw, 56px) 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .crumb {
+      font-family: var(--sans); font-size: 14px;
+      color: var(--text-2);
+      font-weight: 500;
+    }
+    .crumb a {
+      color: var(--slate);
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      text-decoration-thickness: 1px;
+      font-weight: 600;
+    }
+    .crumb a:hover { color: var(--slate-2); }
+
+    .wizard {
+      display: grid; grid-template-columns: 220px 1fr;
+      min-height: calc(100vh - 56px - 53px);
+    }
+    @media (max-width: 760px) { .wizard { grid-template-columns: 1fr; } }
+
+    .steps {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 26px 14px;
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .steps-spacer { flex: 1; }
+    .steps-return {
+      display: inline-flex; align-items: center; gap: 8px;
+      margin: 14px 8px 6px;
+      padding: 8px 10px;
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      font-family: var(--sans);
+      font-size: 13.5px; font-weight: 500;
+      color: var(--text-2);
+      cursor: pointer;
+      white-space: nowrap;
+      align-self: flex-start;
+      transition: background 0.15s, color 0.15s;
+    }
+    .steps-return:hover { background: var(--surface-2); color: var(--text); }
+    .steps-return svg { width: 14px; height: 14px; flex-shrink: 0; }
+    @media (max-width: 760px) {
+      .steps { border-right: none; border-bottom: 1px solid var(--border); flex-direction: row; overflow-x: auto; padding: 14px; }
+      .steps-spacer { display: none; }
+      .steps-return { margin: 0 0 0 4px; flex-shrink: 0; }
+    }
+    .step {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 14px;
+      border-radius: 4px;
+      cursor: pointer; transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+      font-size: 14px; color: var(--text-2);
+      background: transparent; border: none;
+      text-align: left; font-family: inherit;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .step:hover { background: var(--surface-2); color: var(--text); }
+    .step.active {
+      background: var(--slate-soft);
+      color: var(--text); font-weight: 700;
+      box-shadow: inset 3px 0 0 var(--sage);
+    }
+    .step.done { color: var(--text); font-weight: 600; }
+    .step-circ {
+      width: 20px; height: 20px; border-radius: 50%;
+      border: 2px solid var(--border-2);
+      background: var(--surface);
+      display: grid; place-items: center;
+      flex-shrink: 0;
+    }
+    .step.done .step-circ { background: var(--sage); border-color: var(--sage); }
+    .step.active .step-circ {
+      border-color: var(--sage);
+      background: var(--surface);
+      box-shadow: inset 0 0 0 4px var(--sage);
+    }
+    .step.done .step-circ::after {
+      content: '';
+      width: 9px; height: 9px;
+      background: #fff;
+      mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg>") center/contain no-repeat;
+    }
+
+    .panel-wrap {
+      display: flex; flex-direction: column;
+      min-width: 0;
+      background: var(--surface);
+    }
+    .panel {
+      padding: 40px clamp(28px, 5vw, 72px) 32px;
+      flex: 1; min-width: 0;
+      max-width: 920px;
+    }
+    .panel-h {
+      font-size: 34px; font-weight: 700;
+      letter-spacing: -0.03em; margin-bottom: 10px;
+      color: var(--text); line-height: 1.1;
+    }
+    .panel-sub { color: var(--text-2); font-size: 15.5px; line-height: 1.6; margin-bottom: 32px; max-width: 56ch; }
+
+    .eyebrow {
+      font-family: var(--mono); font-size: 11px;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text-3); font-weight: 600;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .fieldset { margin-bottom: 28px; }
+    .fieldset-label {
+      font-weight: 600; font-size: 14px;
+      color: var(--text); margin-bottom: 4px;
+    }
+    .fieldset-hint {
+      font-size: 12.5px; color: var(--text-3);
+      margin-bottom: 14px; line-height: 1.55;
+    }
+    .row { margin-bottom: 14px; }
+    .row-grid-2 {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+      margin-bottom: 14px;
+    }
+    @media (max-width: 640px) { .row-grid-2 { grid-template-columns: 1fr; } }
+    .label {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 14px; color: var(--text);
+      margin-bottom: 8px; font-weight: 600;
+      letter-spacing: -0.005em;
+    }
+    .input, .select {
+      width: 100%; padding: 12px 14px;
+      background: var(--surface); color: var(--text);
+      border: 1px solid var(--border-2); border-radius: 8px;
+      font-family: var(--sans); font-size: 14.5px; outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .input:hover:not(:focus), .select:hover:not(:focus) {
+      border-color: var(--text-3);
+    }
+    .input:focus, .select:focus {
+      border-color: var(--slate);
+      box-shadow: 0 0 0 3px rgba(91, 107, 125, 0.18);
+    }
+    .input::placeholder { color: var(--text-4); }
+    .input.err {
+      border-color: var(--red);
+      background: var(--rose-soft);
+    }
+    .input.err:focus { box-shadow: 0 0 0 3px rgba(177, 74, 62, 0.18); }
+    .err-msg {
+      font-size: 12px; color: var(--red);
+      margin-top: 6px; display: flex; align-items: center; gap: 6px;
+    }
+    .err-msg svg { width: 13px; height: 13px; }
+    .hint-link {
+      font-size: 13px;
+      color: var(--slate);
+      font-weight: 600;
+      cursor: pointer; margin-top: 8px;
+      display: inline-block;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      text-decoration-thickness: 1px;
+    }
+    .hint-link:hover { color: var(--slate-2); }
+
+    .radio-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
+    }
+    .radio {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px;
+      border: 1px solid var(--border-2); border-radius: 8px;
+      background: var(--surface);
+      cursor: pointer; font-size: 14.5px; color: var(--text);
+      font-weight: 500;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .radio:hover { border-color: var(--text-3); }
+    .radio.checked {
+      border-color: var(--slate);
+      background: var(--slate-soft);
+      color: var(--text);
+    }
+    .radio-circ {
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 2px solid var(--border-2); flex-shrink: 0;
+      display: grid; place-items: center;
+      background: var(--surface);
+    }
+    .radio.checked .radio-circ { border-color: var(--slate); }
+    .radio.checked .radio-circ::after {
+      content: ''; width: 8px; height: 8px; border-radius: 50%;
+      background: var(--slate);
+    }
+
+    .fqen-card {
+      position: relative;
+      margin: 14px 0 20px;
+      border: 1px solid var(--border); border-radius: 8px;
+      background: var(--surface-2);
+      padding: 18px 20px;
+    }
+    .fqen-card-head {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 16px;
+    }
+    .fqen-label {
+      font-family: var(--mono); font-size: 11px;
+      text-transform: uppercase; letter-spacing: 0.16em;
+      color: var(--text-3);
+      font-weight: 600;
+      margin: 0;
+    }
+    .fqen-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px 16px; margin-bottom: 14px;
+    }
+    @media (max-width: 880px) { .fqen-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (max-width: 540px) { .fqen-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .fqen-cell { min-width: 0; }
+    .fqen-cell-label {
+      font-family: var(--mono); font-size: 10px;
+      text-transform: uppercase; letter-spacing: 0.12em;
+      color: var(--text-3); margin-bottom: 5px;
+      font-weight: 600;
+    }
+    .fqen-cell-val {
+      font-family: var(--mono); font-size: 12.5px;
+      color: var(--text); font-weight: 600;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      min-width: 0;
+    }
+    .fqen-string {
+      font-family: var(--mono); font-size: 13px;
+      color: var(--text);
+      font-weight: 600;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      letter-spacing: 0.005em;
+      overflow-wrap: anywhere;
+      word-break: break-all;
+      line-height: 1.5;
+    }
+
+    /* ─── Info hint (hover tooltip) ─── */
+    .info-hint {
+      position: relative; display: inline-flex;
+      align-items: center; justify-content: center;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 1px solid var(--border-2);
+      color: var(--text-3);
+      cursor: help;
+      font-family: var(--mono); font-size: 10px; font-weight: 700;
+      line-height: 1; user-select: none;
+      vertical-align: middle;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .info-hint:hover, .info-hint:focus { color: var(--slate); border-color: var(--slate); outline: none; }
+    .info-hint::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: calc(100% + 10px);
+      left: 50%;
+      transform: translateX(-50%) translateY(4px);
+      width: max-content;
+      max-width: 280px;
+      padding: 10px 14px;
+      background: var(--text);
+      color: #f4f4f3;
+      font-family: var(--sans); font-size: 12.5px; font-weight: 400;
+      line-height: 1.5; text-align: left;
+      letter-spacing: 0;
+      border-radius: 6px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.15s, transform 0.15s;
+      z-index: 200;
+      white-space: normal;
+    }
+    .info-hint::before {
+      content: '';
+      position: absolute;
+      bottom: calc(100% + 5px);
+      left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: var(--text);
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 201;
+    }
+    .info-hint:hover::after, .info-hint:focus::after,
+    .info-hint:hover::before, .info-hint:focus::before {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    /* place tooltip below when near top of viewport (data-tip-pos="below") */
+    .info-hint[data-tip-pos="below"]::after {
+      bottom: auto; top: calc(100% + 10px);
+      transform: translateX(-50%) translateY(-4px);
+    }
+    .info-hint[data-tip-pos="below"]:hover::after,
+    .info-hint[data-tip-pos="below"]:focus::after {
+      transform: translateX(-50%) translateY(0);
+    }
+    .info-hint[data-tip-pos="below"]::before {
+      bottom: auto; top: calc(100% + 5px);
+      border-top-color: transparent;
+      border-bottom-color: var(--text);
+    }
+
+    .callout-warn {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 16px 18px;
+      background: var(--rose-soft);
+      border-left: 3px solid var(--rose);
+      border-radius: 2px;
+      font-size: 14px; color: var(--text); line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .callout-warn svg { width: 18px; height: 18px; color: var(--rose); flex-shrink: 0; margin-top: 1px; }
+    .callout-warn strong { color: var(--text); font-weight: 700; }
+
+    /* ═══════════ REVIEW ═══════════ */
+    .review-section { margin-bottom: 24px; }
+    .review-section-h {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 0; margin-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .review-section-h-title { font-weight: 700; font-size: 16px; color: var(--text); letter-spacing: -0.005em; }
+    .review-row {
+      display: grid; grid-template-columns: 180px 1fr;
+      gap: 12px; padding: 7px 0;
+      font-size: 13px;
+    }
+    .review-row-label { color: var(--text-3); }
+    .review-row-val { color: var(--text); }
+    .review-row-val.missing { color: var(--red); display: inline-flex; align-items: center; gap: 5px; }
+    .review-row-val.missing::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--red);
+    }
+    .review-row-val .mono { font-family: var(--mono); font-size: 12px; }
+
+    .checklist { display: flex; flex-direction: column; gap: 6px; }
+    .check-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px;
+      border: 1.5px solid var(--border); border-radius: 6px;
+      background: var(--surface);
+      font-size: 14.5px; color: var(--text);
+      font-weight: 500;
+    }
+    .check-box {
+      width: 18px; height: 18px; border-radius: 4px;
+      border: 2px solid var(--border-2); flex-shrink: 0;
+      background: var(--surface);
+    }
+    .check-state {
+      margin-left: auto;
+      font-family: var(--mono); font-size: 12px;
+      letter-spacing: 0;
+      color: var(--text-2);
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 3px;
+      background: var(--yellow-bg);
+      border: 1px solid #e8d8b4;
+    }
+
+    .panel-foot {
+      position: sticky;
+      bottom: 0;
+      display: flex; justify-content: space-between; gap: 8px;
+      padding: 14px clamp(28px, 5vw, 72px);
+      border-top: 1px solid var(--border);
+      background: color-mix(in srgb, var(--surface) 92%, transparent);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .panel-foot-left { display: flex; gap: 8px; align-items: center; }
+
+    /* ═══════════ TOAST ═══════════ */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--text); color: var(--surface);
+      padding: 11px 18px;
+      border-radius: 8px;
+      font-size: 13px; font-weight: 500;
+      box-shadow: 0 18px 36px rgba(0,0,0,0.18);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 50;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast .check {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--green); color: #fff;
+      display: grid; place-items: center;
+      font-size: 11px; font-weight: 700;
+    }
+
+    /* ═══════════ EMPTY-STATE / DRAFT BANNER ═══════════ */
+    .v1-mark {
+      position: fixed; top: 12px; right: 24px;
+      font-family: var(--mono); font-size: 10px;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--text-3);
+      background: var(--surface); border: 1px solid var(--border);
+      padding: 4px 9px; border-radius: 4px;
+      z-index: 40;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app">
+
+    <!-- ═══════════ TOP BAR ═══════════ -->
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+            <rect width="28" height="28" rx="7" fill="var(--slate)"/>
+            <circle cx="14" cy="11.5" r="3.6" fill="#fff"/>
+            <path d="M11.5 12.5 L16.5 12.5 L15.4 21 L12.6 21 Z" fill="#fff"/>
+            <circle cx="22.5" cy="6" r="2" fill="var(--sage)"/>
+          </svg>
+        </span>
+        <span class="product-name">Locksmith</span>
+      </div>
+      <div class="topbar-right">
+        <a class="top-link" href="locksmith-walkthroughs.html">← Walkthroughs</a>
+        <a class="top-link" href="locksmith-prototype.html">See V2 →</a>
+        <button class="icon-btn" title="Help (demo)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </button>
+        <div class="avatar" title="Sarah Johnson · LOB Platform PM">SJ</div>
+      </div>
+    </header>
+
+    <div class="layout">
+
+      <main class="content">
+
+        <!-- ═══════════ DASHBOARD VIEW ═══════════ -->
+        <section class="view active" data-view="dashboard">
+          <div class="dash-head">
+            <div>
+              <span class="eyebrow">Identity Platform · Locksmith</span>
+              <h1 class="dash-h">Business events</h1>
+              <p class="dash-sub">Manage your business events for this portfolio.</p>
+            </div>
+            <button class="btn-primary" id="new-event-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Create new business event
+            </button>
+          </div>
+
+          <div class="dash-toolbar">
+            <label class="search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" placeholder="Search by FQEN" />
+            </label>
+            <button class="btn-ghost">Filters</button>
+          </div>
+
+          <div class="events-card">
+            <table class="events-table">
+              <thead>
+                <tr>
+                  <th>Business event</th>
+                  <th>Channel</th>
+                  <th>Configuration</th>
+                  <th>Deployment</th>
+                  <th>Operations</th>
+                </tr>
+              </thead>
+              <tbody id="events-body">
+                <tr data-event="PARTNER_MONEY_TRANSFER">
+                  <td>
+                    <div class="event-name">PARTNER_MONEY_TRANSFER</div>
+                    <div class="event-fqen">COMMERCIAL · SERVICING · WEB · EXCH</div>
+                  </td>
+                  <td><span class="badge web">Web</span></td>
+                  <td class="config-cell">
+                    <div><strong>Profile:</strong> CPC_High_Risk</div>
+                    <div><strong>Endpoints:</strong> 1</div>
+                  </td>
+                  <td><span class="badge qa">Deployed to QA</span></td>
+                  <td><span class="badge ready">Ready for promotion</span></td>
+                </tr>
+                <tr data-event="CONTACT_POINT_CHANGE">
+                  <td>
+                    <div class="event-name">CONTACT_POINT_CHANGE</div>
+                    <div class="event-fqen">RETAIL · SERVICING · MOBILE · CARE</div>
+                  </td>
+                  <td><span class="badge mobile">Mobile</span></td>
+                  <td class="config-cell">
+                    <div><strong>Profile:</strong> CPC_High_Risk</div>
+                    <div><strong>Endpoints:</strong> 2</div>
+                  </td>
+                  <td><span class="badge qa">Deployed to QA</span></td>
+                  <td><span class="badge ready">Ready for promotion</span></td>
+                </tr>
+                <tr data-event="CHANGE_PIN">
+                  <td>
+                    <div class="event-name">CHANGE_PIN</div>
+                    <div class="event-fqen">RETAIL · SERVICING · IVR · ACS</div>
+                  </td>
+                  <td><span class="badge ivr">IVR</span></td>
+                  <td class="config-cell">
+                    <div><strong>Profile:</strong> Always Challenge</div>
+                    <div><strong>Endpoints:</strong> —</div>
+                  </td>
+                  <td><span class="badge qa">Deployed to QA</span></td>
+                  <td><span class="badge appr">Approved</span></td>
+                </tr>
+                <tr data-event="CHANGE_PIN_CANADA">
+                  <td>
+                    <div class="event-name">CHANGE_PIN_CANADA</div>
+                    <div class="event-fqen">RETAIL · SERVICING · IVR · ACS</div>
+                  </td>
+                  <td><span class="badge ivr">IVR</span></td>
+                  <td class="config-cell">
+                    <div><strong>Profile:</strong> Always Challenge</div>
+                    <div><strong>Endpoints:</strong> —</div>
+                  </td>
+                  <td><span class="badge prog">In progress</span></td>
+                  <td><span class="badge ready">Ready for promotion</span></td>
+                </tr>
+                <tr data-event="PROFILE_CHANGE_MOBILE" data-draft="1">
+                  <td>
+                    <div class="event-name">PROFILE_CHANGE_MOBILE</div>
+                    <div class="event-fqen">COMMERCIAL · SERVICING · MOBILE · EASE</div>
+                  </td>
+                  <td><span class="badge mobile">Mobile</span></td>
+                  <td class="config-cell">
+                    <div><strong>Profile:</strong> Profile Change</div>
+                    <div><strong>Endpoints:</strong> 1</div>
+                  </td>
+                  <td><span class="badge draft">Draft</span></td>
+                  <td><span class="badge pending">Pending review</span></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="events-foot">
+              <span>5 events</span>
+              <div class="pager">
+                <span>&lsaquo;</span><span class="active">1</span><span>2</span><span>&rsaquo;</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══════════ NEW EVENT WIZARD VIEW ═══════════ -->
+        <section class="view" data-view="new-event">
+          <div class="wizard-head">
+            <span class="crumb"><a href="#" id="back-to-dash">Business events</a> &nbsp;/&nbsp; New event</span>
+          </div>
+
+          <div class="wizard">
+            <!-- step rail -->
+            <aside class="steps" id="step-rail">
+              <button class="step active" data-step="1"><span class="step-circ"></span> Team details</button>
+              <button class="step" data-step="2"><span class="step-circ"></span> Business event</button>
+              <button class="step" data-step="3"><span class="step-circ"></span> Risk profile</button>
+              <button class="step" data-step="4"><span class="step-circ"></span> Tech details</button>
+              <button class="step" data-step="5"><span class="step-circ"></span> Review</button>
+              <span class="steps-spacer"></span>
+              <button class="steps-return" id="rail-return">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                Return to dashboard
+              </button>
+            </aside>
+
+            <div class="panel-wrap">
+
+              <!-- STEP 1 · Team details -->
+              <div class="panel" data-panel="1">
+                <span class="eyebrow">Step 01 · Team details</span>
+                <h3 class="panel-h">Enter your team details</h3>
+                <p class="panel-sub">Establish ownership and notification contacts for your new event.</p>
+
+                <div class="fieldset">
+                  <div class="fieldset-label">Core details</div>
+                  <div class="row">
+                    <label class="label">What's your tech team name?</label>
+                    <input class="input" type="text" value="Payments Platform" />
+                    <span class="hint-link">+ Add another team</span>
+                  </div>
+                  <div class="row">
+                    <label class="label">What's your line of business (LOB)?</label>
+                    <select class="select">
+                      <option>Commercial</option>
+                      <option>Retail</option>
+                      <option>Auto Finance</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="fieldset">
+                  <div class="fieldset-label">Event owners</div>
+                  <p class="fieldset-hint">Contacts listed here will be granted full visibility and control over this business event. These fields are required before deploying to QA.</p>
+                  <div class="row-grid-2">
+                    <div>
+                      <label class="label">Who's your product owner? (EID)</label>
+                      <input class="input" type="text" value="sjohnson42" />
+                    </div>
+                    <div>
+                      <label class="label">Who's your tech lead? (EID)</label>
+                      <input class="input" type="text" value="dpatel09" />
+                    </div>
+                  </div>
+                  <div class="row">
+                    <label class="label">Who's your fraud contact? (EID)</label>
+                    <input class="input" type="text" placeholder="e.g. mchen11" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- STEP 2 · Business event -->
+              <div class="panel" data-panel="2" hidden>
+                <span class="eyebrow">Step 02 · Business event</span>
+                <h3 class="panel-h">Add business event details</h3>
+                <p class="panel-sub">You'll use this to build a Fully Qualified Event Name (FQEN). Other teams will reference this string for the lifetime of the event.</p>
+
+                <div class="row">
+                  <label class="label">What's your division?</label>
+                  <select class="select" id="div-sel">
+                    <option>Servicing</option><option>Origination</option><option>Fraud Ops</option>
+                  </select>
+                </div>
+
+                <div class="row">
+                  <label class="label">Which channel do you need to support?</label>
+                  <p class="fieldset-hint" style="margin-bottom: 10px;">Choose the surface the user will hit. You can support multiple — start with the primary.</p>
+                  <div class="radio-grid" id="chan-grid">
+                    <label class="radio" data-val="MOBILE_IOS"><span class="radio-circ"></span> Mobile (iOS)</label>
+                    <label class="radio" data-val="MOBILE_AND"><span class="radio-circ"></span> Mobile (Android)</label>
+                    <label class="radio checked" data-val="WEB"><span class="radio-circ"></span> Web</label>
+                    <label class="radio" data-val="IVR"><span class="radio-circ"></span> IVR</label>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <label class="label">What's your application?</label>
+                  <select class="select" id="app-sel">
+                    <option>EXCH</option><option>CARE</option><option>ACS</option><option>EASE</option>
+                  </select>
+                </div>
+
+                <div class="row">
+                  <label class="label">What do you want to name this business event?</label>
+                  <input class="input" id="event-name" type="text" value="PARTNER_MONEY_TRANSFER" />
+                </div>
+
+                <div class="fqen-card">
+                  <div class="fqen-card-head">
+                    <span class="fqen-label">FQEN preview</span>
+                    <span class="info-hint" tabindex="0" role="button" aria-label="What is FQEN?" data-tip="FQEN is how every other team — fraud, governance, audit — will reference this event. Pick the name carefully; rename is a separate workflow.">i</span>
+                  </div>
+                  <div class="fqen-grid">
+                    <div class="fqen-cell"><div class="fqen-cell-label">LOB</div><div class="fqen-cell-val" id="fq-lob">COMMERCIAL</div></div>
+                    <div class="fqen-cell"><div class="fqen-cell-label">Division</div><div class="fqen-cell-val" id="fq-div">SERVICING</div></div>
+                    <div class="fqen-cell"><div class="fqen-cell-label">Channel</div><div class="fqen-cell-val" id="fq-chan">WEB</div></div>
+                    <div class="fqen-cell"><div class="fqen-cell-label">Application</div><div class="fqen-cell-val" id="fq-app">EXCH</div></div>
+                    <div class="fqen-cell"><div class="fqen-cell-label">Event name</div><div class="fqen-cell-val" id="fq-name">PARTNER_MONEY_TRANSFER</div></div>
+                  </div>
+                  <div class="fqen-string" id="fq-string">COMMERCIAL.SERVICING.WEB.EXCH.PARTNER_MONEY_TRANSFER</div>
+                </div>
+              </div>
+
+              <!-- STEP 3 · Risk profile -->
+              <div class="panel" data-panel="3" hidden>
+                <span class="eyebrow">Step 03 · Risk profile</span>
+                <h3 class="panel-h">Assign risk profile</h3>
+                <p class="panel-sub">Choose a profile to link your event to AutoLab's decisioning logic.</p>
+
+                <div class="fqen-card">
+                  <div class="fqen-card-head">
+                    <span class="fqen-label">FQEN</span>
+                  </div>
+                  <div class="fqen-grid">
+                    <div class="fqen-cell"><div class="fqen-cell-label">LOB</div><div class="fqen-cell-val">COMMERCIAL</div></div>
+                    <div class="fqen-cell"><div class="fqen-cell-label">Division</div><div class="fqen-cell-val">SERVICING</div></div>
+                    <div class="fqen-cell"><div class="fqen-cell-label">Channel</div><div class="fqen-cell-val">WEB</div></div>
+                    <div class="fqen-cell"><div class="fqen-cell-label">Application</div><div class="fqen-cell-val">EXCH</div></div>
+                    <div class="fqen-cell"><div class="fqen-cell-label">Event name</div><div class="fqen-cell-val">PARTNER_MONEY_TRANSFER</div></div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <label class="label">
+                    Which risk profile do you want to use?
+                    <span class="info-hint" tabindex="0" role="button" aria-label="About risk profiles" data-tip="Profiles map to step-up rules in the decisioning engine. Direct Money Movement applies stricter challenges than Profile Change. You can change later, but downstream owners will re-approve.">i</span>
+                  </label>
+                  <select class="select" id="risk-sel">
+                    <option>Profile Change</option>
+                    <option>Contact Point Change</option>
+                    <option>3rd Party Digital Wallet</option>
+                    <option>Digital Wallets</option>
+                    <option>Direct Money Movement</option>
+                    <option>SIM Card / Account</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- STEP 4 · Tech details -->
+              <div class="panel" data-panel="4" hidden>
+                <span class="eyebrow">Step 04 · Tech details</span>
+                <h3 class="panel-h">Add technical details</h3>
+                <p class="panel-sub">Map your API endpoints to your FQEN. We need at least one endpoint to proceed.</p>
+
+                <div class="fqen-card">
+                  <div class="fqen-card-head">
+                    <span class="fqen-label">FQEN</span>
+                  </div>
+                  <div class="fqen-grid">
+                    <div class="fqen-cell"><div class="fqen-cell-label">LOB</div><div class="fqen-cell-val">COMMERCIAL</div></div>
+                    <div class="fqen-cell"><div class="fqen-cell-label">Division</div><div class="fqen-cell-val">SERVICING</div></div>
+                    <div class="fqen-cell"><div class="fqen-cell-label">Channel</div><div class="fqen-cell-val">WEB</div></div>
+                    <div class="fqen-cell"><div class="fqen-cell-label">Application</div><div class="fqen-cell-val">EXCH</div></div>
+                    <div class="fqen-cell"><div class="fqen-cell-label">Event name</div><div class="fqen-cell-val">PARTNER_MONEY_TRANSFER</div></div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <label class="label">What's your application's URL on the Exchange?</label>
+                  <input class="input" id="url-input" type="text" value="U1" />
+                  <div class="err-msg" id="url-err">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="13"/><line x1="12" y1="16.5" x2="12" y2="17"/></svg>
+                    Please use a valid URL · e.g. <span style="font-family: var(--mono);">https://exchange.capitalone.com/</span>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <label class="label">
+                    Endpoint path
+                    <span class="info-hint" tabindex="0" role="button" aria-label="About endpoints" data-tip="Each endpoint becomes a callable contract: decisioning knows when to challenge, fraud knows what to watch, and audit captures every traversal.">i</span>
+                  </label>
+                  <input class="input" type="text" value="/web-api/v1/partner/transfer" disabled style="font-family: var(--mono); font-size: 12px; opacity: 0.85;" />
+                  <span class="hint-link">+ Add another endpoint</span>
+                </div>
+              </div>
+
+              <!-- STEP 5 · Review -->
+              <div class="panel" data-panel="5" hidden>
+                <div class="callout-warn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  <div><strong>Team details incomplete.</strong> Product owner, tech lead, and fraud contact EIDs are required before promoting to QA. These fields will affect deployment timing.</div>
+                </div>
+
+                <span class="eyebrow">Step 05 · Review</span>
+                <h3 class="panel-h">Review and deploy</h3>
+                <p class="panel-sub">Verify your configuration and governance status before deploying.</p>
+
+                <div class="review-section">
+                  <div class="review-section-h">
+                    <span class="review-section-h-title">Team details</span>
+                    <button class="btn-link" data-goto="1">Edit →</button>
+                  </div>
+                  <div class="review-row"><span class="review-row-label">Line of business</span><span class="review-row-val">Commercial</span></div>
+                  <div class="review-row"><span class="review-row-label">Tech team</span><span class="review-row-val">Payments Platform</span></div>
+                  <div class="review-row"><span class="review-row-label">Product owner</span><span class="review-row-val">sjohnson42</span></div>
+                  <div class="review-row"><span class="review-row-label">Tech lead</span><span class="review-row-val">dpatel09</span></div>
+                  <div class="review-row"><span class="review-row-label">Fraud contact</span><span class="review-row-val missing">Required · not set</span></div>
+                  <div class="review-row"><span class="review-row-label">Stakeholders</span><span class="review-row-val missing">Identify at least 1 stakeholder</span></div>
+                </div>
+
+                <div class="review-section">
+                  <div class="review-section-h">
+                    <span class="review-section-h-title">Configurations</span>
+                    <button class="btn-link" data-goto="2">Edit →</button>
+                  </div>
+                  <div class="review-row"><span class="review-row-label">FQEN</span><span class="review-row-val"><span class="mono">COMMERCIAL.SERVICING.WEB.EXCH.PARTNER_MONEY_TRANSFER</span></span></div>
+                  <div class="review-row"><span class="review-row-label">Risk profile</span><span class="review-row-val">Profile Change</span></div>
+                  <div class="review-row"><span class="review-row-label">Endpoints</span><span class="review-row-val"><span class="mono">GET /web-api/v1/partner/transfer</span></span></div>
+                </div>
+
+                <div class="review-section">
+                  <div class="review-section-h">
+                    <span class="review-section-h-title">Governance checklist</span>
+                  </div>
+                  <div class="checklist">
+                    <div class="check-item"><span class="check-box"></span> Architecture review <span class="check-state">Pending</span></div>
+                    <div class="check-item"><span class="check-box"></span> Legal approval <span class="check-state">Pending</span></div>
+                    <div class="check-item"><span class="check-box"></span> Risk assessment <span class="check-state">Pending</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- foot navigation -->
+              <div class="panel-foot">
+                <div class="panel-foot-left"></div>
+                <div style="display:flex; gap:8px;">
+                  <button class="btn-ghost" id="prev-btn">Back</button>
+                  <button class="btn-primary" id="next-btn">Next →</button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">
+    <span class="check">✓</span>
+    <span id="toast-text">Saved as draft</span>
+  </div>
+
+  <script>
+    /* ─── View switching ─── */
+    const contentEl = document.querySelector('.content');
+    function setView(v) {
+      document.querySelectorAll('.view').forEach(s => s.classList.toggle('active', s.dataset.view === v));
+      // wizard fills the page (no content padding); dashboard keeps standard padding
+      contentEl.classList.toggle('fullbleed', v === 'new-event');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    document.getElementById('new-event-btn').addEventListener('click', () => {
+      setView('new-event');
+      go(1);
+    });
+    document.getElementById('back-to-dash').addEventListener('click', (e) => { e.preventDefault(); setView('dashboard'); });
+    document.getElementById('rail-return').addEventListener('click', () => setView('dashboard'));
+
+    /* clicking a dashboard row → demo toast (or jump to wizard for draft) */
+    document.querySelectorAll('#events-body tr').forEach(r => {
+      r.addEventListener('click', () => {
+        if (r.dataset.draft) {
+          setView('new-event');
+          go(5);
+          showToast('Opened draft · ' + r.dataset.event);
+        } else {
+          showToast(r.dataset.event + ' · detail view is a v2 feature');
+        }
+      });
+    });
+
+    /* ─── Wizard ─── */
+    const STEPS = 5;
+    let cur = 1;
+    const sideSteps = document.querySelectorAll('#step-rail .step');
+    const panels = document.querySelectorAll('.panel');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+
+    function go(n) {
+      cur = Math.max(1, Math.min(STEPS, n));
+      sideSteps.forEach(s => {
+        const i = Number(s.dataset.step);
+        s.classList.toggle('active', i === cur);
+        s.classList.toggle('done', i < cur);
+      });
+      panels.forEach(p => { p.hidden = Number(p.dataset.panel) !== cur; });
+      prevBtn.disabled = cur === 1;
+      prevBtn.style.opacity = cur === 1 ? '0.4' : '1';
+      nextBtn.textContent = cur === STEPS ? 'Save as draft' : 'Next →';
+    }
+    sideSteps.forEach(s => s.addEventListener('click', () => go(Number(s.dataset.step))));
+    prevBtn.addEventListener('click', () => go(cur - 1));
+    nextBtn.addEventListener('click', () => {
+      if (cur === STEPS) {
+        showToast('Saved as draft · review pending');
+        setView('dashboard');
+        return;
+      }
+      go(cur + 1);
+    });
+    document.querySelectorAll('[data-goto]').forEach(b => b.addEventListener('click', () => go(Number(b.dataset.goto))));
+
+    /* ─── Step 2: channel radios + live FQEN ─── */
+    const chanMap = { MOBILE_IOS: 'MOBILE_IOS', MOBILE_AND: 'MOBILE_AND', WEB: 'WEB', IVR: 'IVR' };
+    function refreshFqen() {
+      const lobSel = document.querySelector('.panel[data-panel="1"] select');
+      const div = document.getElementById('div-sel');
+      const checkedRadio = document.querySelector('#chan-grid .radio.checked');
+      const app = document.getElementById('app-sel');
+      const name = document.getElementById('event-name');
+
+      const lob = (lobSel ? lobSel.value : 'Commercial').toUpperCase();
+      const divV = (div ? div.value : 'Servicing').toUpperCase();
+      const chan = checkedRadio ? chanMap[checkedRadio.dataset.val] : 'WEB';
+      const appV = (app ? app.value : 'EXCH').toUpperCase();
+      const nm = (name ? name.value : 'PARTNER_MONEY_TRANSFER').toUpperCase().replace(/\s+/g, '_');
+
+      document.getElementById('fq-lob').textContent  = lob;
+      document.getElementById('fq-div').textContent  = divV;
+      document.getElementById('fq-chan').textContent = chan;
+      document.getElementById('fq-app').textContent  = appV;
+      document.getElementById('fq-name').textContent = nm;
+      document.getElementById('fq-string').textContent = `${lob}.${divV}.${chan}.${appV}.${nm}`;
+    }
+    document.querySelectorAll('#chan-grid .radio').forEach(r => {
+      r.addEventListener('click', () => {
+        document.querySelectorAll('#chan-grid .radio').forEach(x => x.classList.remove('checked'));
+        r.classList.add('checked');
+        refreshFqen();
+      });
+    });
+    ['div-sel','app-sel','event-name'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', refreshFqen);
+      if (el) el.addEventListener('change', refreshFqen);
+    });
+    const lobSelect = document.querySelector('.panel[data-panel="1"] select');
+    if (lobSelect) lobSelect.addEventListener('change', refreshFqen);
+
+    /* ─── Step 4: URL validation ─── */
+    const urlInput = document.getElementById('url-input');
+    const urlErr   = document.getElementById('url-err');
+    function validateUrl() {
+      const v = urlInput.value.trim();
+      const ok = /^https?:\/\/[\w.-]+(?:\.[a-z]{2,})/i.test(v);
+      urlInput.classList.toggle('err', !ok);
+      urlErr.style.display = ok ? 'none' : 'flex';
+    }
+    urlInput.addEventListener('input', validateUrl);
+
+    /* ─── Toast ─── */
+    const toast = document.getElementById('toast');
+    const toastText = document.getElementById('toast-text');
+    let toastT;
+    function showToast(text) {
+      clearTimeout(toastT);
+      toastText.textContent = text;
+      toast.classList.add('show');
+      toastT = setTimeout(() => toast.classList.remove('show'), 2400);
+    }
+
+    /* init */
+    go(1);
+  </script>
+</body>
+</html>

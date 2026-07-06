@@ -1,0 +1,894 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Locksmith — walkthroughs by use case</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Crect width='28' height='28' rx='7' fill='%231a2a4a'/%3E%3Ccircle cx='14' cy='11.5' r='3.6' fill='%23fff'/%3E%3Cpath d='M11.5 12.5 L16.5 12.5 L15.4 21 L12.6 21 Z' fill='%23fff'/%3E%3Ccircle cx='22.5' cy='6' r='2' fill='%237b9a8a'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Open+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Optimist is Capital One's proprietary brand font; loaded locally on devices that have it installed and falls back to Source Sans 3 / Inter elsewhere. -->
+  <style>
+    @font-face { font-family: 'Optimist'; src: local('Optimist'), local('Optimist Regular'), local('OptimistRegular');             font-weight: 400; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'Optimist'; src: local('Optimist Medium'), local('OptimistMedium');                                  font-weight: 500; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'Optimist'; src: local('Optimist SemiBold'), local('OptimistSemiBold'), local('Optimist Semibold');   font-weight: 600; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'Optimist'; src: local('Optimist Bold'), local('OptimistBold');                                      font-weight: 700; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'Optimist'; src: local('Optimist ExtraBold'), local('Optimist Extrabold'), local('OptimistExtraBold');font-weight: 800; font-style: normal; font-display: swap; }
+  </style>
+
+  <style>
+    :root {
+      /* ─── Identity Platform design tokens (shared with locksmith-v1.html) ─── */
+      --bg: #ffffff;
+      --surface: #ffffff;
+      --surface-2: #f6f6f4;
+      --surface-3: #ececea;
+      --border: #e4e4e1;
+      --border-2: #c8c8c4;
+      --text: #1a2330;
+      --text-2: #4a5562;
+      --text-3: #6e7986;
+      --text-4: #9aa3ad;
+
+      --slate: #1a2a4a;
+      --slate-2: #0f1d3a;
+      --slate-soft: #eef1f7;
+      --slate-border: #c4cdde;
+
+      --sage: #7b9a8a;
+      --sage-2: #5e7e6e;
+      --sage-soft: #e6ede9;
+
+      --rose: #c47a6c;
+      --rose-soft: #f2e2dd;
+
+      /* mapped to the legacy hub variable names so the rest of the stylesheet still works */
+      --primary: var(--slate);
+      --primary-hover: var(--slate-2);
+      --primary-soft: var(--slate-soft);
+
+      --lob: var(--slate);
+      --lob-bg: var(--slate-soft);
+      --rules: var(--sage-2);
+      --rules-bg: var(--sage-soft);
+      --ci: #b06a4a;
+      --ci-bg: var(--rose-soft);
+      --gov: #6e5a8a;
+      --gov-bg: #ebe5f0;
+      --cross: var(--rose);
+      --cross-bg: var(--rose-soft);
+
+      --pain: #b14a3e;
+      --pain-bg: var(--rose-soft);
+
+      --sans: 'Optimist', 'Source Sans 3', 'Inter', -apple-system, system-ui, sans-serif;
+      --mono: 'Open Sans', 'Source Sans 3', 'Inter', -apple-system, system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14.5px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 48px); }
+
+    .nav {
+      position: sticky; top: 0; z-index: 30;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 0;
+    }
+    .nav-inner {
+      max-width: 1200px; margin: 0 auto;
+      padding: 0 clamp(20px, 4vw, 48px);
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .nav-brand {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-family: var(--sans); font-size: 15px; font-weight: 700;
+      letter-spacing: -0.01em; color: var(--text);
+    }
+    .brand-mark { width: 22px; height: 22px; display: grid; place-items: center; flex-shrink: 0; }
+    .brand-mark svg { display: block; }
+    .nav-meta { font-family: var(--mono); font-size: 11px; color: var(--text-3); letter-spacing: 0.16em; text-transform: uppercase; font-weight: 600; }
+
+    .hero { padding: 72px 0 0; }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--mono); font-size: 11px;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text-3); margin-bottom: 22px;
+    }
+    .hero-eyebrow::before {
+      content: ''; width: 7px; height: 7px;
+      background: var(--primary); border-radius: 50%;
+    }
+    .hero h1 {
+      font-weight: 800;
+      font-size: clamp(40px, 6vw, 64px);
+      line-height: 1.05; letter-spacing: -0.035em;
+      margin-bottom: 0;
+    }
+    .hero h1 em { font-style: normal; color: var(--primary); }
+    .hero-sub {
+      font-size: 18px; line-height: 1.55;
+      color: var(--text-2); max-width: 60ch; margin-bottom: 18px;
+    }
+    .hero-sub strong { color: var(--text); font-weight: 600; }
+    .hero-note {
+      font-family: var(--mono); font-size: 12px;
+      color: var(--text-3); letter-spacing: 0.04em;
+      padding: 10px 14px;
+      background: var(--surface-2);
+      border-left: 3px solid var(--text-4);
+      border-radius: 0 6px 6px 0;
+      max-width: 64ch; margin-top: 20px; line-height: 1.55;
+    }
+    .hero-note strong { color: var(--text); font-weight: 600; }
+
+    .section { padding: 40px 0 72px; }
+    .hero + .section { padding-top: 32px; }
+    .section-head {
+      display: flex; flex-direction: column;
+      gap: 14px; margin-bottom: 30px;
+    }
+    .section-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--mono); font-size: 11px;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text-3); align-self: flex-start;
+    }
+    .section-eyebrow::before {
+      content: ''; width: 7px; height: 7px;
+      background: var(--primary); border-radius: 50%;
+    }
+    .section-h {
+      font-weight: 800;
+      font-size: clamp(32px, 4.4vw, 48px);
+      line-height: 1.05; letter-spacing: -0.03em;
+    }
+    .section-h em { font-style: italic; color: var(--primary); font-weight: 800; }
+    .section-lede {
+      font-size: 17px; line-height: 1.55;
+      color: var(--text-2); max-width: 62ch;
+    }
+    .section-lede strong { color: var(--text); font-weight: 600; }
+    .section-callout {
+      font-family: var(--mono); font-size: 12px;
+      color: var(--text-3); letter-spacing: 0.04em;
+      padding: 12px 16px;
+      background: var(--surface-2);
+      border-left: 3px solid var(--primary);
+      border-radius: 0 6px 6px 0;
+      max-width: 64ch; line-height: 1.6;
+      margin-top: 4px;
+    }
+    .section-callout strong { color: var(--text); font-weight: 600; }
+
+    /* legacy aliases — kept so old markup remains stylistically aligned */
+    .section-sub { font-family: var(--mono); font-size: 11px; color: var(--text-3); letter-spacing: 0.08em; }
+    .group-note {
+      font-size: 17px; line-height: 1.55; color: var(--text-2);
+      max-width: 62ch; margin: 0 0 22px;
+    }
+    .group-note strong { color: var(--text); font-weight: 600; }
+
+    .artifact-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+    @media (max-width: 1040px) { .artifact-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px)  { .artifact-grid { grid-template-columns: 1fr; } }
+    .artifact-tile {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 32px 34px;
+      text-decoration: none; color: var(--text);
+      display: flex; flex-direction: column; gap: 16px;
+      position: relative; overflow: hidden;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    }
+    .artifact-tile:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
+    }
+    .artifact-tile.v2 { background: linear-gradient(135deg, #fff 0%, var(--primary-soft) 100%); border-color: var(--primary); }
+    .artifact-tile.v2:hover { border-color: var(--primary-hover); }
+    .artifact-tile.v1 { background: linear-gradient(135deg, #fff 0%, var(--rules-bg) 100%); border-color: var(--rules); }
+    .artifact-tile.v1:hover { border-color: #065f46; }
+    .artifact-tile.v0 { background: linear-gradient(135deg, #fff 0%, var(--pain-bg) 100%); border-color: var(--pain); }
+    .artifact-tile.v0:hover { border-color: #b91c1c; }
+    .artifact-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: var(--mono); font-size: 10.5px;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      padding: 4px 10px; border-radius: 4px; align-self: flex-start;
+    }
+    .artifact-tile.v2 .artifact-badge { background: var(--primary); color: #fff; }
+    .artifact-tile.v1 .artifact-badge { background: var(--rules); color: #fff; }
+    .artifact-tile.v0 .artifact-badge { background: var(--pain); color: #fff; }
+    .artifact-name { font-weight: 800; font-size: 30px; letter-spacing: -0.03em; line-height: 1.05; }
+    .artifact-name em { font-style: italic; color: var(--primary); font-weight: 800; }
+    .artifact-tile.v1 .artifact-name em { color: var(--rules); }
+    .artifact-tile.v0 .artifact-name em { color: var(--pain); }
+    .artifact-blurb { font-size: 15.5px; color: var(--text-2); line-height: 1.6; }
+    .artifact-blurb strong { color: var(--text); font-weight: 600; }
+    .artifact-meta {
+      display: flex; gap: 16px; flex-wrap: wrap;
+      font-family: var(--mono); font-size: 11px;
+      color: var(--text-3); letter-spacing: 0.04em;
+      padding-top: 12px; border-top: 1px solid var(--border);
+    }
+    .artifact-cta {
+      display: inline-flex; align-items: center; gap: 6px;
+      align-self: flex-start; font-weight: 600;
+      font-size: 13px; color: var(--primary); margin-top: 4px;
+    }
+    .artifact-tile.v1 .artifact-cta { color: var(--rules); }
+    .artifact-tile.v0 .artifact-cta { color: var(--pain); }
+
+    .walkthrough-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;
+    }
+    .walk-tile {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 24px 26px;
+      cursor: pointer; display: flex; flex-direction: column; gap: 14px;
+      text-align: left; font: inherit; color: inherit;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    }
+    .walk-tile:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.03);
+    }
+    .walk-tile.lob:hover   { border-color: var(--lob); }
+    .walk-tile.rules:hover { border-color: var(--rules); }
+    .walk-tile.ci:hover    { border-color: var(--ci); }
+    .walk-tile.gov:hover   { border-color: var(--gov); }
+    .walk-tile.cross:hover { border-color: var(--cross); }
+
+    .persona-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: var(--mono); font-size: 10px;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      padding: 4px 9px; border-radius: 999px; align-self: flex-start;
+    }
+    .persona-badge .pb-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .persona-badge.lob   { background: var(--lob-bg);   color: var(--lob); }
+    .persona-badge.rules { background: var(--rules-bg); color: var(--rules); }
+    .persona-badge.ci    { background: var(--ci-bg);    color: var(--ci); }
+    .persona-badge.gov   { background: var(--gov-bg);   color: var(--gov); }
+    .persona-badge.cross { background: var(--cross-bg); color: var(--cross); }
+
+    .walk-title { font-weight: 700; font-size: 20px; letter-spacing: -0.02em; line-height: 1.2; }
+    .walk-blurb { font-size: 14px; color: var(--text-3); line-height: 1.55; flex: 1; }
+    .walk-meta {
+      display: flex; gap: 12px;
+      font-family: var(--mono); font-size: 10px;
+      color: var(--text-4); letter-spacing: 0.06em;
+      padding-top: 10px; border-top: 1px solid var(--border);
+    }
+    .walk-cta {
+      font-family: var(--mono); font-size: 11px;
+      color: var(--primary); letter-spacing: 0.06em;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .walk-cta::after { content: '→'; }
+
+    .modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      z-index: 100; opacity: 0; pointer-events: none;
+      transition: opacity 0.22s ease;
+      display: grid; place-items: center; padding: 20px; overflow-y: auto;
+    }
+    .modal-backdrop.open { opacity: 1; pointer-events: auto; }
+    .modal {
+      background: var(--surface); border-radius: 16px;
+      max-width: 760px; width: 100%; max-height: 88vh;
+      overflow: hidden; display: flex; flex-direction: column;
+      box-shadow: 0 40px 80px rgba(0, 0, 0, 0.25);
+      transform: translateY(12px) scale(0.99);
+      transition: transform 0.22s ease;
+    }
+    .modal-backdrop.open .modal { transform: translateY(0) scale(1); }
+
+    .modal-head { padding: 22px 28px 18px; border-bottom: 1px solid var(--border); position: relative; }
+    .modal-close {
+      position: absolute; top: 18px; right: 18px;
+      width: 30px; height: 30px; border-radius: 8px;
+      background: var(--surface-2); border: none; cursor: pointer;
+      display: grid; place-items: center; color: var(--text-3);
+    }
+    .modal-close:hover { background: var(--surface-3); color: var(--text); }
+    .modal-title { font-weight: 800; font-size: 28px; letter-spacing: -0.028em; line-height: 1.15; margin: 10px 40px 10px 0; }
+    .modal-title em { font-style: italic; color: var(--primary); font-weight: 800; }
+    .modal-subtitle { font-size: 15px; color: var(--text-2); line-height: 1.6; margin-right: 40px; }
+    .modal-subtitle strong { color: var(--text); font-weight: 600; }
+
+    .modal-body { padding: 22px 28px; overflow-y: auto; flex: 1; }
+
+    .open-hint {
+      background: var(--primary-soft);
+      border: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--text);
+      margin-bottom: 24px;
+    }
+    .open-hint strong { font-weight: 600; color: var(--primary); display: block; margin-bottom: 2px; }
+    .open-hint em { font-style: normal; font-family: var(--mono); font-size: 12px; background: rgba(255,255,255,0.6); padding: 1px 5px; border-radius: 3px; }
+
+    .modal-section { margin-bottom: 28px; }
+    .modal-section:last-child { margin-bottom: 0; }
+    .modal-section-label {
+      font-family: var(--mono); font-size: 10.5px;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text-3); margin-bottom: 14px;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .modal-section-label::before {
+      content: ''; width: 7px; height: 7px;
+      background: var(--primary); border-radius: 50%;
+    }
+
+    .step-list { list-style: none; counter-reset: step; }
+    .step-row {
+      counter-increment: step;
+      display: grid; grid-template-columns: 28px 1fr; gap: 14px;
+      padding: 10px 0; align-items: start;
+    }
+    .step-row::before {
+      content: counter(step, decimal-leading-zero);
+      font-family: var(--mono); font-size: 11px;
+      color: var(--primary); background: var(--primary-soft);
+      padding: 4px 7px; border-radius: 5px;
+      letter-spacing: 0.02em; font-weight: 600;
+      text-align: center; align-self: start; width: 26px;
+    }
+    .step-text { font-size: 14px; line-height: 1.55; color: var(--text); }
+    .step-text .ui {
+      font-family: var(--mono); font-size: 12.5px;
+      background: var(--surface-2); padding: 1px 6px;
+      border-radius: 3px; border: 1px solid var(--border);
+    }
+    .step-text strong { font-weight: 600; }
+    .step-aside {
+      display: block; font-size: 12.5px;
+      color: var(--text-3); margin-top: 4px;
+      font-style: italic; line-height: 1.5;
+    }
+
+    .intent-list { display: flex; flex-direction: column; gap: 12px; }
+    .intent-item { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; }
+    .intent-icon {
+      width: 22px; height: 22px;
+      background: var(--primary); color: #fff;
+      border-radius: 5px; display: grid; place-items: center;
+      font-family: var(--mono); font-weight: 700;
+      font-size: 11px; flex-shrink: 0;
+    }
+    .intent-text { font-size: 14px; line-height: 1.55; color: var(--text); }
+    .intent-text strong { color: var(--primary); font-weight: 600; }
+
+    .research-card {
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-left: 3px solid var(--primary);
+      border-radius: 0 10px 10px 0; padding: 18px 22px;
+    }
+    .research-stat { font-size: 22px; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 8px; line-height: 1.2; }
+    .research-stat em { font-style: italic; color: var(--primary); font-weight: 800; }
+    .research-text { font-size: 14px; color: var(--text-2); line-height: 1.6; }
+
+    .quote {
+      padding: 14px 18px;
+      background: var(--surface-2);
+      border-left: 3px solid var(--text-4);
+      border-radius: 0 8px 8px 0;
+      font-style: italic; font-size: 14.5px;
+      color: var(--text); line-height: 1.5;
+    }
+    .quote-attr {
+      display: block; font-style: normal;
+      font-family: var(--mono); font-size: 10px;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--text-3); margin-top: 8px;
+    }
+
+    .modal-foot {
+      padding: 16px 28px; border-top: 1px solid var(--border);
+      display: flex; justify-content: space-between; gap: 12px;
+      flex-wrap: wrap; align-items: center;
+      background: var(--surface-2);
+    }
+    .modal-foot-meta { font-family: var(--mono); font-size: 11px; color: var(--text-3); letter-spacing: 0.06em; }
+    .btn-open {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--primary); color: #fff; border: none;
+      padding: 10px 16px; border-radius: 8px;
+      font-weight: 600; font-size: 13.5px;
+      cursor: pointer; text-decoration: none;
+    }
+    .btn-open:hover { background: var(--primary-hover); }
+
+    .foot {
+      max-width: 1200px; margin: 60px auto 0;
+      padding: 32px clamp(20px, 4vw, 48px);
+      border-top: 1px solid var(--border);
+      display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+      font-family: var(--mono); font-size: 11px; color: var(--text-3); letter-spacing: 0.06em;
+    }
+    .foot a { color: var(--text-2); text-decoration: none; }
+    .foot a:hover { color: var(--primary); }
+
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  </style>
+</head>
+
+<body>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <span class="nav-brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+            <rect width="28" height="28" rx="7" fill="var(--slate)"/>
+            <circle cx="14" cy="11.5" r="3.6" fill="#fff"/>
+            <path d="M11.5 12.5 L16.5 12.5 L15.4 21 L12.6 21 Z" fill="#fff"/>
+            <circle cx="22.5" cy="6" r="2" fill="var(--sage)"/>
+          </svg>
+        </span>
+        saniya.arora / locksmith · walkthroughs
+      </span>
+      <span class="nav-meta">Capital One · Identity Platform · 2023–2025</span>
+    </div>
+  </nav>
+
+  <main class="wrap">
+
+    <section class="hero">
+      <div class="hero-eyebrow">Pick a guided path</div>
+      <h1>Locksmith — by <em>use case.</em></h1>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <span class="section-eyebrow">01 · The artifacts</span>
+      </div>
+      <div class="artifact-grid">
+
+        <a class="artifact-tile v0" href="locksmith-v0.html">
+          <span class="artifact-badge">v0 · status quo</span>
+          <div class="artifact-name">The <em>77-day</em> intake.</div>
+          <p class="artifact-blurb">
+            What it took to ship one auth flow before the platform existed. Eight surfaces, eleven humans, no landing screen, no status. The "before."
+          </p>
+          <div class="artifact-meta">
+            <span>6 evidence tiles</span><span>77-day timeline</span><span>itemized bill</span>
+          </div>
+          <div class="artifact-cta">Open v0 →</div>
+        </a>
+
+        <a class="artifact-tile v1" href="locksmith-v1.html">
+          <span class="artifact-badge">v1 · the MVP</span>
+          <div class="artifact-name">The MVP that <em>absorbed</em> the chaos.</div>
+          <p class="artifact-blurb">
+            A clean 5-step wizard. No AI, no chat, no personas — just a structured form that replaced eight surfaces with one. The foundation V2 sits on.
+          </p>
+          <div class="artifact-meta">
+            <span>Dashboard + wizard</span><span>5 steps</span><span>FQEN-builder</span>
+          </div>
+          <div class="artifact-cta">Open v1 →</div>
+        </a>
+
+        <a class="artifact-tile v2" href="locksmith-prototype.html">
+          <span class="artifact-badge">V2 · the platform</span>
+          <div class="artifact-name">The full Locksmith <em>prototype.</em></div>
+          <p class="artifact-blurb">
+            Self-serve identity configuration. AI-driven intent capture, multi-persona routing, lifecycle states, audit-as-product. Four personas, freely explorable.
+          </p>
+          <div class="artifact-meta">
+            <span>4 personas</span><span>~20 surfaces</span><span>~5 min walkthrough</span>
+          </div>
+          <div class="artifact-cta">Open V2 →</div>
+        </a>
+
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <span class="section-eyebrow">02 · Daily-driver flows</span>
+        <h2 class="section-h">The major <em>use cases.</em></h2>
+      </div>
+      <div class="walkthrough-grid" id="grid-major"></div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <span class="section-eyebrow">03 · The story unlock</span>
+        <h2 class="section-h">The cross-persona <em>story.</em></h2>
+      </div>
+      <div class="walkthrough-grid" id="grid-cross"></div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <span class="section-eyebrow">04 · When the system finds you</span>
+        <h2 class="section-h">Reactive &amp; edge <em>cases.</em></h2>
+      </div>
+      <div class="walkthrough-grid" id="grid-edge"></div>
+    </section>
+
+  </main>
+
+  <footer class="foot">
+    <div>Saniya Arora · <a href="mailto:saniyaaroraux@gmail.com">saniyaaroraux@gmail.com</a> · <a href="https://www.linkedin.com/in/saniya-arora-20" target="_blank" rel="noreferrer">linkedin.com/in/saniya-arora-20</a></div>
+    <div>Walkthroughs · Locksmith · Capital One · NDA-safe recreation</div>
+  </footer>
+
+  <div class="modal-backdrop" id="modal-backdrop">
+    <div class="modal" id="modal">
+      <header class="modal-head">
+        <button class="modal-close" id="modal-close" aria-label="Close">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+        <div id="modal-persona"></div>
+        <h3 class="modal-title" id="modal-title"></h3>
+        <p class="modal-subtitle" id="modal-subtitle"></p>
+      </header>
+      <div class="modal-body" id="modal-body"></div>
+      <footer class="modal-foot">
+        <span class="modal-foot-meta" id="modal-meta"></span>
+        <a class="btn-open" id="modal-open" href="locksmith-prototype.html" target="_blank">Open in V2 prototype →</a>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    const PERSONA = {
+      lob:   { label: 'LOB platform' },
+      rules: { label: 'Fraud RulesLab' },
+      ci:    { label: 'CI admin' },
+      gov:   { label: 'Governance' },
+      cross: { label: 'Cross-persona' }
+    };
+
+    const WALKTHROUGHS = [
+      {
+        id: 'launch', persona: 'lob',
+        title: 'Launch a new auth flow',
+        blurb: 'The headline. Sarah ships a Zelle Limit Increase via chat-driven intent capture.',
+        time: '~3 min', steps: '10 clicks',
+        subtitle: 'Sarah opens the platform with a vague intent ("I\'m building a Zelle flow"). She walks out 3 minutes later with a structured, governance-cleared, deployable identity configuration. This is the headline demo — the one most interviewers see first.',
+        walkthrough: [
+          { t: 'Open the prototype → land on the <strong>Dashboard</strong> (Sarah\'s view).', aside: 'A dashboard exists at all because v0 had no landing screen — that was Pain #1.' },
+          { t: 'Click <span class="ui">+ New request</span> at the top of the Active events table.' },
+          { t: 'In the chat, click the chip <span class="ui">Building a Zelle flow</span>.', aside: 'Quick-action chips bootstrap the conversation. Research showed first-time users didn\'t know what to type — three pre-baked intents cover 80% of starts.' },
+          { t: 'Watch the assistant <strong>stream</strong> a response, then a "Locksmith is thinking…" state appears before each subsequent message.', aside: 'Streaming + thinking state signals "real AI" — not a scripted form-in-chat.' },
+          { t: 'Hover the <strong>Risk Level</strong> pill in the right panel and click <span class="ui">Why?</span> → reasoning, source policy, 94% confidence.', aside: 'Every AI decision is defensible — sources cited inline. This is the trust unlock for enterprise.' },
+          { t: 'Click <span class="ui">▸ 3 steps · click to inspect</span> below the assistant message → expand the AI\'s tool calls.', aside: 'Transparency: which tools the AI used, which policies it matched. Bridges Locksmith → WAVE.' },
+          { t: 'Type any endpoint-shaped string (e.g. <span class="ui">POST /api/v2/transfers/limit-adjustment</span>) → send.', aside: 'The right panel updates in real time. The conversation produces the structured artifact.' },
+          { t: 'Click any <span class="ui">Refine</span> chip on the SMS preview (Make it warmer / Shorter / Add brand voice) → message rewrites with a brief highlight.' },
+          { t: 'Type "looks good" → AI suggests Mike Chen as reviewer with grounded evidence ("reviewed 6/7 similar deploys, 86% confidence").' },
+          { t: 'Click <span class="ui">Yes, add Mike</span> → <span class="ui">Submit for risk review</span>. Bell pulses; toast confirms Mike is notified.' }
+        ],
+        intentions: [
+          { icon: '!', text: '<strong>Conversational because PMs don\'t know identity grammar.</strong> The AI translates business intent into FQEN, risk class, method, property-set vocabulary. Removes the prerequisite of learning the taxonomy.' },
+          { icon: '⏱', text: '<strong>Streaming + thinking state because instant responses read as scripted.</strong> The slight delay + dots make the AI feel like it\'s actually reasoning.' },
+          { icon: '?', text: '<strong>"Why?" on every AI-generated field because trust requires uncertainty.</strong> If you can\'t see why the AI chose something, you can\'t defend it to a regulator.' },
+          { icon: '✦', text: '<strong>Quick-action chips as discoverability.</strong> First-time users don\'t know what to type. Three pre-baked intents cover most common cases.' },
+          { icon: '⇄', text: '<strong>Right panel updates in real time.</strong> The conversation produces the structured artifact. The two views are the same act, not two separate flows.' }
+        ],
+        research: {
+          stat: '22 of 38 intake-form fields used terminology that LOB PMs did not recognize.',
+          text: 'Intake forms drove silent abandonment. In contextual interviews, PMs tried a form, hit terms like "FQEN" / "AAL" / "property-set inheritance," and immediately escalated to office hours — restarting the queue every time. The chat is the solve: the AI is the SME on tap.'
+        },
+        quote: { text: 'I don\'t want to learn the taxonomy. I just want to ship the feature this sprint.', attr: 'LOB PM · platform team interview · Aug 2023' }
+      },
+
+      {
+        id: 'track-lifecycle', persona: 'lob',
+        title: 'Track a request through its lifecycle',
+        blurb: 'Sarah follows her request: submit → review → sign-off → canary → prod. Without DMing anyone.',
+        time: '~1 min', steps: '2 clicks',
+        subtitle: 'The most-asked Slack question pre-Locksmith was "where is my request?" This walkthrough shows how the platform answers it without any human.',
+        walkthrough: [
+          { t: 'On the Dashboard, click the <strong>Zelle Limit Increase</strong> row in Active events.' },
+          { t: 'See the <strong>lifecycle strip</strong> at the top: Draft ✓ → Submitted ✓ → Risk review (active) → Governance → QA · canary → Prod.', aside: 'Six discrete states make the multi-week workflow scannable in 1 second.' },
+          { t: 'Scroll: <strong>Approvals card</strong> shows Sarah (submitted), Mike (pending with 14h SLA), Priya (waiting on Mike). Real separation of duties, visible.' },
+          { t: 'Scroll: <strong>Environments / canary</strong> card shows the planned rollout — dev 100% → QA 20% canary (active) → preprod pending → prod 5% canary on approval.' },
+          { t: 'Scroll: <strong>Observability</strong> card with live OTP send rate, verify success, time-to-verify, fraud catch lift.' }
+        ],
+        intentions: [
+          { icon: '◷', text: '<strong>Lifecycle as a top-of-page strip</strong> because identity events have 6+ states and operators need to scan state in <1 sec.' },
+          { icon: '👁', text: '<strong>Approvals visible without click</strong> because "what\'s blocking this" is the #1 status question. Answer it before they ask.' },
+          { icon: '◐', text: '<strong>Observability lives with the event, not in a separate dashboard,</strong> because the operator who cares about this metric is the same person who cares about this config.' },
+          { icon: '∞', text: '<strong>Status is a continuous narrative,</strong> not a snapshot. Every action moves the event along a state machine that all 4 personas see in their own view.' }
+        ],
+        research: {
+          stat: '80% of "status" questions pre-Locksmith were resolved via Slack DMs to the platform team.',
+          text: 'In v0, requestors had no JIRA access (Pain #7). The only way to know where a request was: ask the human queue. Average response time: 48 hours. The Slack inbox of the CIID team was a load-bearing piece of the platform.'
+        },
+        quote: { text: 'I should be able to see the status without DMing anyone.', attr: 'LOB PM · Slack thread reviewed · Sep 2023' }
+      },
+
+      {
+        id: 'anomaly', persona: 'lob',
+        title: 'Investigate an anomaly',
+        blurb: 'OTP send rate drops 2.3%. The anomaly surfaces in Sarah\'s inbox — not a separate dashboard.',
+        time: '~1 min', steps: '3 clicks',
+        subtitle: 'Observability is where operators look only after they\'ve already heard about a problem. Anomalies need to surface where work happens — in the inbox.',
+        walkthrough: [
+          { t: 'On the Dashboard, click the <strong>bell</strong> (top right of the topbar).' },
+          { t: 'In the drawer, find the <strong>OTP send rate −2.3% on MOBILE.ZELLE.*</strong> notification (purple dot = anomaly type).', aside: '"Still within SLA. Auto-investigated; no action required yet." — pre-emptive context, not just a raw alert.' },
+          { t: 'Hover the notification → see <span class="ui">Investigate</span> and <span class="ui">Dismiss</span> appear. Click <span class="ui">Investigate</span> → toast confirms observability dashboard would open.' }
+        ],
+        intentions: [
+          { icon: '🔔', text: '<strong>Anomalies surface in the inbox</strong> because operators don\'t proactively open observability dashboards. The data finds you, not the other way around.' },
+          { icon: '✓', text: '<strong>"Auto-investigated · no action required yet"</strong> because most anomalies don\'t need humans. Reserve human attention for things that actually need it.' },
+          { icon: '⏱', text: '<strong>Notifications are typed</strong> (action_required / awaiting / status / anomaly / system) so the user can scan severity in 100ms via dot color alone.' }
+        ],
+        research: {
+          stat: '0 LOB PMs opened the observability dashboard proactively in 4 weeks of pre-Locksmith usage data.',
+          text: 'Observability data existed in v0, but it lived in a separate Splunk/Grafana setup nobody opened. Anomaly notifications close the loop: the data finds you, not the other way around.'
+        },
+        quote: { text: 'I don\'t look at metrics until someone tells me something\'s broken.', attr: 'LOB engineer · usability test · Nov 2024' }
+      },
+
+      {
+        id: 'review', persona: 'rules',
+        title: 'Review a submitted risk classification',
+        blurb: 'Mike reviews Sarah\'s submission with AI\'s classification, precedent cards, inline approve.',
+        time: '~90 sec', steps: '4 clicks',
+        subtitle: 'Risk reviewers in v0 had no shared context with submitters. They had to read each request from scratch. This walkthrough shows how precedent + AI context cuts review time by ~70%.',
+        walkthrough: [
+          { t: 'Switch persona at the top: click <strong>Fraud RulesLab</strong>.', aside: 'Top-bar accent shifts subtly to green to reinforce "you\'re in a different role now."' },
+          { t: 'See the queue: <strong>2 awaiting</strong> reviews with AI-suggested risk levels + SLA countdowns. The bell badge updates to Mike\'s inbox count.' },
+          { t: 'Click the bell → see Mike\'s inbox with the freshly-routed Zelle Limit Increase highlighted green (fresh notification).' },
+          { t: 'Click on the Zelle row in the queue → see 3 precedent cards (similar approved FQENs with dates + risk class).' },
+          { t: 'Click <span class="ui">Approve</span> inline → toast: "RiskSSU_2_0 assigned · Priya notified · audit logged."' }
+        ],
+        intentions: [
+          { icon: '📋', text: '<strong>Precedent cards</strong> because reviewers asked "have we approved something like this before?" in 90% of cases. Externalize tribal knowledge.' },
+          { icon: '%', text: '<strong>AI confidence visible (94%)</strong> because reviewers want to know when the AI is guessing vs. certain. Low-confidence requests need more human scrutiny.' },
+          { icon: '⚡', text: '<strong>Inline approve from the notification</strong> because saving Mike a click compounds across hundreds of weekly reviews.' },
+          { icon: '⇄', text: '<strong>Reject + Request changes</strong> are equal-weight to Approve. The platform doesn\'t bias toward approval.' }
+        ],
+        research: {
+          stat: 'Pre-Locksmith, average review time was 6.2 working days. Most was spent reconstructing context.',
+          text: 'Reviewers had no shared context with submitters. They had to read the request, hunt for precedents in old JIRA tickets, and ping the LOB PM for clarification. The precedent card pattern came directly from interviewing Mike and watching him manually pull comparison tickets.'
+        },
+        quote: { text: 'The first thing I do is search for similar requests. The AI should just do that for me.', attr: 'Fraud risk reviewer · shadowing session · Oct 2024' }
+      },
+
+      {
+        id: 'sox', persona: 'gov',
+        title: 'SOX sign-off',
+        blurb: 'Priya signs off on Partner Money Transfer with the pre-assembled SOX evidence package.',
+        time: '~1 min', steps: '3 clicks',
+        subtitle: 'Governance reviewers spent 60% of their time gathering evidence that already existed elsewhere. The platform assembles the package automatically.',
+        walkthrough: [
+          { t: 'Switch persona to <strong>Governance</strong> (purple accent on top-bar).' },
+          { t: 'Click the bell → see Priya\'s inbox. <strong>SOX sign-off needed: Partner Money Transfer</strong> is the high-priority action with a 22h SLA countdown.' },
+          { t: 'Notice the body: "Evidence package ready · SOX_404_AuthChange · Mike Chen approved 14h ago." Everything Priya needs is already gathered.' },
+          { t: 'Click <span class="ui">Sign off</span> inline → toast: "Signed · request promoted to canary · audit logged."' },
+          { t: 'For deeper review, sidebar → <strong>Pending review</strong> → SOX evidence column with policy IDs pre-linked.' }
+        ],
+        intentions: [
+          { icon: '⚖', text: '<strong>Evidence pre-assembled</strong> because gathering evidence was 60% of governance reviewer time. The platform owns that work.' },
+          { icon: '🔗', text: '<strong>Policy IDs visible in the queue</strong> (GOV-9610, SOX_404_AuthChange) so Priya doesn\'t need to open detail to know what she\'s about to sign.' },
+          { icon: '⛓', text: '<strong>Audit trail is the artifact.</strong> Sign-off doesn\'t require Priya to paste anything anywhere — the audit captures the action with 7-year retention.' }
+        ],
+        research: {
+          stat: '4 of 7 governance reviewers said evidence-gathering was the worst part of their job.',
+          text: 'Audit evidence in v0 was scattered across email, Slack, JIRA comments, and Confluence. Pulling it together took hours per request. We restructured the platform so evidence is generated as a byproduct of every action, not assembled retroactively.'
+        },
+        quote: { text: 'I spend more time formatting evidence than reviewing it.', attr: 'Governance reviewer · time-tracking study · Mar 2024' }
+      },
+
+      {
+        id: 'audit', persona: 'gov',
+        title: 'Pull the audit trail',
+        blurb: 'Regulator asks for everything related to MOBILE.ZELLE.* in the last 24h. Priya answers in 10 seconds.',
+        time: '~30 sec', steps: '2 clicks',
+        subtitle: 'Audit response in v0 was always a 2-week scramble across 5 systems. The platform makes it instant.',
+        walkthrough: [
+          { t: 'Switch persona to <strong>Governance</strong>.' },
+          { t: 'Sidebar → <strong>Audit trail</strong>.' },
+          { t: 'See the immutable chronological log: timestamp · actor · action · target · policy. Last 24h, 7-year retention noted.' },
+          { t: 'Notice entries include AI actions ("Locksmith AI · CLASSIFY_RISK · 94%") — the AI is itself a first-class actor in the audit.' }
+        ],
+        intentions: [
+          { icon: '⏱', text: '<strong>First-class screen, not an export.</strong> Regulators ask follow-ups. Static exports break the conversation; live views support it.' },
+          { icon: '🤖', text: '<strong>AI actions are audit events.</strong> Every classification, generation, and recommendation is logged with the same fidelity as human actions.' },
+          { icon: '🔒', text: '<strong>Immutable + 7-year retention</strong> meets SOX / GLBA without engineering having to build a separate audit pipeline.' }
+        ],
+        research: {
+          stat: 'Average regulator-response time pre-Locksmith: 9 working days.',
+          text: 'Audit logs lived in 5 different systems (JIRA, gov portal, Splunk, email archives, manual Confluence pages). Stitching them together for a regulator question was a 9-day exercise. We unified the log so it IS the system of record.'
+        }
+      },
+
+      {
+        id: 'primitives', persona: 'ci',
+        title: 'Manage auth method primitives',
+        blurb: 'Anish manages Stable OTP SMS. Schema, property sets, fallback chain, NIST awareness.',
+        time: '~2 min', steps: '5 clicks',
+        subtitle: 'CI admins lived in YAML files across 3 repos. The platform gives them a real management surface for the primitives that 8+ LOB teams depend on.',
+        walkthrough: [
+          { t: 'Switch persona to <strong>CI admin</strong> (amber accent).' },
+          { t: 'Sidebar → <strong>Auth methods</strong> → Stable OTP (SMS) detail.' },
+          { t: 'Read the <strong>NIST 800-63B callout</strong>: explicit acknowledgment that SMS OTP is AAL2-only, with migration path link to passkey.', aside: 'Compliance is in-context, not a separate doc.' },
+          { t: 'Scroll to the <strong>schema</strong> table: providerId / codeLength / timeout / smsText with "Standard" or "Overridable" control badges.', aside: 'Standard = LOB cannot touch (attack-surface critical). Overridable = LOB can tune (UX).' },
+          { t: 'Scroll to <strong>Property sets</strong>: side-by-side Default vs High Risk with actual values (codeLength 6 vs 8, timeout 300s vs 60s).' },
+          { t: 'Scroll to <strong>Fallback factor chain</strong>: SMS → Voice OTP → Email → Branch/call. Lockout: 3 attempts, 5m cooldown.' }
+        ],
+        intentions: [
+          { icon: '⚐', text: '<strong>Standard / Overridable badges</strong> are field-level separation of duties. Encoded in the schema, not in a README.' },
+          { icon: '📜', text: '<strong>NIST callout in-context</strong> because compliance shouldn\'t be a separate document. The platform knows the regulatory state of every primitive.' },
+          { icon: '⇄', text: '<strong>Property sets side-by-side</strong> because admins compare config sets visually. Diff is the primary tool.' },
+          { icon: '🛟', text: '<strong>Fallback chain visible</strong> because recovery paths are where fraud actually happens, but were undocumented in v0.' }
+        ],
+        research: {
+          stat: '3 separate YAML repos managed auth-method config. None were authoritative.',
+          text: 'CI admins kept saying "we don\'t have a place to think about the primitives." They were managing them in YAML across 3 repos with no diff tool and no test harness. The schema + property-set model was a direct response.'
+        },
+        quote: { text: 'When I change codeLength, I have no idea which LOBs are about to break.', attr: 'CI admin · co-design session · Jan 2024' }
+      },
+
+      {
+        id: 'drift', persona: 'ci',
+        title: 'Address drift in the platform',
+        blurb: '2 events still using a deprecated provider. CI admin gets the alert, opens migration.',
+        time: '~1 min', steps: '3 clicks',
+        subtitle: 'Drift between declared and deployed state was invisible in v0 — silent degradation until someone got paged.',
+        walkthrough: [
+          { t: 'Switch persona to <strong>CI admin</strong>.' },
+          { t: 'Click the bell → see the <strong>"Drift detected: 2 events using deprecated capone-sms-00"</strong> anomaly notification.' },
+          { t: 'Hover → click <span class="ui">View events</span> → toast confirms the 2 specific events that need migration.' },
+          { t: 'Click <span class="ui">Open migration ticket</span> → JIRA ticket pre-filled with affected events + recommended target provider.' }
+        ],
+        intentions: [
+          { icon: '🔁', text: '<strong>Drift detection runs continuously,</strong> not as a quarterly audit. Deprecated providers cause silent regressions.' },
+          { icon: '⚡', text: '<strong>"View events" + "Open migration ticket" are inline actions</strong> because the platform should reduce admin work to a single decision, not a 4-step task.' }
+        ],
+        research: {
+          stat: '14 production events were using deprecated providers when we started instrumenting drift.',
+          text: 'Nobody knew. There was no diff between what config the platform thought was deployed and what was actually running. Drift detection was the first observability investment after MVP.'
+        }
+      },
+
+      {
+        id: 'handoff', persona: 'cross',
+        title: 'The full multi-persona handoff (the crown jewel)',
+        blurb: 'Submit in one persona, switch to another, watch the handoff happen in real time.',
+        time: '~3 min', steps: '8 clicks',
+        subtitle: 'The single most powerful demo moment. It proves the multi-persona model is operational, not theoretical. Walk through this when an interviewer asks "how do the personas actually work together?"',
+        walkthrough: [
+          { t: 'Start on the LOB Dashboard (Sarah\'s view). Bell shows her unread count.' },
+          { t: 'Click <span class="ui">+ New request</span> → walk through the chat flow until you reach <span class="ui">Submit for risk review</span>.' },
+          { t: 'Click <strong>Submit</strong>. Watch: <strong>bell pulses</strong>, toast: "Submitted · Mike notified (check his inbox)".' },
+          { t: 'Switch persona at the top → <strong>Fraud RulesLab</strong>. The bell count changes; the top-bar accent shifts to green.' },
+          { t: 'Click the bell → see Mike\'s inbox. The Zelle notification is <strong>highlighted green ("fresh")</strong> with "Just now" timestamp.', aside: 'The "live wire" moment. The notification just arrived because Sarah just submitted. This is the demo killer.' },
+          { t: 'Click <span class="ui">Approve</span> inline on Mike\'s notification → toast: "RiskSSU_2_0 assigned · Priya notified · audit logged."' },
+          { t: 'Switch persona to <strong>Governance</strong>. Priya\'s inbox now has the SOX sign-off ready to action.' },
+          { t: 'Click <span class="ui">Sign off</span> → request promotes to canary deploy. Audit trail captures every step.' }
+        ],
+        intentions: [
+          { icon: '↔', text: '<strong>The persona switcher is intentionally visible.</strong> In production this is RBAC, not a switcher — but in the demo, showing the switch proves that one event lives across personas.' },
+          { icon: '🔔', text: '<strong>The bell pulse + fresh-green highlight</strong> is the single most engineered moment. It\'s the design answer to "how is this different from email threads?"' },
+          { icon: '⛓', text: '<strong>Inline approve preserves momentum.</strong> Mike doesn\'t have to navigate anywhere; the handoff stays in flow.' },
+          { icon: '⚖', text: '<strong>Every step is in the audit trail.</strong> The handoff is the workflow AND the SOX evidence.' }
+        ],
+        research: {
+          stat: 'In v0, the handoff between LOB → Rules → Governance took 14+ days of elapsed time.',
+          text: 'Most of those 14 days was the routing itself — figuring out who owned the next step. We made the routing engine first-class in the data model, and a side effect was that the handoff feels instantaneous in the UI.'
+        },
+        quote: { text: 'We don\'t need faster reviewers. We need the request to find them.', attr: 'Platform PM · planning offsite · Apr 2024' }
+      }
+    ];
+
+    // grouping by story role, not just persona
+    const GROUPS = {
+      major: ['launch', 'track-lifecycle', 'review', 'sox', 'primitives'],
+      cross: ['handoff'],
+      edge:  ['anomaly', 'drift', 'audit']
+    };
+
+    const tileHTML = w => `
+      <button class="walk-tile ${w.persona}" data-id="${w.id}">
+        <span class="persona-badge ${w.persona}"><span class="pb-dot"></span>${PERSONA[w.persona].label}</span>
+        <h3 class="walk-title">${w.title}</h3>
+        <p class="walk-blurb">${w.blurb}</p>
+        <div class="walk-meta">
+          <span>${w.time}</span>
+          <span>${w.steps}</span>
+        </div>
+        <span class="walk-cta">Open walkthrough</span>
+      </button>
+    `;
+
+    const byId = Object.fromEntries(WALKTHROUGHS.map(w => [w.id, w]));
+    function renderGroup(elId, ids) {
+      const el = document.getElementById(elId);
+      if (!el) return;
+      el.innerHTML = ids.map(id => byId[id]).filter(Boolean).map(tileHTML).join('');
+    }
+    renderGroup('grid-major', GROUPS.major);
+    renderGroup('grid-cross', GROUPS.cross);
+    renderGroup('grid-edge',  GROUPS.edge);
+
+    // single delegated click handler across all three grids
+    document.querySelectorAll('.walkthrough-grid').forEach(grid => {
+      grid.addEventListener('click', e => {
+        const tile = e.target.closest('.walk-tile');
+        if (tile) openModal(tile.dataset.id);
+      });
+    });
+
+    const backdrop = document.getElementById('modal-backdrop');
+    const closeBtn = document.getElementById('modal-close');
+    const titleEl  = document.getElementById('modal-title');
+    const subEl    = document.getElementById('modal-subtitle');
+    const persEl   = document.getElementById('modal-persona');
+    const bodyEl   = document.getElementById('modal-body');
+    const metaEl   = document.getElementById('modal-meta');
+
+    const modalOpenBtn = document.getElementById('modal-open');
+    function openModal(id) {
+      const w = WALKTHROUGHS.find(x => x.id === id);
+      if (!w) return;
+      const p = PERSONA[w.persona];
+      persEl.innerHTML = `<span class="persona-badge ${w.persona}"><span class="pb-dot"></span>${p.label}</span>`;
+      titleEl.textContent = w.title;
+      subEl.textContent = w.subtitle;
+      metaEl.textContent = `${w.time} · ${w.steps}`;
+      // pass the walkthrough id to the prototype so the in-app coach panel can pick it up
+      modalOpenBtn.setAttribute('href', `locksmith-prototype.html?walkthrough=${encodeURIComponent(w.id)}`);
+      const intentionsHTML = w.intentions.map(i => `
+        <div class="intent-item">
+          <div class="intent-icon">${i.icon}</div>
+          <div class="intent-text">${i.text}</div>
+        </div>
+      `).join('');
+      const researchHTML = w.research ? `
+        <div class="research-card">
+          <div class="research-stat">${w.research.stat}</div>
+          <p class="research-text">${w.research.text}</p>
+        </div>` : '';
+      const quoteHTML = w.quote ? `
+        <div class="quote">"${w.quote.text}"<span class="quote-attr">— ${w.quote.attr}</span></div>` : '';
+      bodyEl.innerHTML = `
+        <div class="open-hint">
+          <strong>The click-by-click walkthrough lives inside the prototype.</strong>
+          Click <em>Open in V2 prototype →</em> below — a coach panel will appear in the corner and step you through this use case.
+        </div>
+        <section class="modal-section">
+          <div class="modal-section-label">Design intentions</div>
+          <div class="intent-list">${intentionsHTML}</div>
+        </section>
+        ${w.research ? `<section class="modal-section"><div class="modal-section-label">User research insight</div>${researchHTML}</section>` : ''}
+        ${w.quote ? `<section class="modal-section"><div class="modal-section-label">In their words</div>${quoteHTML}</section>` : ''}
+      `;
+      backdrop.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeModal() {
+      backdrop.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    closeBtn.addEventListener('click', closeModal);
+    backdrop.addEventListener('click', e => { if (e.target === backdrop) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+  </script>
+</body>
+</html>

@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Before Locksmith · the 77-day intake</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Crect width='28' height='28' rx='7' fill='%231a2a4a'/%3E%3Ccircle cx='14' cy='11.5' r='3.6' fill='%23fff'/%3E%3Cpath d='M11.5 12.5 L16.5 12.5 L15.4 21 L12.6 21 Z' fill='%23fff'/%3E%3Ccircle cx='22.5' cy='6' r='2' fill='%237b9a8a'/%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Open+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Optimist is Capital One's proprietary brand font; loaded locally on devices that have it installed -->
+  <style>
+    @font-face { font-family: 'Optimist'; src: local('Optimist'), local('Optimist Regular'), local('OptimistRegular');             font-weight: 400; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'Optimist'; src: local('Optimist Medium'), local('OptimistMedium');                                  font-weight: 500; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'Optimist'; src: local('Optimist SemiBold'), local('OptimistSemiBold'), local('Optimist Semibold');   font-weight: 600; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'Optimist'; src: local('Optimist Bold'), local('OptimistBold');                                      font-weight: 700; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'Optimist'; src: local('Optimist ExtraBold'), local('Optimist Extrabold'), local('OptimistExtraBold');font-weight: 800; font-style: normal; font-display: swap; }
+  </style>
+
+  <style>
+    :root {
+      /* ─── Identity Platform design tokens (shared with V2) ─── */
+      --bg: #ffffff;
+      --surface: #ffffff;
+      --surface-2: #f6f6f4;
+      --surface-3: #ececea;
+      --border: #e4e4e1;
+      --border-2: #c8c8c4;
+      --text: #1a2330;
+      --text-2: #4a5562;
+      --text-3: #6e7986;
+      --text-4: #9aa3ad;
+
+      --slate: #1a2a4a;
+      --slate-2: #0f1d3a;
+      --slate-soft: #eef1f7;
+      --slate-border: #c4cdde;
+
+      --sage: #7b9a8a;
+      --sage-2: #5e7e6e;
+      --sage-soft: #e6ede9;
+
+      --rose: #c47a6c;
+      --rose-soft: #f2e2dd;
+
+      --sans: 'Optimist', 'Source Sans 3', 'Inter', -apple-system, system-ui, sans-serif;
+      --mono: 'Open Sans', 'Source Sans 3', 'Inter', -apple-system, system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+    }
+    body {
+      display: flex; flex-direction: column;
+      font-size: 15px; line-height: 1.5;
+    }
+
+    /* ═══════════ HEADER ═══════════ */
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 28px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      background: var(--bg);
+      z-index: 5;
+    }
+    .brand {
+      display: flex; align-items: center; gap: 10px;
+      font-family: var(--sans); font-weight: 700; font-size: 15px;
+      color: var(--text); letter-spacing: -0.01em;
+    }
+    .brand a { color: inherit; text-decoration: none; }
+    .brand-mark { width: 24px; height: 24px; display: grid; place-items: center; flex-shrink: 0; }
+    .brand-mark svg { display: block; }
+    .brand-sep {
+      width: 1px; height: 18px; background: var(--border);
+      margin: 0 4px;
+    }
+    .brand-meta {
+      font-family: var(--mono); font-size: 10.5px; font-weight: 600;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--text-3);
+    }
+
+    .header-right {
+      display: flex; align-items: center; gap: 16px;
+    }
+    .slide-counter {
+      font-family: var(--mono);
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--text-3);
+    }
+    .slide-counter strong { color: var(--text); font-weight: 700; }
+    .exit-link {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-family: var(--sans); font-size: 13px; font-weight: 600;
+      color: var(--text-2); text-decoration: none;
+      padding: 6px 10px; border-radius: 6px;
+    }
+    .exit-link:hover { background: var(--surface-2); color: var(--text); }
+
+    /* ═══════════ STAGE ═══════════ */
+    .stage {
+      flex: 1; min-height: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .slide {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: safe center;
+      padding: 28px clamp(20px, 5vw, 64px);
+      opacity: 0; pointer-events: none;
+      transform: translateY(12px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      overflow-y: auto;
+    }
+    .slide.active {
+      opacity: 1; pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .slide-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--mono); font-size: 11px; font-weight: 700;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--rose);
+      margin-bottom: 10px;
+      flex-shrink: 0;
+    }
+    .slide-eyebrow::before {
+      content: ''; width: 6px; height: 6px;
+      background: var(--rose); border-radius: 50%;
+    }
+    .slide-title {
+      font-weight: 800;
+      font-size: clamp(26px, 3.4vw, 42px);
+      line-height: 1.05; letter-spacing: -0.035em;
+      color: var(--text);
+      margin-bottom: 16px;
+      max-width: 22ch;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .slide-title em { font-style: italic; color: var(--rose); font-weight: 800; }
+    .slide-caption {
+      font-size: 14.5px;
+      color: var(--text-2);
+      line-height: 1.5;
+      max-width: 56ch;
+      margin-top: 18px;
+      margin-bottom: 0;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .slide-caption strong { color: var(--text); font-weight: 600; }
+
+    /* ═══════════ ARTIFACT (the mockup window) ═══════════ */
+    .artifact-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 560px;
+      margin: 0 auto;
+      flex-shrink: 1;
+      min-height: 0;
+    }
+    .artifact {
+      width: 100%;
+      aspect-ratio: 16 / 11;
+      max-height: clamp(220px, 38vh, 340px);
+      background: var(--surface);
+      border: 1px solid var(--border-2);
+      border-radius: 10px;
+      box-shadow: 0 18px 38px rgba(26, 35, 48, 0.08), 0 3px 6px rgba(26, 35, 48, 0.04);
+      overflow: hidden;
+    }
+    .artifact svg { width: 100%; height: 100%; display: block; }
+
+    /* Small caption inside the artifact for clarity */
+    .artifact-tag {
+      position: absolute;
+      bottom: -8px; right: 18px;
+      transform: translateY(50%);
+      font-family: var(--mono); font-size: 10px;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 4px 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--text-3); font-weight: 600;
+    }
+
+    /* ═══════════ TITLE & FINAL SLIDES ═══════════ */
+    .slide.title .slide-title,
+    .slide.final .slide-title {
+      font-size: clamp(36px, 5.5vw, 72px);
+      max-width: none;
+    }
+    .slide.title .slide-caption,
+    .slide.final .slide-caption {
+      font-size: 16px;
+    }
+    .slide.title .big-77 {
+      font-weight: 800;
+      font-size: clamp(80px, 14vw, 180px);
+      line-height: 0.95;
+      letter-spacing: -0.05em;
+      color: var(--slate);
+      margin-bottom: 8px;
+    }
+    .slide.title .big-77 em {
+      font-style: normal;
+      color: var(--rose);
+    }
+    .slide.title .lead-label {
+      font-family: var(--mono); font-size: 11px; font-weight: 700;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text-3); margin-bottom: 18px;
+    }
+
+    /* ═══════════ COST GRID (slide 9) ═══════════ */
+    .cost-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      width: 100%; max-width: 820px;
+      margin-top: 4px;
+      flex-shrink: 1;
+      min-height: 0;
+    }
+    @media (max-width: 760px) { .cost-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px) { .cost-grid { grid-template-columns: 1fr; } }
+    .cost-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--rose);
+      border-radius: 8px;
+      padding: 12px 14px;
+      text-align: left;
+    }
+    .cost-label {
+      font-family: var(--mono); font-size: 9.5px;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--rose); font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .cost-val {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      color: var(--text);
+      line-height: 1.05;
+      margin-bottom: 4px;
+    }
+    .cost-val em { font-style: italic; color: var(--rose); font-weight: 800; }
+    .cost-note {
+      font-size: 11.5px; color: var(--text-3); line-height: 1.4;
+    }
+
+    /* ═══════════ FOOTER (timeline + nav) ═══════════ */
+    footer {
+      flex-shrink: 0;
+      padding: 16px 28px 20px;
+      border-top: 1px solid var(--border);
+      background: var(--bg);
+      z-index: 5;
+    }
+    .timeline {
+      position: relative;
+      padding: 0 12px 14px;
+    }
+    .timeline-axis {
+      position: relative;
+      height: 6px;
+      background: var(--surface-2);
+      border-radius: 999px;
+      overflow: visible;
+    }
+    .timeline-fill {
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      background: var(--rose);
+      border-radius: 999px;
+      width: 0%;
+      transition: width 0.45s cubic-bezier(0.4, 0.0, 0.2, 1);
+    }
+    .timeline-cursor {
+      position: absolute;
+      top: 50%;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 3px solid var(--rose);
+      transform: translate(-50%, -50%);
+      transition: left 0.45s cubic-bezier(0.4, 0.0, 0.2, 1);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    .timeline-marks {
+      display: flex; justify-content: space-between;
+      margin-top: 10px;
+      font-family: var(--mono); font-size: 10.5px;
+      color: var(--text-3); letter-spacing: 0.08em;
+      font-weight: 600;
+    }
+    .timeline-marks span { position: relative; }
+    .timeline-marks span::before {
+      content: ''; position: absolute;
+      top: -12px; left: 50%;
+      transform: translateX(-50%);
+      width: 1px; height: 4px;
+      background: var(--border-2);
+    }
+
+    .show-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px;
+      padding-top: 4px;
+    }
+    .nav-day {
+      font-family: var(--mono); font-size: 12px; font-weight: 700;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--text-2);
+      padding: 6px 12px;
+      background: var(--surface-2);
+      border-radius: 999px;
+      border: 1px solid var(--border);
+    }
+    .nav-buttons {
+      display: flex; gap: 8px; align-items: center;
+    }
+
+    .btn-primary, .btn-ghost {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-family: var(--sans);
+      font-size: 13.5px; font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      text-decoration: none;
+    }
+    .btn-primary {
+      background: var(--slate); color: #fff;
+      border: 1px solid var(--slate);
+    }
+    .btn-primary:hover { background: var(--slate-2); border-color: var(--slate-2); }
+    .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn-primary:disabled:hover { background: var(--slate); border-color: var(--slate); }
+    .btn-ghost {
+      background: transparent; color: var(--text);
+      border: 1px solid var(--border-2);
+    }
+    .btn-ghost:hover { background: var(--surface-2); border-color: var(--text-3); }
+    .btn-ghost:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn-ghost:disabled:hover { background: transparent; border-color: var(--border-2); }
+
+    /* SVG mock tokens */
+    .mock-chrome { fill: var(--surface-2); }
+    .mock-bg     { fill: #fff; }
+    .mock-line   { fill: var(--border-2); }
+    .mock-line-soft { fill: var(--border-2); opacity: 0.55; }
+    .mock-rose   { fill: var(--rose); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .slide, .timeline-fill, .timeline-cursor { transition: none !important; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand">
+      <a class="brand-mark" aria-hidden="true" href="locksmith-walkthroughs.html">
+        <svg width="24" height="24" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+          <rect width="28" height="28" rx="7" fill="var(--slate)"/>
+          <circle cx="14" cy="11.5" r="3.6" fill="#fff"/>
+          <path d="M11.5 12.5 L16.5 12.5 L15.4 21 L12.6 21 Z" fill="#fff"/>
+          <circle cx="22.5" cy="6" r="2" fill="var(--sage)"/>
+        </svg>
+      </a>
+      <span class="brand-sep" aria-hidden="true"></span>
+      <span class="brand-meta">v0 · the 77-day intake</span>
+    </div>
+    <div class="header-right">
+      <span class="slide-counter"><strong id="slide-current">1</strong> / <span id="slide-total">10</span></span>
+      <a class="exit-link" href="locksmith-walkthroughs.html">Exit ↗</a>
+    </div>
+  </header>
+
+  <!-- STAGE -->
+  <main class="stage" id="stage">
+
+    <!-- ━━━━━━━━ Slide 1 · Title ━━━━━━━━ -->
+    <section class="slide title active" data-slide="1" data-day-start="0" data-day-end="0" data-day-label="Day 0">
+      <span class="lead-label">Before Locksmith · Oct 2023</span>
+      <div class="big-77">77<em>.</em></div>
+      <h1 class="slide-title">days to ship one auth flow.</h1>
+      <p class="slide-caption">Most of it was waiting. Most of the waiting was on humans. Most of the work was re-doing what could've been captured once, at the start.</p>
+    </section>
+
+    <!-- ━━━━━━━━ Slide 2 · Day 0 · No landing screen ━━━━━━━━ -->
+    <section class="slide" data-slide="2" data-day-start="0" data-day-end="0" data-day-label="Day 0">
+      <span class="slide-eyebrow">Day 0 · the start</span>
+      <h2 class="slide-title">No landing screen.</h2>
+      <div class="artifact-wrap">
+        <div class="artifact">
+          <svg viewBox="0 0 320 220" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <rect class="mock-bg" width="320" height="220"/>
+            <rect class="mock-chrome" width="320" height="28"/>
+            <circle cx="14" cy="14" r="4" fill="#c47a6c" opacity="0.6"/>
+            <circle cx="26" cy="14" r="4" fill="#d6c279" opacity="0.6"/>
+            <circle cx="38" cy="14" r="4" fill="#7b9a8a" opacity="0.6"/>
+            <rect x="56" y="10" width="220" height="8" rx="2" class="mock-line"/>
+            <text x="20" y="50" font-family="Open Sans" font-size="9" fill="#6e7986" font-weight="700" letter-spacing="1">CONFLUENCE / CIID · IDENTITY ONBOARDING</text>
+            <rect x="20" y="60" width="280" height="12" class="mock-line-soft"/>
+            <rect x="20" y="80" width="240" height="8" class="mock-line-soft"/>
+            <rect x="20" y="94" width="260" height="8" class="mock-line-soft"/>
+            <rect x="20" y="108" width="200" height="8" class="mock-line-soft"/>
+            <rect x="20" y="122" width="250" height="8" class="mock-line-soft"/>
+            <rect x="20" y="136" width="180" height="8" class="mock-line-soft"/>
+            <rect x="20" y="150" width="220" height="8" class="mock-line-soft"/>
+            <rect x="20" y="164" width="160" height="8" class="mock-line-soft"/>
+            <rect x="20" y="186" width="100" height="4" rx="1" class="mock-rose"/>
+            <text x="124" y="190" font-family="Open Sans" font-size="7" fill="#c47a6c" font-weight="700">last updated 2019</text>
+          </svg>
+        </div>
+        <span class="artifact-tag">Intranet wiki</span>
+      </div>
+      <p class="slide-caption">A 2019 wiki page. <strong>5 working links. 3 dead.</strong></p>
+    </section>
+
+    <!-- ━━━━━━━━ Slide 3 · Day 0–14 · Wait ━━━━━━━━ -->
+    <section class="slide" data-slide="3" data-day-start="0" data-day-end="14" data-day-label="Day 0–14">
+      <span class="slide-eyebrow">Day 0–14 · book office hours</span>
+      <h2 class="slide-title">Next slot: <em>two weeks out.</em></h2>
+      <div class="artifact-wrap">
+        <div class="artifact">
+          <svg viewBox="0 0 320 220" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <rect class="mock-bg" width="320" height="220"/>
+            <rect class="mock-chrome" width="320" height="28"/>
+            <circle cx="14" cy="14" r="4" fill="#c47a6c" opacity="0.6"/>
+            <circle cx="26" cy="14" r="4" fill="#d6c279" opacity="0.6"/>
+            <circle cx="38" cy="14" r="4" fill="#7b9a8a" opacity="0.6"/>
+            <text x="160" y="18" text-anchor="middle" font-family="Open Sans" font-size="9" fill="#4a5562" font-weight="700">CIID Office Hours · November</text>
+            <!-- calendar grid -->
+            <g transform="translate(24, 44)">
+              <g font-family="Open Sans" font-size="7" fill="#9aa3ad" font-weight="600">
+                <text x="18" y="0" text-anchor="middle">S</text>
+                <text x="58" y="0" text-anchor="middle">M</text>
+                <text x="98" y="0" text-anchor="middle">T</text>
+                <text x="138" y="0" text-anchor="middle">W</text>
+                <text x="178" y="0" text-anchor="middle">T</text>
+                <text x="218" y="0" text-anchor="middle">F</text>
+                <text x="258" y="0" text-anchor="middle">S</text>
+              </g>
+              <!-- rows -->
+              <g transform="translate(0, 8)">
+                <g><rect x="0"   y="0"  width="36" height="28" rx="3" fill="#f6f6f4" stroke="#e4e4e1"/></g>
+                <g><rect x="40"  y="0"  width="36" height="28" rx="3" fill="#f6f6f4" stroke="#e4e4e1"/><rect x="44" y="4" width="28" height="4" rx="1" fill="#c47a6c" opacity="0.4"/></g>
+                <g><rect x="80"  y="0"  width="36" height="28" rx="3" fill="#fff" stroke="#e4e4e1"/></g>
+                <g><rect x="120" y="0"  width="36" height="28" rx="3" fill="#fff" stroke="#e4e4e1"/><rect x="124" y="4" width="28" height="4" rx="1" fill="#c47a6c" opacity="0.4"/></g>
+                <g><rect x="160" y="0"  width="36" height="28" rx="3" fill="#fff" stroke="#e4e4e1"/></g>
+                <g><rect x="200" y="0"  width="36" height="28" rx="3" fill="#fff" stroke="#e4e4e1"/></g>
+                <g><rect x="240" y="0"  width="36" height="28" rx="3" fill="#fff" stroke="#e4e4e1"/></g>
+              </g>
+              <g transform="translate(0, 40)">
+                <g><rect x="0"   y="0"  width="36" height="28" rx="3" fill="#fff" stroke="#e4e4e1"/></g>
+                <g><rect x="40"  y="0"  width="36" height="28" rx="3" fill="#fff" stroke="#e4e4e1"/><rect x="44" y="4" width="28" height="4" rx="1" fill="#c47a6c" opacity="0.4"/></g>
+                <g><rect x="80"  y="0"  width="36" height="28" rx="3" fill="#fff" stroke="#e4e4e1"/></g>
+                <g><rect x="120" y="0"  width="36" height="28" rx="3" fill="#fff" stroke="#e4e4e1"/></g>
+                <g><rect x="160" y="0"  width="36" height="28" rx="3" fill="#fff" stroke="#e4e4e1"/></g>
+                <g><rect x="200" y="0"  width="36" height="28" rx="3" fill="#fff" stroke="#e4e4e1"/><rect x="204" y="4" width="28" height="4" rx="1" fill="#c47a6c" opacity="0.4"/></g>
+                <g><rect x="240" y="0"  width="36" height="28" rx="3" fill="#fff" stroke="#e4e4e1"/></g>
+              </g>
+              <g transform="translate(0, 72)">
+                <g><rect x="0"   y="0"  width="36" height="28" rx="3" fill="#fff" stroke="#e4e4e1"/></g>
+                <g><rect x="40"  y="0"  width="36" height="28" rx="3" fill="#fff" stroke="#e4e4e1"/></g>
+                <g><rect x="80"  y="0"  width="36" height="28" rx="3" fill="#fff" stroke="#e4e4e1"/></g>
+                <g><rect x="120" y="0"  width="36" height="28" rx="3" fill="#fff" stroke="#e4e4e1"/></g>
+                <!-- highlighted: first available -->
+                <g>
+                  <rect x="160" y="0"  width="36" height="28" rx="3" fill="#c47a6c"/>
+                  <text x="178" y="18" text-anchor="middle" font-family="Open Sans" font-size="10" font-weight="700" fill="#fff">14</text>
+                  <text x="178" y="-4" text-anchor="middle" font-family="Open Sans" font-size="7" font-weight="700" fill="#c47a6c">FIRST OPEN</text>
+                </g>
+                <g><rect x="200" y="0"  width="36" height="28" rx="3" fill="#fff" stroke="#e4e4e1"/></g>
+                <g><rect x="240" y="0"  width="36" height="28" rx="3" fill="#fff" stroke="#e4e4e1"/></g>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <span class="artifact-tag">Office-hours calendar</span>
+      </div>
+      <p class="slide-caption">Two CIID engineers running office hours <strong>for the whole bank</strong>.</p>
+    </section>
+
+    <!-- ━━━━━━━━ Slide 4 · Day 14 · Intake form ━━━━━━━━ -->
+    <section class="slide" data-slide="4" data-day-start="14" data-day-end="14" data-day-label="Day 14">
+      <span class="slide-eyebrow">Day 14 · the form</span>
+      <h2 class="slide-title">22 fields. <em>None familiar.</em></h2>
+      <div class="artifact-wrap">
+        <div class="artifact">
+          <svg viewBox="0 0 320 220" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <rect class="mock-bg" width="320" height="220"/>
+            <rect class="mock-chrome" width="320" height="28"/>
+            <circle cx="14" cy="14" r="4" fill="#c47a6c" opacity="0.6"/>
+            <circle cx="26" cy="14" r="4" fill="#d6c279" opacity="0.6"/>
+            <circle cx="38" cy="14" r="4" fill="#7b9a8a" opacity="0.6"/>
+            <text x="160" y="18" text-anchor="middle" font-family="Open Sans" font-size="9" font-weight="700" fill="#4a5562">IAM Intake · Step 2 of 5</text>
+            <!-- form fields -->
+            <g transform="translate(28, 44)">
+              <g font-family="Open Sans" font-size="8" font-weight="700" fill="#4a5562">
+                <text x="0" y="8">FQEN<tspan fill="#c47a6c">*</tspan></text>
+                <rect x="0" y="12" width="264" height="18" rx="3" fill="#fff" stroke="#c8c8c4"/>
+                <text x="0" y="44">PROPERTY-SET INHERITANCE<tspan fill="#c47a6c">*</tspan></text>
+                <rect x="0" y="48" width="264" height="18" rx="3" fill="#fff" stroke="#c8c8c4"/>
+                <text x="0" y="80">AAL TIER<tspan fill="#c47a6c">*</tspan></text>
+                <rect x="0" y="84" width="264" height="18" rx="3" fill="#fff" stroke="#c8c8c4"/>
+                <text x="0" y="116">RISK SSU CLASS<tspan fill="#c47a6c">*</tspan></text>
+                <rect x="0" y="120" width="264" height="18" rx="3" fill="#fff" stroke="#c8c8c4"/>
+                <text x="0" y="152">CHANNEL · SURFACE · LOB<tspan fill="#c47a6c">*</tspan></text>
+                <rect x="0" y="156" width="264" height="18" rx="3" fill="#fff" stroke="#c8c8c4"/>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <span class="artifact-tag">IAM intake form</span>
+      </div>
+      <p class="slide-caption">Required fields use vocabulary <strong>LOB PMs don't have</strong>.</p>
+    </section>
+
+    <!-- ━━━━━━━━ Slide 5 · Day 14–28 · Silence ━━━━━━━━ -->
+    <section class="slide" data-slide="5" data-day-start="14" data-day-end="28" data-day-label="Day 14–28">
+      <span class="slide-eyebrow">Day 14–28 · the silence</span>
+      <h2 class="slide-title">"Received." <em>14 days.</em> Nothing.</h2>
+      <div class="artifact-wrap">
+        <div class="artifact">
+          <svg viewBox="0 0 320 220" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <rect class="mock-bg" width="320" height="220"/>
+            <rect class="mock-chrome" width="320" height="28"/>
+            <circle cx="14" cy="14" r="4" fill="#c47a6c" opacity="0.6"/>
+            <circle cx="26" cy="14" r="4" fill="#d6c279" opacity="0.6"/>
+            <circle cx="38" cy="14" r="4" fill="#7b9a8a" opacity="0.6"/>
+            <text x="160" y="18" text-anchor="middle" font-family="Open Sans" font-size="9" font-weight="700" fill="#4a5562">Inbox · ciid-onboarding@</text>
+
+            <!-- single email at top, highlighted -->
+            <g transform="translate(0, 36)">
+              <rect x="0" y="0" width="320" height="34" fill="#f2e2dd" opacity="0.55"/>
+              <rect x="14" y="10" width="4" height="14" rx="1" fill="#c47a6c"/>
+              <rect x="26" y="10" width="140" height="5" rx="1" fill="#1a2330"/>
+              <rect x="26" y="20" width="200" height="4" rx="1" fill="#6e7986"/>
+              <text x="304" y="20" text-anchor="end" font-family="Open Sans" font-size="7" font-weight="700" fill="#6e7986">DAY 14</text>
+            </g>
+            <!-- blurred / empty rows below -->
+            <g transform="translate(0, 74)" opacity="0.35">
+              <g><rect x="14" y="6" width="80" height="4" rx="1" fill="#c8c8c4"/><rect x="14" y="14" width="180" height="3" rx="1" fill="#c8c8c4"/><line x1="0" y1="28" x2="320" y2="28" stroke="#ececea"/></g>
+              <g transform="translate(0, 30)"><rect x="14" y="6" width="80" height="4" rx="1" fill="#c8c8c4"/><rect x="14" y="14" width="180" height="3" rx="1" fill="#c8c8c4"/><line x1="0" y1="28" x2="320" y2="28" stroke="#ececea"/></g>
+              <g transform="translate(0, 60)"><rect x="14" y="6" width="80" height="4" rx="1" fill="#c8c8c4"/><rect x="14" y="14" width="180" height="3" rx="1" fill="#c8c8c4"/><line x1="0" y1="28" x2="320" y2="28" stroke="#ececea"/></g>
+              <g transform="translate(0, 90)"><rect x="14" y="6" width="80" height="4" rx="1" fill="#c8c8c4"/><rect x="14" y="14" width="180" height="3" rx="1" fill="#c8c8c4"/></g>
+            </g>
+            <text x="160" y="208" text-anchor="middle" font-family="Open Sans" font-size="8" font-weight="700" letter-spacing="2" fill="#c47a6c">— 14 DAYS · NO REPLY —</text>
+          </svg>
+        </div>
+        <span class="artifact-tag">Inbox</span>
+      </div>
+      <p class="slide-caption"><strong>No request ID. No status page. No owner.</strong></p>
+    </section>
+
+    <!-- ━━━━━━━━ Slide 6 · Day 28–30 · JIRA ━━━━━━━━ -->
+    <section class="slide" data-slide="6" data-day-start="28" data-day-end="30" data-day-label="Day 28–30">
+      <span class="slide-eyebrow">Day 28–30 · ping marcus</span>
+      <h2 class="slide-title">Locked out of her own ticket.</h2>
+      <div class="artifact-wrap">
+        <div class="artifact">
+          <svg viewBox="0 0 320 220" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <rect class="mock-bg" width="320" height="220"/>
+            <rect class="mock-chrome" width="320" height="28"/>
+            <circle cx="14" cy="14" r="4" fill="#c47a6c" opacity="0.6"/>
+            <circle cx="26" cy="14" r="4" fill="#d6c279" opacity="0.6"/>
+            <circle cx="38" cy="14" r="4" fill="#7b9a8a" opacity="0.6"/>
+            <text x="160" y="18" text-anchor="middle" font-family="Open Sans" font-size="9" font-weight="700" fill="#4a5562">JIRA · CIID-PROJ</text>
+
+            <!-- faded backlog behind -->
+            <g opacity="0.18">
+              <rect x="20" y="44" width="280" height="22" fill="#c8c8c4"/>
+              <rect x="20" y="70" width="280" height="22" fill="#c8c8c4"/>
+              <rect x="20" y="96" width="280" height="22" fill="#c8c8c4"/>
+              <rect x="20" y="122" width="280" height="22" fill="#c8c8c4"/>
+              <rect x="20" y="148" width="280" height="22" fill="#c8c8c4"/>
+              <rect x="20" y="174" width="280" height="22" fill="#c8c8c4"/>
+            </g>
+
+            <!-- modal -->
+            <g transform="translate(36, 60)">
+              <rect x="0" y="0" width="248" height="108" rx="8" fill="#fff" stroke="#c47a6c" stroke-width="2"/>
+              <!-- X mark -->
+              <circle cx="32" cy="44" r="14" fill="#fff" stroke="#c47a6c" stroke-width="2"/>
+              <line x1="26" y1="38" x2="38" y2="50" stroke="#c47a6c" stroke-width="2.4" stroke-linecap="round"/>
+              <line x1="38" y1="38" x2="26" y2="50" stroke="#c47a6c" stroke-width="2.4" stroke-linecap="round"/>
+              <!-- text -->
+              <text x="58" y="36" font-family="Optimist, Source Sans 3, sans-serif" font-size="14" font-weight="700" fill="#1a2330">Access denied</text>
+              <text x="58" y="54" font-family="Open Sans" font-size="9" fill="#4a5562">You do not have permission</text>
+              <text x="58" y="66" font-family="Open Sans" font-size="9" fill="#4a5562">to view CIID-PROJ.</text>
+              <!-- button -->
+              <rect x="58" y="80" width="92" height="20" rx="4" fill="#c47a6c"/>
+              <text x="104" y="93" text-anchor="middle" font-family="Optimist, Source Sans 3, sans-serif" font-size="9" font-weight="700" fill="#fff">Request access →</text>
+            </g>
+          </svg>
+        </div>
+        <span class="artifact-tag">JIRA permission</span>
+      </div>
+      <p class="slide-caption">The only way to ask "where is it?" was to <strong>DM a human</strong>.</p>
+    </section>
+
+    <!-- ━━━━━━━━ Slide 7 · Day 30–70 · Engineering queue + ping-pong ━━━━━━━━ -->
+    <section class="slide" data-slide="7" data-day-start="30" data-day-end="70" data-day-label="Day 30–70">
+      <span class="slide-eyebrow">Day 30–70 · engineering</span>
+      <h2 class="slide-title">Six weeks of ping-pong.</h2>
+      <div class="artifact-wrap">
+        <div class="artifact">
+          <svg viewBox="0 0 320 220" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <rect class="mock-bg" width="320" height="220"/>
+            <rect class="mock-chrome" width="320" height="28"/>
+            <circle cx="14" cy="14" r="4" fill="#c47a6c" opacity="0.6"/>
+            <circle cx="26" cy="14" r="4" fill="#d6c279" opacity="0.6"/>
+            <circle cx="38" cy="14" r="4" fill="#7b9a8a" opacity="0.6"/>
+            <text x="160" y="18" text-anchor="middle" font-family="Open Sans" font-size="9" font-weight="700" fill="#4a5562">#ciid-help · Slack</text>
+
+            <!-- alternating messages -->
+            <g font-family="Optimist, Source Sans 3, sans-serif" font-size="9" fill="#1a2330">
+              <!-- Eng -->
+              <g transform="translate(20, 44)">
+                <circle cx="10" cy="10" r="9" fill="#7b9a8a"/>
+                <text x="10" y="13" text-anchor="middle" font-size="8" fill="#fff" font-weight="700">EM</text>
+                <rect x="26" y="0" width="180" height="22" rx="6" fill="#f6f6f4"/>
+                <text x="34" y="14" font-size="8" fill="#1a2330">What's the property-set on this?</text>
+              </g>
+              <!-- Sarah -->
+              <g transform="translate(120, 74)">
+                <circle cx="170" cy="10" r="9" fill="#1a2a4a"/>
+                <text x="170" y="13" text-anchor="middle" font-size="8" fill="#fff" font-weight="700">SJ</text>
+                <rect x="0" y="0" width="156" height="22" rx="6" fill="#eef1f7"/>
+                <text x="8" y="14" font-size="8" fill="#1a2330">Whatever was on the form</text>
+              </g>
+              <!-- Eng -->
+              <g transform="translate(20, 104)">
+                <circle cx="10" cy="10" r="9" fill="#7b9a8a"/>
+                <text x="10" y="13" text-anchor="middle" font-size="8" fill="#fff" font-weight="700">EM</text>
+                <rect x="26" y="0" width="220" height="22" rx="6" fill="#f6f6f4"/>
+                <text x="34" y="14" font-size="8" fill="#1a2330">Form's stale. Can you re-confirm AAL?</text>
+              </g>
+              <!-- Sarah -->
+              <g transform="translate(60, 134)">
+                <circle cx="226" cy="10" r="9" fill="#1a2a4a"/>
+                <text x="226" y="13" text-anchor="middle" font-size="8" fill="#fff" font-weight="700">SJ</text>
+                <rect x="0" y="0" width="214" height="22" rx="6" fill="#eef1f7"/>
+                <text x="8" y="14" font-size="8" fill="#1a2330">…the same one I put on the form?</text>
+              </g>
+              <!-- typing dots -->
+              <g transform="translate(20, 168)">
+                <circle cx="10" cy="10" r="9" fill="#7b9a8a"/>
+                <text x="10" y="13" text-anchor="middle" font-size="8" fill="#fff" font-weight="700">EM</text>
+                <rect x="26" y="2" width="38" height="18" rx="6" fill="#f6f6f4"/>
+                <circle cx="36" cy="11" r="2" fill="#6e7986"/>
+                <circle cx="44" cy="11" r="2" fill="#6e7986" opacity="0.7"/>
+                <circle cx="52" cy="11" r="2" fill="#6e7986" opacity="0.4"/>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <span class="artifact-tag">#ciid-help</span>
+      </div>
+      <p class="slide-caption">Re-asking what was on the form. <strong>Six weeks of it.</strong></p>
+    </section>
+
+    <!-- ━━━━━━━━ Slide 8 · Day 70–77 · Governance ━━━━━━━━ -->
+    <section class="slide" data-slide="8" data-day-start="70" data-day-end="77" data-day-label="Day 70–77">
+      <span class="slide-eyebrow">Day 70–77 · governance</span>
+      <h2 class="slide-title">A second maze. <em>Manually filled.</em></h2>
+      <div class="artifact-wrap">
+        <div class="artifact">
+          <svg viewBox="0 0 320 220" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <rect class="mock-bg" width="320" height="220"/>
+            <rect class="mock-chrome" width="320" height="28"/>
+            <circle cx="14" cy="14" r="4" fill="#c47a6c" opacity="0.6"/>
+            <circle cx="26" cy="14" r="4" fill="#d6c279" opacity="0.6"/>
+            <circle cx="38" cy="14" r="4" fill="#7b9a8a" opacity="0.6"/>
+            <text x="160" y="18" text-anchor="middle" font-family="Open Sans" font-size="9" font-weight="700" fill="#4a5562">Gov Portal · SOX-404</text>
+
+            <g transform="translate(28, 44)" font-family="Optimist, Source Sans 3, sans-serif" font-size="9" fill="#1a2330">
+              <!-- checked rows -->
+              <rect x="0"  y="0"  width="12" height="12" rx="2" fill="#fff" stroke="#c8c8c4"/>
+              <path d="M3 6 L5 8 L9 4" stroke="#5e7e6e" stroke-width="2" fill="none" stroke-linecap="round"/>
+              <text x="20" y="10">Risk SSU classification</text>
+
+              <rect x="0"  y="20" width="12" height="12" rx="2" fill="#fff" stroke="#c8c8c4"/>
+              <path d="M3 26 L5 28 L9 24" stroke="#5e7e6e" stroke-width="2" fill="none" stroke-linecap="round"/>
+              <text x="20" y="30">Property-set diff</text>
+
+              <rect x="0"  y="40" width="12" height="12" rx="2" fill="#fff" stroke="#c8c8c4"/>
+              <text x="20" y="50">SOX-404 evidence package</text>
+              <text x="244" y="50" fill="#c47a6c" font-weight="700" font-size="8" font-family="Open Sans">MISSING</text>
+
+              <rect x="0"  y="60" width="12" height="12" rx="2" fill="#fff" stroke="#c8c8c4"/>
+              <text x="20" y="70">Audit trail · 90d</text>
+              <text x="244" y="70" fill="#c47a6c" font-weight="700" font-size="8" font-family="Open Sans">MISSING</text>
+
+              <rect x="0"  y="80" width="12" height="12" rx="2" fill="#fff" stroke="#c8c8c4"/>
+              <text x="20" y="90">Council sign-off</text>
+              <text x="244" y="90" fill="#b88a3c" font-weight="700" font-size="8" font-family="Open Sans">PENDING</text>
+
+              <rect x="0"  y="100" width="12" height="12" rx="2" fill="#fff" stroke="#c8c8c4"/>
+              <text x="20" y="110">GLBA attestation</text>
+              <text x="244" y="110" fill="#b88a3c" font-weight="700" font-size="8" font-family="Open Sans">PENDING</text>
+
+              <rect x="0"  y="120" width="12" height="12" rx="2" fill="#fff" stroke="#c8c8c4"/>
+              <text x="20" y="130">Change-control ID</text>
+              <text x="244" y="130" fill="#b88a3c" font-weight="700" font-size="8" font-family="Open Sans">PENDING</text>
+
+              <!-- submit -->
+              <rect x="0" y="148" width="264" height="20" rx="4" fill="#f6f6f4" stroke="#e4e4e1"/>
+              <text x="132" y="161" text-anchor="middle" font-family="Optimist, Source Sans 3, sans-serif" font-size="9" font-weight="700" fill="#6e7986">Submit for council review</text>
+            </g>
+          </svg>
+        </div>
+        <span class="artifact-tag">Governance portal</span>
+      </div>
+      <p class="slide-caption">Evidence existed in <strong>five other tools</strong>. Reviewers re-typed it here.</p>
+    </section>
+
+    <!-- ━━━━━━━━ Slide 9 · The bill ━━━━━━━━ -->
+    <section class="slide" data-slide="9" data-day-start="0" data-day-end="77" data-day-label="Day 1–77">
+      <span class="slide-eyebrow">The bill</span>
+      <h2 class="slide-title">77 days, <em>itemized.</em></h2>
+      <div class="cost-grid">
+        <div class="cost-card">
+          <div class="cost-label">Active work</div>
+          <div class="cost-val">~12 <em>days</em></div>
+          <div class="cost-note">LOB, CIID, governance combined.</div>
+        </div>
+        <div class="cost-card">
+          <div class="cost-label">Waiting</div>
+          <div class="cost-val">65 <em>days</em></div>
+          <div class="cost-note">84% of total. Platform was idle.</div>
+        </div>
+        <div class="cost-card">
+          <div class="cost-label">Touches</div>
+          <div class="cost-val">11 <em>humans</em></div>
+          <div class="cost-note">PM, manager, intake, eng, fraud, risk, gov.</div>
+        </div>
+        <div class="cost-card">
+          <div class="cost-label">Tools</div>
+          <div class="cost-val">7</div>
+          <div class="cost-note">None of them an identity tool.</div>
+        </div>
+        <div class="cost-card">
+          <div class="cost-label">Customer impact</div>
+          <div class="cost-val">11 <em>weeks</em></div>
+          <div class="cost-note">Higher fraud exposure on legacy flow.</div>
+        </div>
+        <div class="cost-card">
+          <div class="cost-label">Revenue at risk</div>
+          <div class="cost-val">$ — m</div>
+          <div class="cost-note">Friction-driven Zelle abandonment.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ━━━━━━━━ Slide 10 · And then we built Locksmith ━━━━━━━━ -->
+    <section class="slide final" data-slide="10" data-day-start="77" data-day-end="77" data-day-label="Day 77">
+      <span class="slide-eyebrow">And then</span>
+      <h1 class="slide-title">we built <em>Locksmith.</em></h1>
+      <p class="slide-caption">The 8 pains above were the entire spec for V2.</p>
+      <div class="nav-buttons" style="gap: 10px; margin-top: 28px;">
+        <a class="btn-ghost" href="locksmith-walkthroughs.html">← Walkthroughs</a>
+        <a class="btn-primary" href="locksmith-prototype.html">See V2 · the platform →</a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="timeline">
+      <div class="timeline-axis">
+        <div class="timeline-fill" id="tl-fill"></div>
+        <div class="timeline-cursor" id="tl-cursor"></div>
+      </div>
+      <div class="timeline-marks">
+        <span>D0</span>
+        <span>D14</span>
+        <span>D28</span>
+        <span>D42</span>
+        <span>D56</span>
+        <span>D70</span>
+        <span>D77</span>
+      </div>
+    </div>
+    <div class="show-nav">
+      <span class="nav-day" id="nav-day">Day 0</span>
+      <div class="nav-buttons">
+        <button class="btn-ghost" id="prev-btn">← Prev</button>
+        <button class="btn-primary" id="next-btn">Next →</button>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      const slides   = Array.from(document.querySelectorAll('.slide'));
+      const stage    = document.getElementById('stage');
+      const tlFill   = document.getElementById('tl-fill');
+      const tlCursor = document.getElementById('tl-cursor');
+      const dayLabel = document.getElementById('nav-day');
+      const counterCurrent = document.getElementById('slide-current');
+      const counterTotal   = document.getElementById('slide-total');
+      const prevBtn = document.getElementById('prev-btn');
+      const nextBtn = document.getElementById('next-btn');
+
+      const MAX_DAY = 77;
+      let idx = 0;
+      counterTotal.textContent = slides.length;
+
+      function render() {
+        slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+        const cur = slides[idx];
+        const start = Number(cur.getAttribute('data-day-start') || 0);
+        const end   = Number(cur.getAttribute('data-day-end') || 0);
+        const label = cur.getAttribute('data-day-label') || ('Day ' + end);
+
+        // Fill from 0 to end-day, cursor at end-day
+        const pct = Math.max(0, Math.min(100, (end / MAX_DAY) * 100));
+        tlFill.style.width = pct + '%';
+        tlCursor.style.left = pct + '%';
+
+        dayLabel.textContent = label;
+        counterCurrent.textContent = String(idx + 1);
+
+        prevBtn.disabled = idx === 0;
+        nextBtn.disabled = idx === slides.length - 1;
+
+        // scroll active slide to top
+        cur.scrollTop = 0;
+      }
+
+      function go(n) {
+        idx = Math.max(0, Math.min(slides.length - 1, n));
+        render();
+      }
+      const next = () => go(idx + 1);
+      const prev = () => go(idx - 1);
+
+      nextBtn.addEventListener('click', next);
+      prevBtn.addEventListener('click', prev);
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); next(); }
+        else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prev(); }
+        else if (e.key === 'Home') { e.preventDefault(); go(0); }
+        else if (e.key === 'End')  { e.preventDefault(); go(slides.length - 1); }
+      });
+
+      render();
+    })();
+  </script>
+</body>
+</html>
