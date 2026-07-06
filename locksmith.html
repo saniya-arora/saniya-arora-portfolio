@@ -391,6 +391,64 @@
       margin-top: 12px;
     }
 
+    /* ─── DEEP-DIVE LINK (link-out to interactive prototype) ─── */
+    .deep-dive-link {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 20px;
+      margin-top: 28px;
+      padding: 22px 26px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.18s ease, transform 0.18s ease, background 0.18s ease;
+    }
+    .deep-dive-link:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+      background: color-mix(in srgb, var(--accent-dim) 60%, var(--surface));
+    }
+    .deep-dive-link__meta {
+      display: flex; flex-direction: column; gap: 4px;
+      min-width: 0;
+    }
+    .deep-dive-link__eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .deep-dive-link__title {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      color: var(--text);
+      line-height: 1.3;
+    }
+    .deep-dive-link__sub {
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.5;
+      margin-top: 2px;
+    }
+    .deep-dive-link__cta {
+      display: inline-flex; align-items: center; gap: 6px;
+      flex-shrink: 0;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+    .deep-dive-link__cta svg { transition: transform 0.18s ease; }
+    .deep-dive-link:hover .deep-dive-link__cta svg { transform: translate(2px, -2px); }
+    @media (max-width: 640px) {
+      .deep-dive-link { flex-direction: column; align-items: flex-start; }
+      .deep-dive-link__cta { align-self: flex-end; }
+    }
+
     /* ─── CALLOUT ─── */
     .cs-callout {
       margin: 20px 0;
@@ -1811,6 +1869,18 @@
             <figcaption class="cs-next-caption">and yes, we have dark mode ;)</figcaption>
           </figure>
         </section>
+
+        <a class="deep-dive-link" href="file:///Users/saniyaarora/Desktop/locksmith-walkthroughs.html" target="_blank" rel="noreferrer">
+          <div class="deep-dive-link__meta">
+            <span class="deep-dive-link__eyebrow">Interactive prototype</span>
+            <span class="deep-dive-link__title">Want to see the whole UI and walk through it?</span>
+            <span class="deep-dive-link__sub">Every persona, every surface, guided walkthroughs by use case.</span>
+          </div>
+          <span class="deep-dive-link__cta">
+            Open walkthroughs
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><polyline points="7 7 17 7 17 17"/></svg>
+          </span>
+        </a>
 
       </article>
     </div>
