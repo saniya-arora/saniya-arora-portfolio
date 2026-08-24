@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#09090b">
+  <title>Work — Saniya Arora</title>
+  <meta name="description" content="Every case study, prototype, and side project by Saniya Arora — platform design, identity systems, and AI-assisted workflows.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root, [data-theme="dark"] {
+      --bg: #09090b;
+      --surface: #111113;
+      --surface2: #18181b;
+      --border: #27272a;
+      --border2: #3f3f46;
+      --text: #fafafa;
+      --text2: #a1a1aa;
+      --text3: #71717a;
+      --accent: #4ade80;
+      --accent-dim: rgba(74, 222, 128, 0.1);
+
+      --sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+      --max: 1060px;
+      --pad: clamp(16px, 3vw, 32px);
+      --section: clamp(56px, 7vw, 88px);
+      --r: 10px;
+      --r-lg: 14px;
+    }
+
+    [data-theme="light"] {
+      --bg: #fafafa;
+      --surface: #ffffff;
+      --surface2: #f4f4f5;
+      --border: #e4e4e7;
+      --border2: #d4d4d8;
+      --text: #09090b;
+      --text2: #52525b;
+      --text3: #a1a1aa;
+      --accent: #16a34a;
+      --accent-dim: rgba(22, 163, 74, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--sans);
+      color: var(--text);
+      background: var(--bg);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .dot-grid {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background-image: radial-gradient(circle, var(--border) 0.6px, transparent 0.6px);
+      background-size: 22px 22px;
+      opacity: 0.35;
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid var(--border);
+      background: color-mix(in srgb, var(--bg) 82%, transparent);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .nav-inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 var(--pad);
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .nav-left { display: flex; align-items: center; gap: 18px; min-width: 0; }
+    .brand {
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      flex-shrink: 0;
+      text-decoration: none;
+    }
+    .nav-back {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text3);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: color 0.2s;
+    }
+    .nav-back:hover, .nav-back:focus-visible { color: var(--accent); }
+
+    .theme-toggle {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      width: 34px;
+      height: 34px;
+      cursor: pointer;
+      color: var(--text3);
+      display: grid;
+      place-items: center;
+      transition: color 0.15s, border-color 0.15s;
+      flex-shrink: 0;
+    }
+    .theme-toggle:hover { color: var(--accent); border-color: var(--border2); }
+    .theme-toggle svg { width: 15px; height: 15px; }
+    .icon-sun, .icon-moon { display: none; }
+    [data-theme="dark"] .icon-sun { display: block; }
+    [data-theme="light"] .icon-moon { display: block; }
+
+    /* ─── LAYOUT ─── */
+    .wrap { max-width: var(--max); margin: 0 auto; padding: 0 var(--pad); }
+    main { padding-bottom: 96px; }
+
+    .page-head { padding: clamp(48px, 7vw, 80px) 0 clamp(36px, 5vw, 56px); }
+    .eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+      margin-bottom: 14px;
+    }
+    h1 {
+      font-size: clamp(32px, 6vw, 46px);
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      line-height: 1.08;
+      margin-bottom: 16px;
+      text-wrap: balance;
+    }
+    .page-lede {
+      color: var(--text2);
+      font-size: 16px;
+      line-height: 1.7;
+      max-width: 58ch;
+    }
+
+    section { padding-top: var(--section); }
+    .section-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 10px;
+    }
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 10px;
+    }
+    .section-desc {
+      color: var(--text2);
+      font-size: 14px;
+      line-height: 1.7;
+      margin-bottom: 30px;
+      max-width: 62ch;
+    }
+
+    /* ─── WORK ROWS ─── */
+    .rows { display: flex; flex-direction: column; gap: 14px; }
+
+    .row {
+      display: grid;
+      grid-template-columns: 232px 1fr;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .row:hover, .row:focus-visible {
+      border-color: var(--border2);
+      transform: translateY(-2px);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.24);
+    }
+    [data-theme="light"] .row:hover,
+    [data-theme="light"] .row:focus-visible { box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08); }
+
+    .row-thumb {
+      position: relative;
+      background: var(--surface2);
+      border-right: 1px solid var(--border);
+      overflow: hidden;
+      min-height: 158px;
+    }
+    .row-thumb img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .row:hover .row-thumb img { transform: scale(1.04); }
+    .thumb--top img    { object-position: top center; }
+    .thumb--phone img  { object-position: center 22%; }
+    .thumb--detail img { object-position: center 84%; }
+
+    /* placeholder for work with no capture */
+    .row-thumb--none {
+      display: grid;
+      place-items: center;
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text3);
+      text-align: center;
+      padding: 16px;
+      line-height: 1.6;
+    }
+
+    .row-body {
+      padding: 22px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      min-width: 0;
+    }
+    .row-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .row-type {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+    }
+    .row-title {
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+      text-wrap: balance;
+    }
+    .row-desc {
+      color: var(--text2);
+      font-size: 14px;
+      line-height: 1.65;
+      max-width: 58ch;
+    }
+    .row-meta {
+      margin-top: auto;
+      padding-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px 16px;
+      flex-wrap: wrap;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+    }
+    .row-meta .sep { opacity: 0.5; }
+
+    .tag {
+      font-family: var(--mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--text3);
+      white-space: nowrap;
+    }
+    .tag--locked { color: #f5b544; border-color: rgba(245, 181, 68, 0.32); background: rgba(245, 181, 68, 0.08); }
+    .tag--live   { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 32%, transparent); background: var(--accent-dim); }
+
+    /* ─── COMPACT GRID (prototypes / side projects) ─── */
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(238px, 1fr));
+      gap: 14px;
+    }
+    .mini {
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      background: var(--surface);
+      padding: 18px 20px;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .mini:hover, .mini:focus-visible { border-color: var(--border2); transform: translateY(-2px); }
+    .mini-kicker {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .mini-title { font-size: 15px; font-weight: 650; letter-spacing: -0.015em; }
+    .mini-desc { color: var(--text2); font-size: 13px; line-height: 1.6; }
+    .mini-link {
+      margin-top: auto;
+      padding-top: 4px;
+      font-family: var(--mono);
+      font-size: 11.5px;
+      color: var(--accent);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .arrow { transition: transform 0.2s; }
+    .row:hover .arrow, .mini:hover .arrow { transform: translateX(3px); }
+
+    /* ─── FOOTER ─── */
+    footer {
+      margin-top: var(--section);
+      padding-top: 34px;
+      border-top: 1px solid var(--border);
+    }
+    .foot-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .foot-note { color: var(--text3); font-size: 13px; font-family: var(--mono); }
+    .foot-links { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn {
+      font-size: 13px;
+      font-weight: 600;
+      padding: 9px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      color: var(--text);
+      text-decoration: none;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn:hover { border-color: var(--border2); color: var(--accent); }
+    .btn-primary { background: var(--accent); border-color: var(--accent); color: #0a0a0a; }
+    .btn-primary:hover { color: #0a0a0a; opacity: 0.9; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 720px) {
+      .row { grid-template-columns: 1fr; }
+      .row-thumb { min-height: 190px; border-right: none; border-bottom: 1px solid var(--border); }
+      .row-body { padding: 20px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, .row, .row-thumb img, .mini, .arrow { transition: none !important; }
+      .row:hover, .mini:hover { transform: none; }
+      .row:hover .row-thumb img { transform: none; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="dot-grid" aria-hidden="true"></div>
+
+  <nav>
+    <div class="nav-inner">
+      <div class="nav-left">
+        <a class="brand" href="index.html">saniya.arora</a>
+        <a class="nav-back" href="index.html#work"><span>&larr;</span><span>Back home</span></a>
+      </div>
+      <button class="theme-toggle" aria-label="Toggle theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </nav>
+
+  <main class="wrap">
+
+    <header class="page-head">
+      <div class="eyebrow">Archive</div>
+      <h1>All work</h1>
+      <p class="page-lede">Platform and identity systems at enterprise scale, a shipped consumer app, and the prototypes and side projects in between. Two case studies are under NDA &mdash; the gate on those has a request link if you don't have the password.</p>
+    </header>
+
+    <section>
+      <div class="section-label">Case studies</div>
+      <h2 class="section-title">Depth work</h2>
+      <p class="section-desc">Full write-ups: the problem, what I owned, the decisions, and what changed.</p>
+
+      <div class="rows">
+
+        <a class="row" href="locksmith.html">
+          <div class="row-thumb thumb--top">
+            <img src="images/locksmith-ui.jpg" alt="Locksmith dashboard showing a persona switcher, deployment stats, and identity events moving through QA, governance and production" loading="lazy" decoding="async">
+          </div>
+          <div class="row-body">
+            <div class="row-top">
+              <span class="row-type">Capital One &middot; Identity Platform</span>
+              <span class="tag tag--locked">Protected</span>
+            </div>
+            <div class="row-title">Locksmith &mdash; self-service identity for enterprise-scale platforms</div>
+            <p class="row-desc">A 0&rarr;1 platform that turns business intent into safe, auditable identity configuration, with governance and risk decisions visible inside the flow.</p>
+            <div class="row-meta">
+              <span>Lead Product Designer (co-led)</span><span class="sep">&middot;</span>
+              <span>77 days &rarr; under 1</span><span class="sep">&middot;</span>
+              <span>8+ teams</span>
+              <span style="margin-left:auto;color:var(--accent)">Read <span class="arrow">&rarr;</span></span>
+            </div>
+          </div>
+        </a>
+
+        <a class="row" href="wave.html">
+          <div class="row-thumb thumb--top">
+            <img src="images/wave/tui-gate.jpg" alt="The WAVE terminal mid-run, showing an approval gate with cleared checks and one that still needs a human" loading="lazy" decoding="async">
+          </div>
+          <div class="row-body">
+            <div class="row-top">
+              <span class="row-type">Capital One &middot; TUI design</span>
+              <span class="tag tag--locked">Protected</span>
+            </div>
+            <div class="row-title">WAVE &mdash; operationalizing AI inside enterprise guardrails</div>
+            <p class="row-desc">A five-stage delivery framework with schema-bound artifacts and a hard human gate at every transition. Built to kill the translation tax between disciplines.</p>
+            <div class="row-meta">
+              <span>Leading thought partner &amp; hands-on executor</span><span class="sep">&middot;</span>
+              <span>Cross-LOB adoption</span>
+              <span style="margin-left:auto;color:var(--accent)">Read <span class="arrow">&rarr;</span></span>
+            </div>
+          </div>
+        </a>
+
+        <a class="row" href="pantry.html">
+          <div class="row-thumb thumb--phone">
+            <img src="images/pantry/p1-greet.png" alt="Pantry onboarding screen introducing Avi, the AI nutrition companion" loading="lazy" decoding="async">
+          </div>
+          <div class="row-body">
+            <div class="row-top">
+              <span class="row-type">Pantry &middot; iOS</span>
+              <span class="tag tag--live">Shipped</span>
+            </div>
+            <div class="row-title">Pantry &mdash; onboarding an AI dietitian people actually finish</div>
+            <p class="row-desc">Thirty-nine screens across six phases, built on behavioral science: CBT micro-lessons, value screens that earn the ask, and a companion who turns a questionnaire into a relationship.</p>
+            <div class="row-meta">
+              <span>Product Designer &mdash; research, IA, flow, UI, copy</span><span class="sep">&middot;</span>
+              <span>0&rarr;1 client work</span>
+              <span style="margin-left:auto;color:var(--accent)">Read <span class="arrow">&rarr;</span></span>
+            </div>
+          </div>
+        </a>
+
+        <a class="row" href="johndeere.html">
+          <div class="row-thumb thumb--top">
+            <img src="images/johndeere-ui.jpg" alt="John Deere Operations Twin showing a factory satellite view with incident pins and heat-map filters" loading="lazy" decoding="async">
+          </div>
+          <div class="row-body">
+            <div class="row-top">
+              <span class="row-type">John Deere &middot; Digital Twin</span>
+            </div>
+            <div class="row-title">Designing a decision system for factory operators</div>
+            <p class="row-desc">The platform had every metric and no answers. Rebuilt the hierarchy around operator tasks, added severity logic, and put the action next to the insight.</p>
+            <div class="row-meta">
+              <span>Lead Product Designer (end-to-end)</span><span class="sep">&middot;</span>
+              <span>38% faster to insight</span><span class="sep">&middot;</span>
+              <span>+22% completion</span>
+              <span style="margin-left:auto;color:var(--accent)">Read <span class="arrow">&rarr;</span></span>
+            </div>
+          </div>
+        </a>
+
+        <a class="row" href="airkey.html">
+          <div class="row-thumb thumb--detail">
+            <img src="images/airkey-ui.jpg" alt="AirKey App Clip card prompting the customer to verify by tapping their card to their phone" loading="lazy" decoding="async">
+          </div>
+          <div class="row-body">
+            <div class="row-top">
+              <span class="row-type">Capital One &middot; Secondary Auth</span>
+            </div>
+            <div class="row-title">AirKey &mdash; a channel-agnostic verification framework</div>
+            <p class="row-desc">Turning a mobile-only authenticator into reusable trust infrastructure. Two rounds of research showed friction is fine when it's explained &mdash; inconsistency is what breaks trust.</p>
+            <div class="row-meta">
+              <span>Lead Researcher &amp; Experience Strategist</span><span class="sep">&middot;</span>
+              <span>58 participants</span>
+              <span style="margin-left:auto;color:var(--accent)">Read <span class="arrow">&rarr;</span></span>
+            </div>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+    <section>
+      <div class="section-label">Prototypes</div>
+      <h2 class="section-title">Locksmith, playable</h2>
+      <p class="section-desc">Clickable builds from the Locksmith work &mdash; the painful before-state, the MVP, and walkthroughs by use case.</p>
+
+      <div class="mini-grid">
+        <a class="mini" href="locksmith-v0.html">
+          <span class="mini-kicker">Before</span>
+          <span class="mini-title">The 77-day intake</span>
+          <span class="mini-desc">What launching an identity config used to take: spreadsheets, tickets, and four teams translating for each other.</span>
+          <span class="mini-link">Open <span class="arrow">&rarr;</span></span>
+        </a>
+        <a class="mini" href="locksmith-v1.html">
+          <span class="mini-kicker">V1</span>
+          <span class="mini-title">Locksmith v1</span>
+          <span class="mini-desc">The first self-service build &mdash; guided intent, visible risk posture, one path to production.</span>
+          <span class="mini-link">Open <span class="arrow">&rarr;</span></span>
+        </a>
+        <a class="mini" href="locksmith-prototype.html">
+          <span class="mini-kicker">MVP</span>
+          <span class="mini-title">Locksmith prototype</span>
+          <span class="mini-desc">The full interactive prototype, end to end.</span>
+          <span class="mini-link">Open <span class="arrow">&rarr;</span></span>
+        </a>
+        <a class="mini" href="locksmith-walkthroughs.html">
+          <span class="mini-kicker">Walkthroughs</span>
+          <span class="mini-title">By use case</span>
+          <span class="mini-desc">The same system seen through each persona: LOB, fraud, CI admin, governance.</span>
+          <span class="mini-link">Open <span class="arrow">&rarr;</span></span>
+        </a>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-label">Side projects</div>
+      <h2 class="section-title">Things I build on my own</h2>
+      <p class="section-desc">Shipped, live, and clickable right now.</p>
+
+      <div class="rows">
+
+        <a class="row" href="https://betweenai.netlify.app/" target="_blank" rel="noreferrer">
+          <div class="row-thumb thumb--phone">
+            <img src="images/between-shot.jpg" alt="Between app welcome screen with a hand-lettered logo on textured paper" loading="lazy" decoding="async">
+          </div>
+          <div class="row-body">
+            <div class="row-top">
+              <span class="row-type">Personal &middot; Consumer</span>
+              <span class="tag tag--live">Live</span>
+            </div>
+            <div class="row-title">Between</div>
+            <p class="row-desc">A private letter-sharing app for staying connected without the noise. No feeds, no followers &mdash; just intentional letters at your own rhythm, with people you trust.</p>
+            <div class="row-meta">
+              <span>Design &amp; build</span>
+              <span style="margin-left:auto;color:var(--accent)">Visit <span class="arrow">&rarr;</span></span>
+            </div>
+          </div>
+        </a>
+
+        <a class="row" href="https://financehq.netlify.app/" target="_blank" rel="noreferrer">
+          <div class="row-thumb thumb--top">
+            <img src="images/financehq-shot.jpg" alt="FinanceHQ prompt builder with the generated prompt previewed beside the form" loading="lazy" decoding="async">
+          </div>
+          <div class="row-body">
+            <div class="row-top">
+              <span class="row-type">Personal &middot; Tool</span>
+              <span class="tag tag--live">Live</span>
+            </div>
+            <div class="row-title">FinanceHQ</div>
+            <p class="row-desc">A prompt builder that turns messy spending data into structured, paste-ready financial coaching prompts for ChatGPT Projects.</p>
+            <div class="row-meta">
+              <span>Design &amp; build</span>
+              <span style="margin-left:auto;color:var(--accent)">Try it <span class="arrow">&rarr;</span></span>
+            </div>
+          </div>
+        </a>
+
+        <a class="row" href="index.html">
+          <div class="row-thumb thumb--top">
+            <img src="images/portfolio-shot.jpg" alt="This portfolio site, showing the hero and its interactive chat panel" loading="lazy" decoding="async">
+          </div>
+          <div class="row-body">
+            <div class="row-top">
+              <span class="row-type">Personal &middot; Site</span>
+              <span class="tag tag--live">Live</span>
+            </div>
+            <div class="row-title">This portfolio</div>
+            <p class="row-desc">Vanilla HTML, CSS and JS &mdash; no framework, no build step. Dark-first, editor-aesthetic, and a practice run at the workflow I write about.</p>
+            <div class="row-meta">
+              <span>Design &amp; build</span>
+              <span style="margin-left:auto;color:var(--accent)">You're on it <span class="arrow">&rarr;</span></span>
+            </div>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+    <footer>
+      <div class="foot-inner">
+        <span class="foot-note">&copy; 2026 Saniya Arora</span>
+        <div class="foot-links">
+          <a class="btn btn-primary" href="mailto:saniyaaroraux@gmail.com">Email</a>
+          <a class="btn" href="Saniya-Arora-Resume.pdf" target="_blank" rel="noreferrer">Resume</a>
+          <a class="btn" href="https://www.linkedin.com/in/saniya-arora-20" target="_blank" rel="noreferrer">LinkedIn</a>
+        </div>
+      </div>
+    </footer>
+
+  </main>
+
+  <script>
+    (function() {
+      var saved = localStorage.getItem('theme');
+      if (saved) {
+        document.documentElement.setAttribute('data-theme', saved);
+      } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+
+    document.querySelector('.theme-toggle').addEventListener('click', function() {
+      var html = document.documentElement;
+      var next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      document.querySelector('meta[name="theme-color"]').content =
+        next === 'dark' ? '#09090b' : '#fafafa';
+    });
+  </script>
+</body>
+</html>

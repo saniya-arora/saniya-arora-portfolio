@@ -446,6 +446,77 @@
     }
 
     /* ─── CALLOUT ─── */
+    /* ─── TUI SCREENS ─── */
+    .cs-shot { margin: 30px 0; }
+    .cs-shot img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.30);
+    }
+    [data-theme="light"] .cs-shot img { box-shadow: 0 18px 44px rgba(15, 23, 42, 0.12); }
+    .cs-shot figcaption {
+      margin-top: 12px;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--text3);
+      display: flex;
+      gap: 10px;
+      align-items: baseline;
+    }
+    .cs-shot figcaption b {
+      color: var(--accent);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    /* ─── PROTOTYPE CTA ─── */
+    .cs-proto {
+      margin: 34px 0 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .cs-proto__media { border-bottom: 1px solid var(--border); background: var(--surface2); }
+    .cs-proto__media img { width: 100%; height: auto; display: block; }
+    .cs-proto__body { padding: 22px 26px 24px; }
+    .cs-proto__eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .cs-proto__title { font-size: 19px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; }
+    .cs-proto__desc { font-size: 14.5px; line-height: 1.65; color: var(--text2); margin-bottom: 16px; max-width: 60ch; }
+    .cs-proto__btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 11px 20px;
+      border-radius: 9px;
+      background: var(--accent);
+      color: #0a0a0a;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    .cs-proto__btn:hover, .cs-proto__btn:focus-visible { opacity: 0.88; }
+    .cs-proto__note {
+      margin-top: 12px;
+      font-family: var(--mono);
+      font-size: 11.5px;
+      color: var(--text3);
+    }
+
     .cs-callout {
       margin: 24px 0;
       padding: 24px 28px;
@@ -1343,6 +1414,26 @@
       opacity: 0.88;
     }
 
+    .pw-gate__ask {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text3);
+      text-align: center;
+    }
+    .pw-gate__ask a {
+      color: var(--accent);
+      font-weight: 600;
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+    }
+    .pw-gate__ask a:hover,
+    .pw-gate__ask a:focus-visible {
+      border-bottom-color: currentColor;
+    }
+
     /* ─── RESPONSIVE ─── */
     @media (max-width: 640px) {
       .article-hero h1 { font-size: clamp(24px, 7vw, 36px); }
@@ -1365,6 +1456,11 @@
       <input id="pw-input" type="password" placeholder="Password" autofocus class="pw-gate__input">
       <div id="pw-error" class="pw-gate__error">Incorrect password</div>
       <button id="pw-submit" class="pw-gate__btn">Enter</button>
+      <p class="pw-gate__ask">
+        Don't have the password?
+        <a href="mailto:saniyaaroraux@gmail.com?subject=Access%20request%20%E2%80%94%20WAVE%20case%20study&amp;body=Hi%20Saniya%2C%0A%0AI%27d%20like%20to%20read%20the%20WAVE%20case%20study.%20A%20little%20about%20me%3A%0A%0A">Ask me for it</a>
+        &mdash; I usually reply same day.
+      </p>
     </div>
   </div>
   <script>
@@ -1491,6 +1587,7 @@
               <li><a href="#role" class="article-toc__link">My role</a></li>
               <li><a href="#bmad" class="article-toc__link">From BMAD to WAVE</a></li>
               <li><a href="#system" class="article-toc__link">The WAVE system</a></li>
+              <li><a href="#interface" class="article-toc__link">Designing the interface</a></li>
               <li><a href="#human" class="article-toc__link">Human in the lead</a></li>
               <li><a href="#practice" class="article-toc__link">WAVE in practice</a></li>
               <li><a href="#influence" class="article-toc__link">Organizational influence</a></li>
@@ -1502,6 +1599,24 @@
 
         <!-- ARTICLE -->
         <article>
+
+        <!-- Prototype CTA -->
+        <section class="cs-section reveal">
+          <div class="cs-proto">
+            <div class="cs-proto__media">
+              <img src="images/wave/tui-gate.jpg" alt="The WAVE terminal mid-run, paused at an approval gate between the PRD and research stages" loading="lazy" decoding="async">
+            </div>
+            <div class="cs-proto__body">
+              <div class="cs-proto__eyebrow">Interactive prototype</div>
+              <div class="cs-proto__title">Run one feature through the whole cycle</div>
+              <p class="cs-proto__desc">
+                The fastest way to understand WAVE is to drive it. This is the working prototype: setup, then a chatbot feature moving PM &rarr; research &rarr; design &rarr; handoff &rarr; build, stopping at every gate and waiting for you to approve. Arrow keys advance; <code>a</code> approves.
+              </p>
+              <a class="cs-proto__btn" href="wave-prototype.html" target="_blank" rel="noreferrer">Open the prototype <span>&rarr;</span></a>
+              <div class="cs-proto__note">~4 minutes end to end &middot; opens in a new tab</div>
+            </div>
+          </div>
+        </section>
 
         <!-- 01 · Setting the Stage -->
         <section id="stage" class="cs-section reveal">
@@ -1969,9 +2084,55 @@
           </div>
         </section>
 
-        <!-- 06 · Human in the Lead -->
+        <!-- 05b · Designing the interface -->
+        <section id="interface" class="cs-section reveal">
+          <div class="cs-section__eyebrow">06 · Designing the Interface</div>
+          <h2 class="cs-section__title">The hard design problem was the gate, not the agents</h2>
+
+          <div class="cs-section__body">
+            <p>
+              A framework is only real once someone can sit in front of it. So I designed WAVE's surface as a
+              <strong>TUI</strong> &mdash; a terminal interface &mdash; because that is where the work already happens.
+              Engineers live in the terminal, and putting the orchestration anywhere else would have meant another
+              context switch, which is the exact cost WAVE exists to remove.
+            </p>
+            <p>
+              That constraint made the design problem sharper. In a terminal there is no room for a dashboard, a modal,
+              or a progress bar carrying the message. Everything has to be legible in monospace, in one column, in a
+              scrollback that never stops moving. Three decisions carried it:
+            </p>
+            <ul class="cs-list">
+              <li><strong>A persistent stage rail.</strong> Six stages pinned above the scroll, so you always know where in the cycle you are and what has already been sealed.</li>
+              <li><strong>Gates as objects, not prompts.</strong> Every gate renders as a bordered block with a risk level, an itemised checklist, and its own verdict per item &mdash; not a yes/no question buried in a log line.</li>
+              <li><strong>Agent output that shows its receipts.</strong> Each agent action prints what it read, what it produced, and what changed, so approving is a review rather than an act of faith.</li>
+            </ul>
+
+            <figure class="cs-shot">
+              <img src="images/wave/tui-gate.jpg" alt="A WAVE approval gate between the PRD and research stages, marked risk medium, with three checks cleared and one flagged as needing a human" loading="lazy" decoding="async">
+              <figcaption><b>Gate &middot; medium risk</b> Three checks clear themselves. The fourth &mdash; scope guardrails &mdash; is marked NEEDS HUMAN, and nothing advances until someone answers it.</figcaption>
+            </figure>
+
+            <p>
+              The risk level is what makes the gate a design object rather than decoration. A low-risk transition shows
+              its checklist and asks for one keystroke. A high-risk one refuses to accept a single keystroke at all.
+            </p>
+
+            <figure class="cs-shot">
+              <img src="images/wave/tui-hardgate.jpg" alt="A WAVE hard gate after research synthesis, marked risk high, requiring the reviewer to individually confirm they read the synthesis, spot-checked it against raw sessions, and can justify the conviction changes" loading="lazy" decoding="async">
+              <figcaption><b>Hard gate &middot; high risk</b> After research synthesis, WAVE will not proceed on the model's summary. The reviewer confirms, item by item, that they read it and checked it against the raw sessions.</figcaption>
+            </figure>
+
+            <div class="cs-callout">
+              <strong>The gate is the product.</strong><br>
+              Everything else in WAVE &mdash; the agents, the artifacts, the schemas &mdash; exists to make the moment of
+              human judgement small enough to actually perform, and specific enough to be worth performing.
+            </div>
+          </div>
+        </section>
+
+        <!-- 07 · Human in the Lead -->
         <section id="human" class="cs-section reveal">
-          <div class="cs-section__eyebrow">06 · Human in the Lead</div>
+          <div class="cs-section__eyebrow">07 · Human in the Lead</div>
           <h2 class="cs-section__title">Not human-in-the-loop. Human-in-the-lead.</h2>
 
           <div class="cs-section__body">
@@ -2013,12 +2174,23 @@
               AI structures work. Humans control decisions.<br>
               This distinction is critical in enterprise environments.
             </div>
+
+            <p>
+              Because every stage inherits a sealed artifact rather than a summary, the last stage can still name its
+              sources. The architecture the build agent proposes is traceable back through design, research and the PRD
+              &mdash; and it is measured against what already exists, not what would be fun to build.
+            </p>
+
+            <figure class="cs-shot">
+              <img src="images/wave/tui-build.jpg" alt="The end of a WAVE session, tallying eight schema-valid artifacts, three human gates including the hard research verification, four feedback loops, and a handoff auto-assembled from four repos" loading="lazy" decoding="async">
+              <figcaption><b>Build &middot; one session, whole cycle</b> Eight artifacts, three human gates, four feedback loops &mdash; concept to QA-ready without leaving the terminal.</figcaption>
+            </figure>
           </div>
         </section>
 
         <!-- 07 · WAVE in Practice -->
         <section id="practice" class="cs-section reveal">
-          <div class="cs-section__eyebrow">07 · WAVE in Practice</div>
+          <div class="cs-section__eyebrow">08 · WAVE in Practice</div>
           <h2 class="cs-section__title">AI Transaction Summaries — a fintech-relevant example</h2>
 
           <div class="cs-section__body">
@@ -2072,12 +2244,28 @@
               AI remains bounded. Risk is surfaced early. Compliance is proactive.<br>
               <strong>Execution becomes structured, not reactive.</strong>
             </div>
+
+            <p>
+              The clearest evidence that the structure was working showed up in the design stage. Once feedback came
+              back as an artifact WAVE could import rather than a thread someone had to read and interpret, the
+              iteration loop stopped being a meeting cycle and started being a command.
+            </p>
+
+            <figure class="cs-shot">
+              <img src="images/wave/tui-design.jpg" alt="The WAVE design stage showing a prototype rebuilt three times in one day: v1 posted with nine comments, v2 two hours later with four, v3 forty minutes after that, approved" loading="lazy" decoding="async">
+              <figcaption><b>Design &middot; the loop compressing</b> v1 posted with 9 comments, v2 two hours later, v3 forty minutes after that &mdash; approved. Three iterations in a day, because the feedback loop moved inside the workflow.</figcaption>
+            </figure>
+
+            <p>
+              That is the whole argument in one screen. Nothing about the design work got faster; the
+              <em>waiting</em> disappeared.
+            </p>
           </div>
         </section>
 
         <!-- 08 · Organizational Influence -->
         <section id="influence" class="cs-section reveal">
-          <div class="cs-section__eyebrow">08 · Organizational Influence</div>
+          <div class="cs-section__eyebrow">09 · Organizational Influence</div>
           <h2 class="cs-section__title">From fragmented experimentation to a shared mental model</h2>
 
           <div class="cs-section__body">
@@ -2115,7 +2303,7 @@
 
         <!-- 09 · Business Impact -->
         <section id="impact" class="cs-section reveal">
-          <div class="cs-section__eyebrow">09 · Business Impact</div>
+          <div class="cs-section__eyebrow">10 · Business Impact</div>
           <h2 class="cs-section__title">Impact across three dimensions</h2>
 
           <div class="cs-solution-cards">
@@ -2162,7 +2350,7 @@
 
         <!-- 10 · What This Work Represents -->
         <section id="represents" class="cs-section reveal">
-          <div class="cs-section__eyebrow">10 · What This Work Represents</div>
+          <div class="cs-section__eyebrow">11 · What This Work Represents</div>
           <h2 class="cs-section__title">Workflows, not models, determine enterprise AI success</h2>
 
           <div class="cs-section__body">
@@ -2200,6 +2388,22 @@
           <p class="cs-inline-note" style="margin-top:18px;">
             WAVE grew out of the Locksmith project. <a href="locksmith.html">View the Locksmith case study →</a>
           </p>
+        </section>
+
+        <!-- Prototype CTA · closing -->
+        <section class="cs-section reveal">
+          <div class="cs-proto">
+            <div class="cs-proto__body">
+              <div class="cs-proto__eyebrow">Try it</div>
+              <div class="cs-proto__title">See the whole cycle run</div>
+              <p class="cs-proto__desc">
+                Setup through build, one feature, every gate. It is the fastest way to judge whether the structure
+                actually holds &mdash; or to find the place where you would have pushed back.
+              </p>
+              <a class="cs-proto__btn" href="wave-prototype.html" target="_blank" rel="noreferrer">Open the prototype <span>&rarr;</span></a>
+              <div class="cs-proto__note">~4 minutes end to end &middot; opens in a new tab</div>
+            </div>
+          </div>
         </section>
 
         </article>

@@ -474,25 +474,26 @@
     .work-bento {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      grid-auto-rows: 260px;
+      grid-template-rows: 260px 260px 330px;
       gap: 18px;
       grid-template-areas:
-        "l l w"
         "l l p"
-        "j j a";
+        "l l p"
+        "w j j";
     }
     .b-locksmith { grid-area: l; }
     .b-wave      { grid-area: w; }
     .b-pantry    { grid-area: p; }
     .b-jd        { grid-area: j; }
-    .b-airkey    { grid-area: a; }
     @media (max-width: 900px) {
       .work-bento {
         grid-template-columns: 1fr;
-        grid-auto-rows: 260px;
-        grid-template-areas: "l" "w" "p" "j" "a";
+        grid-template-rows: none;
+        grid-auto-rows: 300px;
+        grid-template-areas: "l" "p" "w" "j";
       }
       .b-locksmith { min-height: 380px; }
+      .b-pantry    { min-height: 460px; }
     }
 
     .bento-card {
@@ -642,8 +643,164 @@
     .b-locksmith .bento-canvas > svg { max-height: 260px; }
     .b-wave      .bento-canvas > svg { max-height: 180px; }
     .b-pantry    .bento-canvas > svg { max-height: 200px; }
+
+    /* section heading with a trailing link */
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .view-all {
+      font-family: var(--mono);
+      font-size: 12.5px;
+      color: var(--text2);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 13px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface);
+      white-space: nowrap;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .view-all:hover,
+    .view-all:focus-visible { color: var(--accent); border-color: var(--border2); }
+    .view-all .arrow { transition: transform 0.2s; }
+    .view-all:hover .arrow { transform: translateX(3px); }
+    @media (prefers-reduced-motion: reduce) {
+      .view-all .arrow, .view-all:hover .arrow { transition: none; transform: none; }
+    }
+
+    /* ─── Real product screens inside a bento canvas ─── */
+    .bento-canvas--shots {
+      align-items: start;
+      padding: 30px 28px 0;
+      overflow: hidden;
+    }
+    .shots {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      width: 100%;
+    }
+    .shots--phone {
+      gap: 0;
+      padding: 0 6px;
+    }
+    .shots--phone img {
+      width: 56%;
+      max-width: 172px;
+      height: auto;
+      display: block;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+      transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+      will-change: transform;
+    }
+    [data-theme="light"] .shots--phone img {
+      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.12);
+    }
+    /* full-bleed screenshot canvases carry no inset of their own */
+    .bento-canvas--flush { padding: 0; position: relative; overflow: hidden; }
+
+    /* wide desktop capture shown whole, as a framed window floating in the canvas */
+    .shots--window {
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 20px 24px;
+    }
+    .shots--window img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.30), 0 3px 8px rgba(0, 0, 0, 0.12);
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    [data-theme="light"] .shots--window img {
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.13), 0 3px 8px rgba(15, 23, 42, 0.05);
+    }
+    .bento-card:hover .shots--window img { transform: translateY(-5px); }
+    @media (prefers-reduced-motion: reduce) {
+      .shots--window img, .bento-card:hover .shots--window img { transition: none; transform: none; }
+    }
+
+    /* landscape UI captures: an app window rising from the bottom of the canvas */
+    .shots--screen {
+      align-items: flex-start;
+      padding: 22px 24px 0;
+    }
+    .shots--screen img {
+      width: 100%;
+      max-width: 640px;
+      aspect-ratio: 3 / 2;
+      object-fit: cover;
+      object-position: top center;
+      display: block;
+      border: 1px solid var(--border);
+      border-bottom: none;
+      border-radius: 10px 10px 0 0;
+      background: var(--surface);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.26);
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    [data-theme="light"] .shots--screen img { box-shadow: 0 12px 30px rgba(15, 23, 42, 0.11); }
+    .bento-card:hover .shots--screen img { transform: translateY(-6px); }
+
+    /* wide capture filling the canvas edge to edge — no frame, so no half-cut window */
+    .shots--bleed { position: absolute; inset: 0; display: block; padding: 0; }
+    .shots--bleed img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+      transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .bento-card:hover .shots--bleed img { transform: scale(1.035); }
+    @media (prefers-reduced-motion: reduce) {
+      .shots--bleed img, .bento-card:hover .shots--bleed img { transition: none; transform: none; }
+    }
+
+    /* portrait capture framed to a detail rather than the whole screen */
+    .shots--detail { position: absolute; inset: 0; display: block; padding: 0; }
+    .shots--detail img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 84%;
+      display: block;
+      border-radius: 0;
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .bento-card:hover .shots--detail img { transform: scale(1.04); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .shots--screen img, .bento-card:hover .shots--screen img,
+      .shots--detail img, .bento-card:hover .shots--detail img { transition: none; transform: none; }
+    }
+
+    /* two screens, overlapped: the back one sits lower and tilts away */
+    .shots--phone img:nth-child(1) { transform: translateY(26px) rotate(-5deg); z-index: 1; margin-right: -14%; }
+    .shots--phone img:nth-child(2) { transform: translateY(0)    rotate(2deg);  z-index: 2; }
+
+    .bento-card:hover .shots--phone img:nth-child(1) { transform: translateY(16px) rotate(-8deg); }
+    .bento-card:hover .shots--phone img:nth-child(2) { transform: translateY(-8px) rotate(3deg); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .shots--phone img,
+      .bento-card:hover .shots--phone img { transition: none; }
+    }
     .b-jd        .bento-canvas > svg { max-height: 160px; }
-    .b-airkey    .bento-canvas > svg { max-height: 180px; }
     .work-card {
       border: 1px solid var(--border);
       border-radius: var(--r-lg);
@@ -751,12 +908,38 @@
     .quest-card {
       border: 1px solid var(--border);
       border-radius: var(--r-lg);
-      padding: 24px;
+      padding: 0 0 24px;
       background: var(--surface);
       display: flex;
       flex-direction: column;
       gap: 10px;
+      overflow: hidden;
       transition: border-color 0.2s;
+    }
+    .quest-card > :not(.quest-media) { margin-left: 24px; margin-right: 24px; }
+    .quest-card > .quest-icon { margin-top: 22px; }
+
+    /* real screenshots of the things themselves */
+    .quest-media {
+      height: 152px;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+      flex-shrink: 0;
+    }
+    .quest-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .quest-media--top img   { object-position: top center; }
+    .quest-media--phone img { object-position: center 48%; }
+    .quest-card:hover .quest-media img { transform: scale(1.03); }
+    @media (prefers-reduced-motion: reduce) {
+      .quest-media img,
+      .quest-card:hover .quest-media img { transition: none; transform: none; }
     }
     .quest-card:hover { border-color: var(--border2); }
     .quest-icon {
@@ -1639,7 +1822,10 @@
     <!-- WORK -->
     <section id="work" class="reveal">
       <div class="section-label">Selected work</div>
-      <h2 class="section-title">Work</h2>
+      <div class="section-head">
+        <h2 class="section-title">Work</h2>
+        <a class="view-all" href="work.html">View all <span class="arrow">&rarr;</span></a>
+      </div>
       <p class="section-desc">Impact first. Calm UI. System thinking underneath.</p>
 
       <div class="work-bento">
@@ -1652,112 +1838,16 @@
             </div>
             <span class="bento-view">View <span class="arrow">&rarr;</span></span>
           </div>
-          <div class="bento-canvas">
-            <!-- Locksmith · abstracted config wizard -->
-            <svg viewBox="0 0 360 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <!-- lifecycle strip -->
-              <g font-family="ui-monospace, monospace" font-size="8">
-                <line x1="26" y1="18" x2="334" y2="18" class="art-line-soft"/>
-                <circle cx="26"  cy="18" r="5" class="art-accent"/>
-                <circle cx="120" cy="18" r="5" class="art-accent"/>
-                <circle cx="214" cy="18" r="5" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>
-                <circle cx="308" cy="18" r="5" fill="var(--surface)" stroke="var(--border2)" stroke-width="1.5"/>
-                <text x="26"  y="38" text-anchor="middle" class="art-text-lo">DRAFT</text>
-                <text x="120" y="38" text-anchor="middle" class="art-text-lo">SUBMITTED</text>
-                <text x="214" y="38" text-anchor="middle" class="art-accent">GOVERNANCE</text>
-                <text x="308" y="38" text-anchor="middle" class="art-text-lo">PROD</text>
-              </g>
-
-              <!-- form panel -->
-              <g transform="translate(24, 60)">
-                <rect x="0" y="0" width="312" height="146" rx="8" class="art-panel"/>
-
-                <!-- field 1 -->
-                <text x="14" y="20" font-family="ui-monospace, monospace" font-size="8" class="art-text-lo" letter-spacing="1">EVENT NAME</text>
-                <rect x="14" y="26" width="284" height="20" rx="3" fill="var(--surface2)" stroke="var(--border)"/>
-                <text x="22" y="40" font-family="ui-monospace, monospace" font-size="9" class="art-text-hi" font-weight="600">MOBILE.ZELLE.LIMIT.INCREASE.TEMP</text>
-
-                <!-- field 2 (risk pill) -->
-                <text x="14" y="66" font-family="ui-monospace, monospace" font-size="8" class="art-text-lo" letter-spacing="1">RISK PROFILE</text>
-                <rect x="14" y="72" width="128" height="20" rx="10" fill="rgba(220, 38, 38, 0.12)" stroke="rgba(220, 38, 38, 0.35)"/>
-                <circle cx="26" cy="82" r="3" fill="#ef4444"/>
-                <text x="34" y="86" font-family="Inter, system-ui, sans-serif" font-size="9" font-weight="700" fill="#ef4444">HIGH · MONEY MVMT</text>
-
-                <!-- status pill -->
-                <text x="158" y="66" font-family="ui-monospace, monospace" font-size="8" class="art-text-lo" letter-spacing="1">STATUS</text>
-                <rect x="158" y="72" width="140" height="20" rx="10" fill="var(--accent-dim)" stroke="rgba(74, 222, 128, 0.35)"/>
-                <circle cx="170" cy="82" r="3" class="art-accent"/>
-                <text x="178" y="86" font-family="Inter, system-ui, sans-serif" font-size="9" font-weight="700" class="art-accent">AWAITING RISK REVIEW</text>
-
-                <!-- submit button -->
-                <rect x="14" y="108" width="150" height="26" rx="6" fill="var(--accent)"/>
-                <text x="89" y="125" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="10" font-weight="700" fill="#0a0a0a">Submit for review →</text>
-              </g>
-            </svg>
+          <div class="bento-canvas bento-canvas--shots bento-canvas--flush">
+            <!-- Locksmith · platform dashboard, no client marks -->
+            <div class="shots shots--window">
+              <img src="images/locksmith-ui.jpg" alt="Locksmith dashboard: a persona switcher across LOB, fraud, CI admin and governance, deployment stats, and a table of active identity events moving through QA, governance and production" loading="lazy" decoding="async">
+            </div>
           </div>
           <div class="bento-meta">
             <span class="bento-type">Capital One &middot; Identity Platform</span>
             <h3 class="bento-title">Locksmith</h3>
             <p class="bento-desc">Using AI to design self-service identity for enterprise-scale platforms. 77 days &rarr; less than 1.</p>
-          </div>
-        </a>
-
-        <a class="bento-card b-wave" href="wave.html">
-          <div class="bento-chrome">
-            <div class="bento-chrome-left">
-              <div class="dots" aria-hidden="true"><span></span><span></span><span></span></div>
-              <span class="bento-path">/case-studies/wave</span>
-            </div>
-            <span class="bento-view">View <span class="arrow">&rarr;</span></span>
-          </div>
-          <div class="bento-canvas">
-            <!-- WAVE · 5-stage orchestration -->
-            <svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <defs>
-                <linearGradient id="wave-link" x1="0" x2="1">
-                  <stop offset="0%"   stop-color="var(--accent)" stop-opacity="0.15"/>
-                  <stop offset="100%" stop-color="var(--accent)" stop-opacity="0.55"/>
-                </linearGradient>
-              </defs>
-              <text x="160" y="26" text-anchor="middle" font-family="ui-monospace, monospace" font-size="9" class="art-text-lo" letter-spacing="2">FIVE-STAGE ORCHESTRATION</text>
-              <line x1="42"  y1="90" x2="90"  y2="90" stroke="url(#wave-link)" stroke-width="2"/>
-              <line x1="110" y1="90" x2="158" y2="90" stroke="url(#wave-link)" stroke-width="2"/>
-              <line x1="178" y1="90" x2="226" y2="90" stroke="url(#wave-link)" stroke-width="2"/>
-              <line x1="246" y1="90" x2="294" y2="90" stroke="url(#wave-link)" stroke-width="2"/>
-              <g fill="var(--surface)" stroke="var(--accent)" stroke-width="1.6">
-                <circle cx="24"  cy="90" r="16"/>
-                <circle cx="100" cy="90" r="16"/>
-                <circle cx="168" cy="90" r="16"/>
-                <circle cx="236" cy="90" r="16"/>
-                <circle cx="304" cy="90" r="16"/>
-              </g>
-              <g class="art-accent">
-                <circle cx="24"  cy="90" r="4"/>
-                <circle cx="100" cy="90" r="4"/>
-                <circle cx="168" cy="90" r="4"/>
-                <circle cx="236" cy="90" r="4"/>
-                <circle cx="304" cy="90" r="4"/>
-              </g>
-              <g font-family="ui-monospace, monospace" font-size="9" text-anchor="middle" class="art-text-lo">
-                <text x="24"  y="128">01</text>
-                <text x="100" y="128">02</text>
-                <text x="168" y="128">03</text>
-                <text x="236" y="128">04</text>
-                <text x="304" y="128">05</text>
-              </g>
-              <g font-family="Inter, system-ui, sans-serif" font-size="8" font-weight="600" text-anchor="middle" class="art-text-hi">
-                <text x="24"  y="152">Frame</text>
-                <text x="100" y="152">Draft</text>
-                <text x="168" y="152">Review</text>
-                <text x="236" y="152">Ship</text>
-                <text x="304" y="152">Audit</text>
-              </g>
-            </svg>
-          </div>
-          <div class="bento-meta">
-            <span class="bento-type">Capital One</span>
-            <h3 class="bento-title">WAVE</h3>
-            <p class="bento-desc">Multi-agent orchestration inside enterprise guardrails.</p>
           </div>
         </a>
 
@@ -1769,60 +1859,38 @@
             </div>
             <span class="bento-view">View <span class="arrow">&rarr;</span></span>
           </div>
-          <div class="bento-canvas">
-            <!-- Pantry · abstracted phone with chat + macro chart -->
-            <svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <!-- phone frame -->
-              <rect x="30" y="6" width="140" height="208" rx="18" fill="var(--surface)" stroke="var(--border2)" stroke-width="1.5"/>
-              <!-- status bar -->
-              <text x="42" y="20" font-family="Inter, sans-serif" font-size="7" font-weight="700" class="art-text-hi">9:41</text>
-              <g class="art-fill" opacity="0.7">
-                <rect x="145" y="15" width="10" height="6" rx="1"/>
-                <rect x="157" y="15" width="4" height="6" rx="1"/>
-              </g>
-              <line x1="30" y1="30" x2="170" y2="30" class="art-line-soft"/>
-
-              <!-- avi header -->
-              <circle cx="46" cy="46" r="8" class="art-accent"/>
-              <text x="42" y="49" font-family="Inter, sans-serif" font-size="8" font-weight="800" fill="#0a0a0a">A</text>
-              <text x="60" y="45" font-family="Inter, sans-serif" font-size="9" font-weight="700" class="art-text-hi">Avi</text>
-              <text x="60" y="54" font-family="Inter, sans-serif" font-size="7" class="art-text-lo">your dietitian</text>
-
-              <!-- assistant bubble -->
-              <rect x="42" y="66" width="108" height="22" rx="6" fill="var(--surface2)"/>
-              <text x="48" y="76" font-family="Inter, sans-serif" font-size="7" class="art-text-hi">Ready to log breakfast?</text>
-              <text x="48" y="84" font-family="Inter, sans-serif" font-size="7" class="art-text-lo">Chicken bowl · ~700</text>
-
-              <!-- macro rings -->
-              <g transform="translate(50, 100)">
-                <!-- Protein -->
-                <circle cx="14" cy="14" r="12" fill="none" stroke="var(--border)" stroke-width="2.5"/>
-                <circle cx="14" cy="14" r="12" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-dasharray="60 100" transform="rotate(-90 14 14)"/>
-                <text x="14" y="17" text-anchor="middle" font-family="Inter, sans-serif" font-size="7" font-weight="700" class="art-text-hi">P</text>
-
-                <circle cx="50" cy="14" r="12" fill="none" stroke="var(--border)" stroke-width="2.5"/>
-                <circle cx="50" cy="14" r="12" fill="none" stroke="#fbbf24" stroke-width="2.5" stroke-dasharray="45 100" transform="rotate(-90 50 14)"/>
-                <text x="50" y="17" text-anchor="middle" font-family="Inter, sans-serif" font-size="7" font-weight="700" class="art-text-hi">C</text>
-
-                <circle cx="86" cy="14" r="12" fill="none" stroke="var(--border)" stroke-width="2.5"/>
-                <circle cx="86" cy="14" r="12" fill="none" stroke="#f472b6" stroke-width="2.5" stroke-dasharray="30 100" transform="rotate(-90 86 14)"/>
-                <text x="86" y="17" text-anchor="middle" font-family="Inter, sans-serif" font-size="7" font-weight="700" class="art-text-hi">F</text>
-              </g>
-
-              <!-- user bubble -->
-              <rect x="72" y="146" width="76" height="18" rx="6" class="art-accent"/>
-              <text x="82" y="158" font-family="Inter, sans-serif" font-size="7" font-weight="600" fill="#0a0a0a">log meal ↑</text>
-
-              <!-- input pill -->
-              <rect x="42" y="180" width="116" height="20" rx="10" fill="var(--surface2)" stroke="var(--border)"/>
-              <text x="52" y="193" font-family="Inter, sans-serif" font-size="7" class="art-text-lo">Ask Avi...</text>
-              <circle cx="150" cy="190" r="6" class="art-accent"/>
-            </svg>
+          <div class="bento-canvas bento-canvas--shots">
+            <!-- Pantry · real shipped screens -->
+            <div class="shots shots--phone">
+              <img src="images/pantry/p1-greet.png" alt="Pantry onboarding: Avi, the AI nutrition companion, introduces itself" loading="lazy" decoding="async">
+              <img src="images/pantry/p2-goal.png" alt="Pantry onboarding: choosing your main focus" loading="lazy" decoding="async">
+            </div>
           </div>
           <div class="bento-meta">
             <span class="bento-type">Pantry &middot; App Store</span>
             <h3 class="bento-title">Pantry</h3>
             <p class="bento-desc">Onboarding an AI dietitian people actually finish.</p>
+          </div>
+        </a>
+
+        <a class="bento-card b-wave" href="wave.html">
+          <div class="bento-chrome">
+            <div class="bento-chrome-left">
+              <div class="dots" aria-hidden="true"><span></span><span></span><span></span></div>
+              <span class="bento-path">/case-studies/wave</span>
+            </div>
+            <span class="bento-view">View <span class="arrow">&rarr;</span></span>
+          </div>
+          <div class="bento-canvas bento-canvas--shots bento-canvas--flush">
+            <!-- WAVE · the orchestration TUI, mid-run at an approval gate -->
+            <div class="shots shots--bleed">
+              <img src="images/wave/tui-gate.jpg" alt="The WAVE terminal mid-run: a six-stage rail from setup to build, with an approval gate listing cleared checks and one that still needs a human" loading="lazy" decoding="async">
+            </div>
+          </div>
+          <div class="bento-meta">
+            <span class="bento-type">Capital One &middot; TUI design</span>
+            <h3 class="bento-title">WAVE</h3>
+            <p class="bento-desc">Multi-agent orchestration inside enterprise guardrails.</p>
           </div>
         </a>
 
@@ -1834,141 +1902,16 @@
             </div>
             <span class="bento-view">View <span class="arrow">&rarr;</span></span>
           </div>
-          <div class="bento-canvas">
-            <!-- John Deere · digital-twin dashboard (split panel) -->
-            <svg viewBox="0 0 420 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <!-- outer panel -->
-              <rect x="6" y="6" width="408" height="188" rx="8" class="art-panel"/>
-
-              <!-- sidebar -->
-              <rect x="6" y="6" width="72" height="188" fill="var(--surface2)" rx="8"/>
-              <g class="art-fill" opacity="0.55">
-                <rect x="18" y="22" width="8" height="8" rx="1"/>
-                <rect x="30" y="24" width="34" height="4" rx="1" opacity="0.6"/>
-                <rect x="18" y="42" width="8" height="8" rx="1"/>
-                <rect x="30" y="44" width="30" height="4" rx="1" opacity="0.6"/>
-                <rect x="18" y="62" width="8" height="8" rx="1"/>
-                <rect x="30" y="64" width="38" height="4" rx="1" opacity="0.6"/>
-              </g>
-              <!-- active sidebar item -->
-              <rect x="12" y="86" width="60" height="18" rx="4" fill="var(--accent-dim)"/>
-              <rect x="18" y="90" width="8" height="10" rx="1" class="art-accent"/>
-              <rect x="30" y="92" width="36" height="4" rx="1" class="art-accent"/>
-              <rect x="30" y="98" width="24" height="3" rx="1" class="art-accent" opacity="0.5"/>
-
-              <!-- main canvas · twin viewport -->
-              <text x="92" y="24" font-family="ui-monospace, monospace" font-size="8" class="art-text-lo" letter-spacing="1">EQUIPMENT · X9 1100</text>
-              <rect x="92" y="34" width="220" height="106" rx="4" fill="var(--surface2)" stroke="var(--border)"/>
-
-              <!-- tractor silhouette abstract -->
-              <g transform="translate(140, 60)" stroke="var(--accent)" stroke-width="1.5" fill="none">
-                <rect x="12" y="14" width="80" height="30" rx="4"/>
-                <rect x="30" y="4"  width="46" height="14" rx="3"/>
-                <circle cx="24" cy="52" r="10"/>
-                <circle cx="24" cy="52" r="4" class="art-accent" stroke="none"/>
-                <circle cx="80" cy="52" r="10"/>
-                <circle cx="80" cy="52" r="4" class="art-accent" stroke="none"/>
-                <!-- signal lines -->
-                <line x1="0" y1="10" x2="10" y2="18" opacity="0.5"/>
-                <line x1="0" y1="20" x2="10" y2="26" opacity="0.5"/>
-                <line x1="104" y1="10" x2="94" y2="18" opacity="0.5"/>
-                <line x1="104" y1="20" x2="94" y2="26" opacity="0.5"/>
-              </g>
-
-              <!-- right stat cards -->
-              <g transform="translate(324, 34)">
-                <rect x="0" y="0"  width="82" height="30" rx="4" fill="var(--surface2)" stroke="var(--border)"/>
-                <text x="8" y="12" font-family="ui-monospace, monospace" font-size="7" class="art-text-lo">UPTIME</text>
-                <text x="8" y="26" font-family="Inter, sans-serif" font-size="14" font-weight="800" class="art-text-hi">87<tspan font-size="8" class="art-text-lo">%</tspan></text>
-
-                <rect x="0" y="38" width="82" height="30" rx="4" fill="var(--surface2)" stroke="var(--border)"/>
-                <text x="8" y="50" font-family="ui-monospace, monospace" font-size="7" class="art-text-lo">FUEL</text>
-                <text x="8" y="64" font-family="Inter, sans-serif" font-size="14" font-weight="800" class="art-accent">62<tspan font-size="8" class="art-text-lo">%</tspan></text>
-
-                <rect x="0" y="76" width="82" height="30" rx="4" fill="var(--surface2)" stroke="var(--border)"/>
-                <text x="8" y="88" font-family="ui-monospace, monospace" font-size="7" class="art-text-lo">ALERTS</text>
-                <text x="8" y="102" font-family="Inter, sans-serif" font-size="14" font-weight="800" fill="#f59e0b">2</text>
-              </g>
-
-              <!-- bottom timeline -->
-              <g transform="translate(92, 152)">
-                <line x1="0" y1="12" x2="304" y2="12" class="art-line-soft"/>
-                <polyline points="0,10 24,6 48,14 72,4 96,12 120,2 144,10 168,6 192,14 216,8 240,4 264,10 288,6 304,12" fill="none" class="art-accent-stroke" stroke-width="1.6"/>
-                <text x="0"   y="34" font-family="ui-monospace, monospace" font-size="7" class="art-text-lo">08:00</text>
-                <text x="152" y="34" text-anchor="middle" font-family="ui-monospace, monospace" font-size="7" class="art-text-lo">12:00</text>
-                <text x="304" y="34" text-anchor="end" font-family="ui-monospace, monospace" font-size="7" class="art-text-lo">16:00</text>
-              </g>
-            </svg>
+          <div class="bento-canvas bento-canvas--shots bento-canvas--flush">
+            <!-- John Deere · Operations Twin heat map -->
+            <div class="shots shots--bleed">
+              <img src="images/johndeere-ui.jpg" alt="John Deere Operations Twin: a factory satellite view with incident pins and heat-map filters" loading="lazy" decoding="async">
+            </div>
           </div>
           <div class="bento-meta">
             <span class="bento-type">John Deere</span>
             <h3 class="bento-title">Designing for operators, not dashboards</h3>
-            <p class="bento-desc">A digital twin that helps field teams make sense of equipment data without drowning in it.</p>
-          </div>
-        </a>
-
-        <a class="bento-card b-airkey" href="airkey.html">
-          <div class="bento-chrome">
-            <div class="bento-chrome-left">
-              <div class="dots" aria-hidden="true"><span></span><span></span><span></span></div>
-              <span class="bento-path">/case-studies/airkey</span>
-            </div>
-            <span class="bento-view">View <span class="arrow">&rarr;</span></span>
-          </div>
-          <div class="bento-canvas">
-            <!-- Airkey · multi-channel verification -->
-            <svg viewBox="0 0 200 180" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <!-- three channel silhouettes -->
-
-              <!-- web -->
-              <g transform="translate(20, 30)">
-                <rect x="0" y="0" width="44" height="30" rx="3" fill="var(--surface)" stroke="var(--border2)" stroke-width="1.2"/>
-                <rect x="4" y="4" width="36" height="2" rx="1" class="art-fill" opacity="0.5"/>
-                <rect x="4" y="10" width="24" height="2" rx="1" class="art-fill-soft"/>
-                <rect x="4" y="14" width="30" height="2" rx="1" class="art-fill-soft"/>
-                <rect x="4" y="18" width="20" height="2" rx="1" class="art-fill-soft"/>
-                <text x="22" y="46" text-anchor="middle" font-family="ui-monospace, monospace" font-size="7" class="art-text-lo">WEB</text>
-              </g>
-
-              <!-- mobile -->
-              <g transform="translate(78, 22)">
-                <rect x="0" y="0" width="26" height="46" rx="4" fill="var(--surface)" stroke="var(--border2)" stroke-width="1.2"/>
-                <rect x="4" y="8" width="18" height="1.5" rx="0.5" class="art-fill" opacity="0.5"/>
-                <rect x="4" y="14" width="12" height="1.5" rx="0.5" class="art-fill-soft"/>
-                <rect x="4" y="20" width="18" height="10" rx="1" class="art-accent-soft"/>
-                <text x="13" y="27" text-anchor="middle" font-family="Inter, sans-serif" font-size="5" font-weight="700" class="art-accent">OTP</text>
-                <rect x="4" y="34" width="14" height="1.5" rx="0.5" class="art-fill-soft"/>
-                <text x="13" y="54" text-anchor="middle" font-family="ui-monospace, monospace" font-size="7" class="art-text-lo">MOBILE</text>
-              </g>
-
-              <!-- ivr / voice -->
-              <g transform="translate(120, 30)">
-                <circle cx="22" cy="15" r="15" fill="var(--surface)" stroke="var(--border2)" stroke-width="1.2"/>
-                <!-- sound waves -->
-                <path d="M 16 15 Q 22 8 28 15" fill="none" class="art-line" stroke-width="1.4"/>
-                <path d="M 14 15 Q 22 5  30 15" fill="none" class="art-line-soft" stroke-width="1.4"/>
-                <path d="M 12 15 Q 22 2  32 15" fill="none" class="art-line-soft" stroke-width="1"/>
-                <circle cx="22" cy="15" r="2" class="art-accent"/>
-                <text x="22" y="46" text-anchor="middle" font-family="ui-monospace, monospace" font-size="7" class="art-text-lo">IVR</text>
-              </g>
-
-              <!-- connecting lines to trust badge -->
-              <g class="art-line-soft" stroke-dasharray="2 2">
-                <line x1="42"  y1="80" x2="100" y2="100"/>
-                <line x1="91"  y1="80" x2="100" y2="100"/>
-                <line x1="142" y1="80" x2="100" y2="100"/>
-              </g>
-
-              <!-- verified badge -->
-              <circle cx="100" cy="118" r="24" fill="var(--accent-dim)" stroke="var(--accent)" stroke-width="1.5"/>
-              <path d="M 90 118 L 97 125 L 110 112" fill="none" class="art-accent-stroke" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-              <text x="100" y="160" text-anchor="middle" font-family="ui-monospace, monospace" font-size="8" font-weight="700" class="art-accent" letter-spacing="1.5">VERIFIED</text>
-            </svg>
-          </div>
-          <div class="bento-meta">
-            <span class="bento-type">Capital One</span>
-            <h3 class="bento-title">Airkey</h3>
-            <p class="bento-desc">Verification across new channels, without rebuilding trust from scratch.</p>
+            <p class="bento-desc">A digital twin that helps field teams act on equipment data, not drown in it.</p>
           </div>
         </a>
 
@@ -1983,18 +1926,27 @@
 
       <div class="quest-grid">
         <div class="quest-card">
+          <div class="quest-media quest-media--phone">
+            <img src="images/between-shot.jpg" alt="Between app welcome screen with hand-lettered logo on textured paper" loading="lazy" decoding="async">
+          </div>
           <div class="quest-icon">&#9993;</div>
           <div class="quest-title">Between</div>
           <div class="quest-desc">A private letter-sharing app for staying connected without the noise. No feeds, no followers — just intentional letters shared at your own rhythm with people you trust.</div>
           <a href="https://betweenai.netlify.app/" target="_blank" rel="noreferrer" class="quest-link">Visit Between &rarr;</a>
         </div>
         <div class="quest-card">
+          <div class="quest-media quest-media--top">
+            <img src="images/portfolio-shot.jpg" alt="This portfolio site, showing the hero and interactive chat panel" loading="lazy" decoding="async">
+          </div>
           <div class="quest-icon">&#9670;</div>
           <div class="quest-title">This Portfolio</div>
           <div class="quest-desc">Built with code + canvas + AI. Dark-first, editor-aesthetic, practicing the workflow I preach.</div>
           <span class="quest-link">You're looking at it</span>
         </div>
         <div class="quest-card">
+          <div class="quest-media quest-media--top">
+            <img src="images/financehq-shot.jpg" alt="FinanceHQ prompt builder with the generated prompt preview alongside the form" loading="lazy" decoding="async">
+          </div>
           <div class="quest-icon">$</div>
           <div class="quest-title">FinanceHQ</div>
           <div class="quest-desc">A prompt builder that generates structured, paste-ready financial coaching prompts for ChatGPT Projects — turning messy spending data into organized insights.</div>
@@ -2160,7 +2112,7 @@
       var responses = {
         recruiter: {
           text: "Hey, glad you\u2019re here! I design enterprise platforms at Capital One using AI-assisted tooling. The case studies below are the real stuff \u2014 governance, identity, verification at scale. Grab my resume if you\u2019re in a rush, or scroll if you\u2019ve got a sec.",
-          cta: 'View Resume', href: '#contact'
+          cta: 'View Resume', href: 'Saniya-Arora-Resume.pdf'
         },
         hiring: {
           text: "Welcome! I\u2019d love to show you how I think. The work below covers real systems I\u2019ve shipped end-to-end. I also love geeking out about AI workflows \u2014 happy to walk through any of it live. Let\u2019s talk.",
@@ -2299,6 +2251,10 @@
           cta.className = 'chat-cta';
           cta.textContent = r.cta;
           cta.href = r.href;
+          if (r.href.indexOf('.pdf') !== -1) {
+            cta.target = '_blank';
+            cta.rel = 'noopener';
+          }
           cta.style.opacity = '0';
           cta.style.transition = 'opacity 0.3s';
           aiBody.appendChild(document.createElement('br'));

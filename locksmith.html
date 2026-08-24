@@ -1102,6 +1102,26 @@
       color: #f87171;
       min-height: 16px;
     }
+    .password-gate .pw-ask {
+      margin-top: 4px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      max-width: 300px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text3);
+      text-align: center;
+    }
+    .password-gate .pw-ask a {
+      color: var(--accent);
+      font-weight: 600;
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+    }
+    .password-gate .pw-ask a:hover,
+    .password-gate .pw-ask a:focus-visible {
+      border-bottom-color: currentColor;
+    }
 
     /* ─── REVEAL ─── */
     .reveal {
@@ -1178,6 +1198,11 @@
     <input type="password" id="pwInput" placeholder="Password" autocomplete="off" />
     <button id="pwSubmit">Enter</button>
     <div class="pw-error" id="pwError"></div>
+    <p class="pw-ask">
+      Don't have the password?
+      <a href="mailto:saniyaaroraux@gmail.com?subject=Access%20request%20%E2%80%94%20Locksmith%20case%20study&amp;body=Hi%20Saniya%2C%0A%0AI%27d%20like%20to%20read%20the%20Locksmith%20case%20study.%20A%20little%20about%20me%3A%0A%0A">Ask me for it</a>
+      &mdash; I usually reply same day.
+    </p>
   </div>
 
   <div class="dot-grid" aria-hidden="true"></div>

@@ -1,0 +1,1245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WAVE — presentation</title>
+<style>
+  :root{
+    --bg:#0b0d11; --chrome:#14171d; --chrome2:#0f1218;
+    --text:#d4d7dd; --dim:#7d818c; --faint:#4a4f5a;
+    --accent:#3dd6b0; --accent2:#1e7a66;
+    --green:#5fd38b; --amber:#e3b341; --red:#e5695f; --sub:#b48cf0; --blue:#6fb2ff;
+    --box:#242a35; --box-soft:#1a1f28;
+    --sel:rgba(61,214,176,.28);
+    --mono:ui-monospace,"SF Mono","JetBrains Mono","Cascadia Code",Menlo,Monaco,Consolas,monospace;
+    --shadow:0 30px 80px -30px rgba(0,0,0,.8),0 1px 0 rgba(255,255,255,.03) inset;
+  }
+  @media (prefers-color-scheme:light){
+    :root{
+      --bg:#fbfbf9; --chrome:#e9e9e6; --chrome2:#f2f2ef;
+      --text:#22262d; --dim:#697079; --faint:#a9adb5;
+      --accent:#0c9a7f; --accent2:#8bd6c6;
+      --green:#2f9350; --amber:#a4761a; --red:#c1483c; --sub:#6a4fd0; --blue:#2f6fd0;
+      --box:#dcdfe3; --box-soft:#e8eaed;
+      --sel:rgba(12,154,127,.2);
+      --shadow:0 24px 60px -30px rgba(40,50,70,.45);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0b0d11; --chrome:#14171d; --chrome2:#0f1218;
+    --text:#d4d7dd; --dim:#7d818c; --faint:#4a4f5a;
+    --accent:#3dd6b0; --accent2:#1e7a66;
+    --green:#5fd38b; --amber:#e3b341; --red:#e5695f; --sub:#b48cf0; --blue:#6fb2ff;
+    --box:#242a35; --box-soft:#1a1f28; --sel:rgba(61,214,176,.28);
+    --shadow:0 30px 80px -30px rgba(0,0,0,.8),0 1px 0 rgba(255,255,255,.03) inset;
+  }
+  :root[data-theme="light"]{
+    --bg:#fbfbf9; --chrome:#e9e9e6; --chrome2:#f2f2ef;
+    --text:#22262d; --dim:#697079; --faint:#a9adb5;
+    --accent:#0c9a7f; --accent2:#8bd6c6;
+    --green:#2f9350; --amber:#a4761a; --red:#c1483c; --sub:#6a4fd0; --blue:#2f6fd0;
+    --box:#dcdfe3; --box-soft:#e8eaed; --sel:rgba(12,154,127,.2);
+    --shadow:0 24px 60px -30px rgba(40,50,70,.45);
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:
+      radial-gradient(1100px 620px at 50% -12%, color-mix(in srgb,var(--accent) 10%,transparent), transparent 60%),
+      var(--bg);
+    font-family:var(--mono); color:var(--text);
+    display:flex; align-items:center; justify-content:center;
+    padding:20px; min-height:100%;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--sel)}
+
+  .term{
+    width:100%; max-width:980px; height:min(86vh,760px);
+    display:flex; flex-direction:column;
+    background:var(--bg); border:1px solid var(--box);
+    border-radius:11px; overflow:hidden; box-shadow:var(--shadow);
+  }
+  .titlebar{
+    display:flex; align-items:center; gap:10px; flex:none;
+    padding:9px 14px; background:linear-gradient(var(--chrome),var(--chrome2));
+    border-bottom:1px solid var(--box-soft);
+  }
+  .dots{display:flex;gap:8px}
+  .dots i{width:12px;height:12px;border-radius:50%;display:block}
+  .dots i:nth-child(1){background:#f5655b}
+  .dots i:nth-child(2){background:#f5bd4f}
+  .dots i:nth-child(3){background:#61c454}
+  .ttl{flex:1;text-align:center;font-size:12px;color:var(--dim)}
+  .ttl b{color:var(--text);font-weight:600}
+  .themeb{background:none;border:1px solid var(--box);color:var(--dim);border-radius:5px;
+    padding:2px 8px;font:inherit;font-size:10px;cursor:pointer;letter-spacing:.1em;text-transform:uppercase}
+  .themeb:hover{color:var(--text)}
+
+  /* phase rail */
+  .rail{display:flex;align-items:center;gap:0;flex:none;padding:7px 16px;
+    background:var(--chrome2);border-bottom:1px solid var(--box-soft);font-size:10.5px;
+    overflow-x:auto}
+  .ph{display:flex;align-items:center;gap:7px;color:var(--faint);letter-spacing:.13em;text-transform:uppercase;white-space:nowrap}
+  .ph .pnum{width:16px;height:16px;border-radius:50%;border:1px solid var(--faint);display:grid;place-items:center;
+    font-size:9px;letter-spacing:0}
+  .ph.done{color:var(--green)} .ph.done .pnum{border-color:var(--green);color:var(--green)}
+  .ph.on{color:var(--accent)} .ph.on .pnum{border-color:var(--accent);color:var(--accent);
+    box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
+  .psep{flex:1;height:1px;min-width:14px;background:var(--box);margin:0 8px}
+  .psep.done{background:var(--green)}
+
+  /* screen */
+  .screen{flex:1;overflow-y:auto;padding:16px 18px 8px;font-size:13px;line-height:1.62}
+  .screen::-webkit-scrollbar{width:9px}
+  .screen::-webkit-scrollbar-thumb{background:var(--box);border-radius:5px}
+  .row{white-space:pre-wrap;word-break:break-word;padding:.5px 0;animation:in .16s ease}
+  @keyframes in{from{opacity:0;transform:translateY(1px)}to{opacity:1;transform:none}}
+  .indent{padding-left:2.1ch}
+
+  .bul{color:var(--accent)} .con{color:var(--faint)} .b{font-weight:600;color:var(--text)}
+  .dim{color:var(--dim)} .faint{color:var(--faint)}
+  .tool{color:var(--accent);font-weight:600} .arg{color:var(--text)}
+  .ok{color:var(--green)} .warn{color:var(--amber)} .crit{color:var(--red)}
+  .subc{color:var(--sub)} .memc{color:var(--accent)} .err{color:var(--red)} .blue{color:var(--blue)}
+  .pr{color:var(--accent);font-weight:700} .cmdtxt{color:var(--text)}
+  .h1{color:var(--text);font-weight:700} .h2{color:var(--accent)} .fm{color:var(--faint)}
+  .lsout .ext{color:var(--accent)}
+  .catbtn{color:var(--faint);cursor:pointer;border-bottom:1px dotted var(--faint)}
+  .catbtn:hover{color:var(--accent);border-color:var(--accent)}
+  .clk{cursor:pointer} .clk:hover .arg{text-decoration:underline}
+
+  /* logo */
+  .logo{color:var(--accent);line-height:1.05;font-size:12px;margin:4px 0 2px;
+    text-shadow:0 0 20px color-mix(in srgb,var(--accent) 30%,transparent)}
+  .logo-sub{color:var(--dim);letter-spacing:.36em;text-transform:uppercase;font-size:10px;margin-bottom:8px;padding-left:2px}
+
+  /* chris persona */
+  .say{display:flex;gap:10px;padding:5px 0;margin:2px 0}
+  .say .who{color:var(--accent);font-weight:700;flex:none}
+  .say .who::before{content:"◈ ";color:var(--accent)}
+  .say .msg{color:var(--text)}
+  .say.you .who{color:var(--blue)} .say.you .who::before{content:"› ";color:var(--blue)}
+
+  /* generic card */
+  .card{border:1px solid var(--box);border-radius:8px;padding:11px 14px;margin:7px 0;background:var(--chrome2)}
+  .card .ct{display:flex;align-items:center;gap:8px;font-weight:600;margin-bottom:8px}
+  .card .ct .ico{font-size:13px}
+  .card .cmeta{margin-left:auto;font-size:10px;color:var(--faint);letter-spacing:.08em;text-transform:uppercase;font-weight:400}
+
+  .canvas{border-color:var(--sub)} .canvas .ct .ico{color:var(--sub)}
+  .clink{color:var(--sub);border-bottom:1px dotted var(--sub);cursor:pointer;word-break:break-all}
+  .pin{display:flex;gap:8px;font-size:12px;padding:2px 0;color:var(--dim)}
+  .pin .p{color:var(--sub);flex:none}
+
+  .email{border-color:var(--blue)} .email .ct .ico{color:var(--blue)}
+  .email .efrom{font-size:11px;color:var(--dim);margin-bottom:2px}
+  .email .esub{color:var(--text);font-weight:600}
+  .email .ebody{font-size:12px;color:var(--dim);margin-top:4px}
+
+  /* design system chips */
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin:3px 0 2px 2.1ch}
+  .chip{font-size:11px;border:1px solid var(--box);border-radius:20px;padding:2px 10px;color:var(--dim)}
+  .chip .cn{color:var(--accent)}
+
+  /* spec / diagram blocks */
+  .block{border:1px solid var(--box);border-radius:8px;margin:7px 0;overflow:hidden}
+  .block .bh{display:flex;align-items:center;gap:8px;padding:8px 13px;background:var(--chrome2);
+    border-bottom:1px solid var(--box-soft);font-size:11px;letter-spacing:.06em}
+  .block .bh .bi{color:var(--accent)}
+  .block .bh .bx{margin-left:auto;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--green);
+    border:1px solid var(--green);border-radius:4px;padding:1px 7px}
+  .block .bb{padding:11px 15px;font-size:12.5px;line-height:1.6}
+  .block .bb .sh{color:var(--accent);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;margin:9px 0 3px}
+  .block .bb .sh:first-child{margin-top:0}
+  .block .bb .li{padding-left:14px;position:relative;color:var(--text)}
+  .block .bb .li::before{content:"›";position:absolute;left:2px;color:var(--accent)}
+  .diagram{white-space:pre;color:var(--dim);font-size:12px;line-height:1.35;overflow-x:auto}
+  .diagram b{color:var(--accent);font-weight:600}
+  .diagram .n2{color:var(--sub)} .diagram .n3{color:var(--blue)} .diagram .n4{color:var(--amber)}
+
+  /* iteration loop */
+  .iter{display:flex;align-items:center;gap:10px;padding:3px 0 3px 2.1ch;font-size:12px}
+  .iter .v{color:var(--accent);font-weight:700;flex:none}
+  .iter .bar{height:6px;border-radius:3px;background:var(--box);position:relative;overflow:hidden;flex:none}
+  .iter .bar i{position:absolute;inset:0;background:var(--accent);border-radius:3px}
+  .iter .t{color:var(--dim)} .iter .d{color:var(--faint);margin-left:auto}
+
+  /* checklist */
+  .chk{padding:1.5px 0 1.5px 2.1ch;font-size:12.5px;color:var(--text)}
+  .chk .cx{color:var(--green)} .chk .co{color:var(--faint)}
+
+  /* gate */
+  .gatebox{border:1px solid var(--amber);border-radius:8px;padding:11px 14px;margin:8px 0 4px;
+    background:color-mix(in srgb,var(--amber) 5%,transparent)}
+  .gtitle{display:flex;align-items:center;gap:9px;flex-wrap:wrap;font-weight:600;margin-bottom:7px}
+  .gtitle .lock{color:var(--amber)}
+  .risk{margin-left:auto;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:5px;font-weight:700}
+  .risk.LOW{color:var(--green);border:1px solid var(--green)}
+  .risk.MEDIUM{color:var(--amber);border:1px solid var(--amber)}
+  .risk.HIGH{color:var(--red);border:1px solid var(--red)}
+  .glead{color:var(--dim);font-size:12px;line-height:1.5;margin-bottom:9px}
+  .gc{display:flex;align-items:center;gap:9px;padding:1.5px 0;font-size:12.5px}
+  .gc .cb{width:1.4ch;flex:none}
+  .gc.pass .cb{color:var(--green)} .gc.review .cb{color:var(--amber)}
+  .gc .tag{margin-left:auto;font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--faint)}
+  .gc.pass .tag{color:var(--green)} .gc.review .tag{color:var(--amber)}
+  .gfoot{margin-top:9px;padding-top:8px;border-top:1px solid var(--box-soft);font-size:10.5px;color:var(--faint)}
+  .gprompt{padding:5px 2px 2px;font-weight:600}
+  .gprompt .k{color:var(--accent);border:1px solid var(--accent2);border-radius:4px;padding:0 6px;margin-right:2px}
+  .gprompt .kr{color:var(--amber);border-color:var(--amber)}
+  .gprompt.resolved{font-weight:400}
+
+  /* closing card */
+  .close{border:1px solid var(--accent2);border-radius:9px;padding:14px 16px;margin:9px 0;
+    background:color-mix(in srgb,var(--accent) 7%,transparent)}
+  .close .cl-h{color:var(--accent);font-weight:700;letter-spacing:.04em;margin-bottom:8px}
+  .close .cl-row{display:flex;justify-content:space-between;gap:12px;font-size:12px;padding:2px 0;color:var(--dim)}
+  .close .cl-row b{color:var(--text);font-weight:600}
+
+  /* ===== onboarding browser window (full screens) ===== */
+  .browser{
+    width:100%; max-width:980px; height:min(86vh,760px);
+    display:flex; flex-direction:column; background:var(--bg);
+    border:1px solid var(--box); border-radius:11px; overflow:hidden; box-shadow:var(--shadow);
+  }
+  .browser.leaving{animation:leave .45s ease forwards}
+  @keyframes leave{to{opacity:0;transform:scale(.985)}}
+  .b-bar{display:flex;align-items:center;gap:10px;flex:none;padding:9px 14px;
+    background:linear-gradient(var(--chrome),var(--chrome2));border-bottom:1px solid var(--box-soft)}
+  .b-url{flex:1;display:flex;align-items:center;gap:7px;justify-content:center;font-size:11.5px;color:var(--dim);
+    background:var(--bg);border:1px solid var(--box-soft);border-radius:7px;padding:4px 12px;max-width:420px;margin:0 auto}
+  .b-url .lk{font-size:10px;opacity:.7}
+  .b-scroll{flex:1;overflow-y:auto}
+  .b-scroll::-webkit-scrollbar{width:9px}
+  .b-scroll::-webkit-scrollbar-thumb{background:var(--box);border-radius:5px}
+  .b-inner{min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:38px 26px;width:100%;max-width:640px;margin:0 auto;animation:screenin .32s ease}
+  @keyframes screenin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .onb-progress{display:flex;gap:8px;justify-content:center;margin-bottom:26px}
+  .onb-progress i{width:8px;height:8px;border-radius:50%;background:var(--box);display:block;transition:.2s}
+  .onb-progress i.done{background:var(--green)}
+  .onb-progress i.on{background:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 20%,transparent)}
+  .onb-screen{width:100%}
+  .onb-nav{display:flex;align-items:center;justify-content:space-between;margin-top:26px;width:100%}
+  .onb-back{background:none;border:none;color:var(--dim);font:inherit;font-size:12.5px;cursor:pointer;padding:8px 4px}
+  .onb-back:hover{color:var(--text)} .onb-back.hidden{visibility:hidden}
+  .onb-next{background:var(--accent);color:var(--bg);border:none;border-radius:8px;font:inherit;font-size:12.5px;
+    font-weight:700;cursor:pointer;padding:9px 20px;letter-spacing:.02em}
+  .onb-next:hover{filter:brightness(1.08)}
+  .onb-next.launch{padding:11px 26px;font-size:13.5px;box-shadow:0 8px 24px -8px color-mix(in srgb,var(--accent) 60%,transparent)}
+
+  /* ===== onboarding wizard set-piece ===== */
+  .onb-h{font-weight:700;font-size:21px;color:var(--text);margin-bottom:4px;text-align:center;letter-spacing:.01em}
+  .onb-sub{font-size:12.5px;color:var(--dim);text-align:center;margin-bottom:22px;line-height:1.5}
+  .onb-logo{color:var(--accent);font-weight:800;letter-spacing:.42em;font-size:34px;text-align:center;
+    text-shadow:0 0 26px color-mix(in srgb,var(--accent) 32%,transparent);margin:6px 0 10px}
+  /* fields */
+  .onb-field{margin-bottom:13px}
+  .onb-field .fl{font-size:11px;color:var(--dim);letter-spacing:.05em;margin-bottom:5px;font-weight:600}
+  .onb-input{border:1px solid var(--box);border-radius:8px;padding:11px 13px;font-size:13px;background:var(--bg)}
+  .onb-input.filled{color:var(--text);border-color:var(--accent2)}
+  .onb-input.empty{color:var(--faint)}
+  /* option cards */
+  .onb-opts{display:flex;gap:12px;flex-wrap:wrap}
+  .onb-opt{flex:1;min-width:200px;border:1px solid var(--box);border-radius:10px;padding:16px 17px;position:relative;background:var(--bg)}
+  .onb-opt.sel{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 6%,transparent)}
+  .onb-opt .rec{position:absolute;top:-9px;left:11px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+    background:var(--accent);color:var(--bg);border-radius:4px;padding:1px 7px;font-weight:700}
+  .onb-opt .ohd{display:flex;align-items:center;gap:7px;font-weight:700;font-size:13.5px;margin-bottom:6px}
+  .onb-opt .ohd .badge{margin-left:auto;font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;
+    border:1px solid var(--green);color:var(--green);border-radius:4px;padding:1px 6px;font-weight:600}
+  .onb-opt .ohd .badge.dim{border-color:var(--dim);color:var(--dim)}
+  .onb-opt .od{font-size:12px;color:var(--dim);line-height:1.55}
+  .onb-opt code{color:var(--accent);font-size:11px}
+  .onb-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+  .onb-tags span{font-size:10px;border:1px solid var(--box);border-radius:4px;padding:1px 7px;color:var(--dim)}
+  /* team roster */
+  .onb-presets{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:11px}
+  .onb-presets span{font-size:10.5px;border:1px solid var(--box);border-radius:20px;padding:3px 11px;color:var(--dim)}
+  .onb-presets span.on{border-color:var(--accent);color:var(--accent)}
+  .roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:9px}
+  .rcard{border:1px solid var(--accent2);border-radius:9px;padding:11px 12px;background:color-mix(in srgb,var(--accent) 5%,transparent);position:relative}
+  .rcard .rk{font-weight:700;font-size:12.5px;color:var(--text)}
+  .rcard .rr{font-size:9.5px;color:var(--dim);letter-spacing:.06em;text-transform:uppercase;margin-top:1px}
+  .rcard .rc{position:absolute;top:6px;right:7px;color:var(--green);font-size:10px}
+  .rcard .rg{position:absolute;bottom:6px;right:7px;color:var(--faint);font-size:10px}
+  .onb-note{font-size:11px;color:var(--dim);text-align:center;margin-top:10px}
+  .onb-note code{color:var(--accent)}
+  /* integrations */
+  .integ{display:flex;align-items:center;gap:9px;border:1px solid var(--box);border-radius:7px;padding:8px 11px;margin-bottom:6px;background:var(--bg)}
+  .integ .in-ic{color:var(--accent)} .integ .in-n{font-weight:600;font-size:12px}
+  .integ .in-m{font-size:10.5px;color:var(--faint);margin-left:4px}
+  .integ .tog{margin-left:auto;width:30px;height:17px;border-radius:10px;background:var(--box);position:relative;flex:none}
+  .integ .tog i{position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--faint);transition:.2s}
+  .integ.on .tog{background:color-mix(in srgb,var(--accent) 55%,transparent)}
+  .integ.on .tog i{left:15px;background:var(--accent)}
+  /* continue chip + complete */
+  .onb-cont{display:inline-block;margin-top:12px;font-size:11px;color:var(--accent);border:1px solid var(--accent2);
+    border-radius:6px;padding:4px 12px}
+  .onb-done{text-align:center;padding:8px 0}
+  .onb-done .oc{width:44px;height:44px;border-radius:50%;background:var(--green);color:var(--bg);display:grid;place-items:center;
+    font-size:22px;margin:0 auto 10px;box-shadow:0 0 0 6px color-mix(in srgb,var(--green) 18%,transparent)}
+
+  /* composer */
+  .composer{flex:none;border-top:1px solid var(--box-soft);padding:10px 14px 12px;background:var(--chrome2)}
+  .cbox{display:flex;align-items:flex-start;gap:9px;border:1px solid var(--box);border-radius:9px;
+    padding:8px 12px;background:var(--bg);transition:border-color .2s}
+  .cbox.gate{border-color:var(--amber)}
+  .cbox .cp{color:var(--accent);font-weight:700;flex:none;line-height:1.6}
+  .cline{flex:1;min-width:0;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+  .cbuf{color:var(--text)} .ghost{color:var(--faint)}
+  .cur{display:inline-block;width:8px;height:15px;background:var(--accent);vertical-align:-3px;animation:blink 1.05s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+  .hint{display:flex;gap:14px;flex-wrap:wrap;padding:7px 4px 0;font-size:11px;color:var(--dim)}
+  .hint .h{display:inline-flex;align-items:center;gap:5px}
+  .hint kbd{font-family:var(--mono);font-size:10px;color:var(--text);background:var(--chrome);
+    border:1px solid var(--box);border-bottom-width:2px;border-radius:4px;padding:0 5px}
+  .hint .h.acc kbd{color:var(--accent);border-color:var(--accent2)}
+  .hint .h.warn kbd{color:var(--amber);border-color:var(--amber)}
+
+  @media (max-width:720px){
+    body{padding:6px}
+    .term,.browser{height:92vh;max-width:100%}
+    .ttl{display:none}
+    .rail{font-size:9px}
+    .hint .opt{display:none}
+    .b-inner{padding:24px 15px}
+    .onb-h{font-size:18px}
+    .onb-logo{font-size:27px;letter-spacing:.3em}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.001ms!important}
+    .cur{animation:blink 1.05s steps(1) infinite}
+  }
+
+/* ─── PASSWORD GATE ─── */
+    .pw-gate {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--sans);
+    }
+    .pw-gate__inner {
+      text-align: center;
+      max-width: 340px;
+      padding: 24px;
+    }
+    .pw-gate__label {
+      font-family: var(--mono);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text3);
+      margin-bottom: 16px;
+    }
+    .pw-gate__desc {
+      font-size: 15px;
+      color: var(--text2);
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+    .pw-gate__input {
+      width: 100%;
+      padding: 10px 14px;
+      font-size: 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      font-family: var(--mono);
+      margin-bottom: 12px;
+      text-align: center;
+      background: var(--surface);
+      color: var(--text);
+      transition: border-color 0.15s;
+    }
+    .pw-gate__input:focus {
+      border-color: var(--accent);
+    }
+    .pw-gate__error {
+      font-size: 12px;
+      color: #f87171;
+      margin-bottom: 12px;
+      display: none;
+    }
+    .pw-gate__btn {
+      width: 100%;
+      padding: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      background: var(--text);
+      color: var(--bg);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: var(--sans);
+      transition: opacity 0.15s;
+    }
+    .pw-gate__btn:hover {
+      opacity: 0.88;
+    }
+
+    .pw-gate__ask {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text3);
+      text-align: center;
+    }
+    .pw-gate__ask a {
+      color: var(--accent);
+      font-weight: 600;
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+    }
+    .pw-gate__ask a:hover,
+    .pw-gate__ask a:focus-visible {
+      border-bottom-color: currentColor;
+    }
+</style>
+</head>
+<body>
+  <div id="pw-gate" class="pw-gate">
+    <div class="pw-gate__inner">
+      <div class="pw-gate__label">Protected Prototype</div>
+      <p class="pw-gate__desc">This work is under NDA. Enter the password to run the prototype.</p>
+      <input id="pw-input" type="password" placeholder="Password" autofocus class="pw-gate__input">
+      <div id="pw-error" class="pw-gate__error">Incorrect password</div>
+      <button id="pw-submit" class="pw-gate__btn">Enter</button>
+      <p class="pw-gate__ask">
+        Don't have the password?
+        <a href="mailto:saniyaaroraux@gmail.com?subject=Access%20request%20%E2%80%94%20WAVE%20prototype&amp;body=Hi%20Saniya%2C%0A%0AI%27d%20like%20to%20read%20the%20WAVE%20prototype.%20A%20little%20about%20me%3A%0A%0A">Ask me for it</a>
+        &mdash; I usually reply same day.
+      </p>
+    </div>
+  </div>
+  <script>
+    (function(){
+      var gate=document.getElementById('pw-gate'),inp=document.getElementById('pw-input'),err=document.getElementById('pw-error'),btn=document.getElementById('pw-submit');
+      function check(){if(inp.value==='s@n'){gate.remove();}else{err.style.display='block';inp.value='';inp.focus();}}
+      btn.addEventListener('click',check);
+      inp.addEventListener('keydown',function(e){if(e.key==='Enter')check();});
+    })();
+  </script>
+
+<!-- ===== onboarding browser window (plays first) ===== -->
+<div class="browser" id="onbView">
+  <div class="b-bar">
+    <span class="dots"><i></i><i></i><i></i></span>
+    <span class="b-url"><span class="lk">🔒</span> wave.internal/onboarding</span>
+    <button class="themeb" data-theme-btn type="button">theme</button>
+  </div>
+  <div class="b-scroll"><div class="b-inner" id="onbPage"></div></div>
+</div>
+
+<!-- ===== WAVE terminal (after onboarding) ===== -->
+<div class="term" id="term" style="display:none">
+  <div class="titlebar">
+    <span class="dots"><i></i><i></i><i></i></span>
+    <span class="ttl"><b>saniya@wave</b>&nbsp;— chatbot feature · one session, whole cycle</span>
+    <button class="themeb" data-theme-btn id="themeb" type="button">theme</button>
+  </div>
+  <div class="rail" id="rail"></div>
+  <div class="screen" id="screen"></div>
+  <div class="composer">
+    <div class="cbox" id="cbox">
+      <span class="cp" id="cprompt">%</span>
+      <span class="cline" id="cline"></span>
+    </div>
+    <div class="hint" id="hint"></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+const $=(s,r=document)=>r.querySelector(s);
+const screen=$("#screen");
+const reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+/* ---------------- phase rail ---------------- */
+const PHASES=["setup","pm","research","design","handoff","build"];
+let phaseIdx=0;
+function renderRail(){
+  const el=$("#rail"); el.innerHTML="";
+  PHASES.forEach((p,i)=>{
+    const d=document.createElement("span");
+    d.className="ph "+(i<phaseIdx?"done":i===phaseIdx?"on":"");
+    d.innerHTML=`<span class="pnum">${i<phaseIdx?"✓":i+1}</span>${p}`;
+    el.appendChild(d);
+    if(i<PHASES.length-1){
+      const s=document.createElement("span");
+      s.className="psep"+(i<phaseIdx?" done":""); el.appendChild(s);
+    }
+  });
+}
+
+/* ---------------- artifacts (cat-able) ---------------- */
+const ARTS=["chatbot-prd.md","moderator-guide.md","research-findings.md","design-spec.md","backlog.md","architecture.md"];
+const FILES={
+ "chatbot-prd.md":
+`---
+artifact:   PRD
+feature:    support-chatbot
+owner:      pm-agent
+reviewers:  3 · approved via Feedback Canvas
+risk_class: MEDIUM
+---
+# Support Chatbot — PRD
+## problem
+40% of support tickets are repeat "where is my X" questions.
+Deflecting them cuts cost + wait time for everyone else.
+## hypothesis
+A scoped chatbot resolves top-10 intents without an agent.
+## users & jobs
+- customer: "answer me now, don't make me wait in queue"
+- support:  "stop routing me the same 10 questions"
+## scope (v1)
+- top-10 intents · handoff-to-human on low confidence
+- read-only account lookups · no money movement
+## low-conviction (-> research)
+- will customers trust a bot with account questions?
+- what's the right handoff moment before frustration?
+## success metrics
+- >=35% self-serve resolution · CSAT >= 4.2
+## handoff -> research`,
+
+ "moderator-guide.md":
+`---
+artifact: moderator-guide
+owner:    research-agent
+focus:    the two low-conviction bets from the PRD
+n:        5 participants · unmoderated + 2 moderated
+---
+# Moderator Guide — Chatbot Trust & Handoff
+## warm-up
+- tell me about the last time you contacted support
+## trust probe
+- [show prototype] would you ask this about your account? why / why not?
+- where do you hesitate?
+## handoff probe
+- at what point would you want a human instead?
+- what would make the handoff feel seamless vs jarring?
+## wrap
+- one thing that would make you trust this more`,
+
+ "research-findings.md":
+`---
+artifact:  research-findings
+owner:     research-agent (analysis skills)
+sessions:  5 · synthesized
+verified:  human-confirmed at hard gate
+---
+# Findings — Chatbot Trust & Handoff
+## what we learned
+- trust is conditional: fine for status, NOT for disputes
+- users want the bot to name its limits up front
+- handoff must carry context — re-explaining kills trust
+## conviction changes
+- LOW  -> HIGH: scope to status/lookups for v1
+- NEW risk: silent handoffs read as the bot "giving up"
+## recommendations
+- show capability boundaries in the opening message
+- warm handoff: pass transcript + reason to the agent
+## handoff -> design`,
+
+ "design-spec.md":
+`---
+artifact:  design-spec
+owner:     design-agent
+inputs:    chatbot-prd.md, research-findings.md
+system:    Corestone (enterprise design system)
+risk_class: MEDIUM
+---
+# Support Chatbot — Design Spec
+## principles
+- honest by default: state limits before the user asks
+- always a way out: human handoff one tap away
+## key flows
+- ask -> answer(with confidence) -> resolve | warm-handoff
+- low-confidence -> proactive handoff, not silent fail
+## states
+- idle · thinking · answered · handoff · offline
+## components (Corestone · enterprise DS)
+- ConversationBubble, ConfidenceTag, HandoffBanner, InputBar
+## accessibility
+- WCAG 2.2 AA · live-region announcements · 44px targets
+## handoff -> prototype`,
+
+ "backlog.md":
+`---
+artifact: backlog
+owner:    po-agent
+source:   handoff-package
+---
+# Chatbot — Epics & Stories
+## epic A · conversation core        (5 stories)
+- A1 render conversation + confidence tag
+- A2 intent match on top-10 · fallback path
+- A3 opening message states capability limits
+## epic B · warm handoff             (4 stories)
+- B1 detect low-confidence -> offer handoff
+- B2 pass transcript + reason to agent queue
+## epic C · account lookups (read)   (3 stories)
+- C1 status/lookup via existing account-svc
+- C2 mask PII in transcript + logs
+## ready: 12 stories · all with acceptance criteria`,
+
+ "architecture.md":
+`---
+artifact: architecture
+owner:    architect-agent
+source:   scan of 4 enterprise repos
+---
+# Support Chatbot — Architecture
+## surface
+web + mobile chat widget (enterprise DS components)
+## services
+- chatbot-svc: orchestration, intent, confidence
+- account-svc: read-only lookups (existing)
+- handoff-svc: routes to live agent queue (existing)
+## data
+- transcripts (PII-masked) · 90d retention
+- no money movement · read scopes only
+## flow
+widget -> chatbot-svc -> {account-svc | handoff-svc}`,
+};
+
+const CONTEXT_REPO="repo: saniya/chatbot-feature";
+
+/* ---------------- run script ---------------- */
+function ln(k,t){return {k,t};}
+// beat kinds inside a run: cmd, say, sayyou, sys, act, res, think, ok, warn, crit, sub, mem, write,
+//                          logo, canvas, email, chips, spec, iter, diagram, epics, checklist, chk
+const SCRIPT=[
+
+ /* ===== ACT 0 · SETUP ===== */
+ {type:"run",phase:0,lines:[
+   ln("cmdType",{prompt:"%",text:"cd desktop"}),
+   ln("setPrompt","~/desktop %"),
+   ln("cmdType",{prompt:"~/desktop %",text:"wave"}),
+   ln("logo",1),
+   ln("sys","booting wave · workflow automation velocity engine · v1.2"),
+   ln("sys",`context loaded · ${CONTEXT_REPO} · enterprise workspace`),
+   ln("say","hi — i'm chris, your wave director. what are we building?"),
+ ]},
+ {type:"run",phase:0,lines:[
+   ln("sayyou","starting a new feature — exploring a support chatbot. can you look at my context repo, get me set up, and help me write a PRD?"),
+   ln("say","on it. reading your repo now, then i'll bring in the PM agent."),
+   ln("act",`<span class="tool">Read</span>(<span class="arg">saniya/chatbot-feature/context/*</span>)`),
+   ln("res","12 files · past tickets, support taxonomy, 2 old explorations"),
+   ln("say","enough to start. routing to pm-agent →"),
+ ]},
+
+ /* ===== ACT 1 · PM / PRD ===== */
+ {type:"run",phase:1,artifact:"chatbot-prd.md",lines:[
+   ln("act",`<b>pm-agent</b> <span class="dim">· intent → requirements</span>`),
+   ln("think","framing the problem: repeat 'where is my X' tickets"),
+   ln("act",`<span class="tool">Apply</span>(<span class="arg">template: PRD.schema.json</span>)`),
+   ln("res","6 sections scaffolded · low-conviction bets flagged"),
+   ln("write","chatbot-prd.md"),
+   ln("ok","chatbot-prd.md drafted · schema-valid"),
+   ln("act",`<span class="tool">Push</span>(<span class="arg">Feedback Canvas</span>)`),
+   ln("canvas",{doc:"chatbot-prd.md",link:"canvas.wave.internal/r/prd-7f3a",pins:[
+     "share this link — reviewers comment directly on the doc"]}),
+   ln("say","drop that link in Slack for your 3 reviewers. i'll ping you when they're done."),
+ ]},
+ {type:"run",phase:1,lines:[
+   ln("sys","… 2 reviewers approved · 1 left comments …"),
+   ln("email",{from:"Feedback Canvas <no-reply@canvas.wave>",subj:"3 approvals on chatbot-prd.md",
+     body:"all reviewers signed off · 4 comments resolved · ready to import"}),
+   ln("sayyou","nice — approvals are in. pull the feedback back in and let's move."),
+   ln("act",`<span class="tool">Import</span>(<span class="arg">feedback.json</span>) <span class="dim">← from Feedback Canvas</span>`),
+   ln("res","4 comments merged · scope tightened to read-only lookups"),
+   ln("ok","chatbot-prd.md updated · one loop, zero meetings"),
+ ]},
+ {type:"gate",phase:1,gate:{scope:"PRD → Research", risk:"MEDIUM", kind:"approve",
+   lead:"pm-agent has an approved, feedback-merged PRD. Approve the handoff so research can pressure-test the low-conviction bets.",
+   checks:[
+     {label:"reviewers approved (3/3)",status:"pass"},
+     {label:"feedback merged",status:"pass"},
+     {label:"low-conviction bets named",status:"pass"},
+     {label:"scope guardrails (no money movement)",status:"review"},
+   ]}},
+
+ /* ===== ACT 2 · RESEARCH ===== */
+ {type:"run",phase:2,artifact:"moderator-guide.md",lines:[
+   ln("say","messaging research — we only test what we're not sure about."),
+   ln("act",`<b>research-agent</b> <span class="dim">· plan → field</span>`),
+   ln("think","targeting the two low-conviction bets: trust + handoff timing"),
+   ln("write","moderator-guide.md"),
+   ln("ok","moderator-guide.md ready · 5 participants planned"),
+ ]},
+ {type:"run",phase:2,lines:[
+   ln("sys","⏳ human-in-the-field · you recruit + run the sessions"),
+   ln("sayyou","recruited 5, ran 2 moderated + 3 unmoderated. sessions are back."),
+   ln("say","handing raw sessions to research-agent's analysis skills →"),
+   ln("act",`<span class="tool">Analyze</span>(<span class="arg">5 sessions · 2h transcript</span>)`),
+   ln("res","tagged 47 observations · clustered to 6 themes"),
+   ln("act",`<span class="tool">Synthesize</span>(<span class="arg">themes → findings</span>)`),
+   ln("write","research-findings.md"),
+   ln("crit","new signal: silent handoffs read as the bot 'giving up'"),
+   ln("ok","research-findings.md sealed · 2 convictions changed"),
+ ]},
+ {type:"gate",phase:2,gate:{scope:"Research synthesis · human verification", risk:"HIGH", kind:"verify",
+   lead:"This is a HARD gate. WAVE will not proceed on synthesis alone — you must confirm you personally reviewed the findings against the raw sessions.",
+   checks:[
+     {label:"I read the synthesis end-to-end",status:"review"},
+     {label:"I spot-checked it against raw sessions",status:"review"},
+     {label:"conviction changes are justified",status:"review"},
+   ]}},
+
+ /* ===== ACT 3 · DESIGN ===== */
+ {type:"run",phase:3,artifact:"design-spec.md",lines:[
+   ln("say","looping in the designer. the design agent reads everything the PM and research left in the repo."),
+   ln("act",`<b>design-agent</b> <span class="dim">· context → design</span>`),
+   ln("act",`<span class="tool">Read</span>(<span class="arg">chatbot-prd.md, research-findings.md, context/*</span>)`),
+   ln("res","full context · 'honest by default' + 'warm handoff' are the spine"),
+   ln("write","design-spec.md"),
+   ln("spec",1),
+   ln("say","spec's in the repo. now a prototype — pulling in Corestone, our enterprise design system."),
+ ]},
+ {type:"run",phase:3,artifact:"prototype.html",lines:[
+   ln("act",`<span class="tool">Import</span>(<span class="arg">corestone · enterprise design system</span>)`),
+   ln("res","214 tokens · 68 components"),
+   ln("chips",["ConversationBubble","ConfidenceTag","HandoffBanner","InputBar","color/core","type/scale"]),
+   ln("act",`<span class="tool">Build</span>(<span class="arg">prototype.html</span>) <span class="dim">· on-brand, coded</span>`),
+   ln("ok","prototype v1 built from real components"),
+   ln("say","now the loop — Canvas comments in, new version out. watch it compress."),
+   ln("iter",{v:"v1",w:120,t:"posted to Canvas · 9 comments",d:"day 1"}),
+   ln("iter",{v:"v2",w:66,t:"Import(feedback.json) → rebuilt · 4 comments",d:"+2h"}),
+   ln("iter",{v:"v3",w:26,t:"Import(feedback.json) → rebuilt · approved",d:"+40m"}),
+   ln("ok","3 iterations in a day — the feedback loop lives inside WAVE now"),
+ ]},
+ {type:"gate",phase:3,gate:{scope:"Prototype → Handoff", risk:"LOW", kind:"approve",
+   lead:"Prototype is built on real enterprise components and signed off on Canvas. Approve to assemble the developer handoff.",
+   checks:[
+     {label:"built on Corestone (enterprise DS)",status:"pass"},
+     {label:"3 feedback loops closed on Canvas",status:"pass"},
+     {label:"accessibility (WCAG 2.2 AA)",status:"pass"},
+     {label:"research recommendations reflected",status:"pass"},
+   ]}},
+
+ /* ===== ACT 4 · HANDOFF + BUILD ===== */
+ {type:"run",phase:4,artifact:"handoff-package.zip",lines:[
+   ln("sayyou","prototype's done. i'm ready to hand off."),
+   ln("cmdType",{prompt:"~/desktop %",text:"/handoff"}),
+   ln("say","assembling the package devs actually need — scanning the repos attached to this project."),
+   ln("act",`<span class="tool">Scan</span>(<span class="arg">acme-eng/chatbot-svc, account-svc, handoff-svc, design-system</span>)`),
+   ln("res","4 repos · APIs, scopes, existing patterns pulled in"),
+   ln("write","handoff-package.zip"),
+   ln("ok","handoff-package.zip · specs + prototype + repo context, one file"),
+ ]},
+ {type:"run",phase:5,artifact:"backlog.md",lines:[
+   ln("say","handing the package out three ways — PO, architect, dev, in parallel."),
+   ln("act",`<b>po-agent</b> <span class="dim">· package → backlog</span>`),
+   ln("epics",1),
+   ln("ok","backlog.md · 3 epics · 12 stories, all estimable"),
+ ]},
+ {type:"run",phase:5,artifact:"architecture.md",lines:[
+   ln("act",`<b>architect-agent</b> <span class="dim">· package → architecture</span>`),
+   ln("diagram",1),
+   ln("ok","architecture.md · reuses 2 existing services, 0 new data stores"),
+ ]},
+ {type:"run",phase:5,lines:[
+   ln("act",`<b>dev-agent</b> <span class="dim">· stories → production code</span>`),
+   ln("checklist",[
+     ["A1 conversation UI + confidence tag","done"],
+     ["A3 opening message states limits","done"],
+     ["B1 low-confidence → warm handoff","done"],
+     ["C1 read-only account lookup","done"],
+     ["C2 PII masking in transcripts","wip"],
+   ]),
+   ln("res","production-level code · tests attached to each story"),
+   ln("ok","pushed to QA · feat/support-chatbot ready to test"),
+ ]},
+ {type:"run",phase:6,done:true,lines:[
+   ln("closing",1),
+   ln("say","you onboarded in minutes, then ran the whole cycle in one session. that's the point — the on-ramp and the whole PDLC, in one place."),
+   ln("sys","inspect anything · cat <file> · ls · wave reset"),
+ ]},
+];
+
+/* ---------------- state ---------------- */
+let S, beatIdx, pending, timers, animating, awaitingGate, curGate, revision, buffer, gatePromptEl, started, curPrompt, typingCell;
+
+function initState(){
+  S={ done:new Set() };
+  beatIdx=0; pending=[]; if(timers)timers.forEach(clearTimeout); timers=[];
+  animating=false; awaitingGate=false; curGate=null; revision=0; buffer=""; gatePromptEl=null;
+  started=false; curPrompt="%"; typingCell=null; phaseIdx=0;
+  screen.innerHTML="";
+}
+
+/* ---------------- output ---------------- */
+function el(html,cls){
+  const d=document.createElement("div");
+  d.className="row"+(cls?" "+cls:"");
+  d.innerHTML=html;
+  screen.appendChild(d);
+  screen.scrollTop=screen.scrollHeight;
+  return d;
+}
+
+const LOGO=
+`  ██╗    ██╗ █████╗ ██╗   ██╗███████╗
+  ██║    ██║██╔══██╗██║   ██║██╔════╝
+  ██║ █╗ ██║███████║██║   ██║█████╗
+  ██║███╗██║██╔══██║╚██╗ ██╔╝██╔══╝
+  ╚███╔███╔╝██║  ██║ ╚████╔╝ ███████╗
+   ╚══╝╚══╝ ╚═╝  ╚═╝  ╚═══╝  ╚══════╝`;
+
+function renderLine(l){
+  const k=l.k, t=l.t;
+  switch(k){
+    case "setPrompt": curPrompt=t; return null;
+    case "sys":   return el(`<span class="dim">${t}</span>`);
+    case "act":   return el(`<span class="bul">⏺</span> ${t}`);
+    case "mem":   return el(`<span class="bul">⏺</span> <span class="memc">${t}</span>`);
+    case "think": return el(`<span class="con">⎿</span>  <span class="dim">${t}</span>`,"indent");
+    case "res":   return el(`<span class="con">⎿</span>  <span class="dim">${t}</span>`,"indent");
+    case "ok":    return el(`<span class="con">⎿</span>  <span class="ok">✔ ${t}</span>`,"indent");
+    case "warn":  return el(`<span class="con">⎿</span>  <span class="warn">⚠ ${t}</span>`,"indent");
+    case "crit":  return el(`<span class="con">⎿</span>  <span class="crit">✗ ${t}</span>`,"indent");
+    case "sub":   return el(`<span class="con">⎿</span>  <span class="subc">${t}</span>`,"indent");
+    case "say":   return el(`<div class="say"><span class="who">chris</span><span class="msg">${t}</span></div>`);
+    case "sayyou":return el(`<div class="say you"><span class="who">you</span><span class="msg">${t}</span></div>`);
+    case "logo":  return el(`<pre class="logo">${LOGO}</pre><div class="logo-sub">workflow automation velocity engine</div>`);
+    case "write":{
+      S.done.add(t);
+      const d=el(`<span class="bul">⏺</span> <span class="tool">Write</span>(<span class="arg">${t}</span>) <span class="dim">↵ <span class="catbtn" data-cmd="cat ${t}">cat</span></span>`);
+      d.classList.add("clk"); d.dataset.cmd="cat "+t; return d;
+    }
+    case "canvas":{
+      const pins=t.pins.map(p=>`<div class="pin"><span class="p">◇</span>${p}</div>`).join("");
+      return el(`<div class="card canvas"><div class="ct"><span class="ico">▧</span>Feedback Canvas<span class="cmeta">${t.doc}</span></div>`+
+        `<div class="pin"><span class="p">↗</span><span class="clink" data-cmd="open canvas">${t.link}</span></div>${pins}</div>`);
+    }
+    case "email":
+      return el(`<div class="card email"><div class="ct"><span class="ico">✉</span>new mail<span class="cmeta">just now</span></div>`+
+        `<div class="efrom">${t.from}</div><div class="esub">${t.subj}</div><div class="ebody">${t.body}</div></div>`);
+    case "chips":
+      return el(`<div class="chips">${t.map(c=>`<span class="chip"><span class="cn">◆</span> ${c}</span>`).join("")}</div>`);
+    case "spec":  return el(specBlock());
+    case "diagram": return el(diagramBlock());
+    case "epics": return el(epicsBlock());
+    case "iter":{
+      const w=Math.max(18,t.w);
+      return el(`<div class="iter"><span class="v">${t.v}</span>`+
+        `<span class="bar" style="width:${w}px"><i></i></span>`+
+        `<span class="t">${t.t}</span><span class="d">${t.d}</span></div>`);
+    }
+    case "checklist":
+      return el(t.map(([label,st])=>
+        `<div class="chk">${st==="done"?'<span class="cx">✔</span>':'<span class="co">◔</span>'} ${label}`+
+        (st==="wip"?' <span class="dim">· in progress</span>':'')+`</div>`).join(""));
+    case "closing": return el(closingCard());
+    case "cmd":   return el(`<span class="pr">${esc(curPrompt)}</span> <span class="cmdtxt">${t}</span>`);
+    case "cmdType": return null; // handled specially in playNext
+  }
+  return el(t);
+}
+
+/* ----- set-piece renderers ----- */
+function specBlock(){
+  return `<div class="block"><div class="bh"><span class="bi">◈</span> design-spec.md<span class="bx">shown</span></div>`+
+  `<div class="bb">`+
+  `<div class="sh">principles</div>`+
+  `<div class="li">honest by default — state limits before the user asks</div>`+
+  `<div class="li">always a way out — human handoff one tap away</div>`+
+  `<div class="sh">key flow</div>`+
+  `<div class="li">ask → answer (with confidence) → resolve | warm-handoff</div>`+
+  `<div class="li">low-confidence → proactive handoff, never a silent fail</div>`+
+  `<div class="sh">components · Corestone (enterprise DS)</div>`+
+  `<div class="li">ConversationBubble · ConfidenceTag · HandoffBanner · InputBar</div>`+
+  `<div class="sh">accessibility</div>`+
+  `<div class="li">WCAG 2.2 AA · live-region announcements · 44px targets</div>`+
+  `<div style="margin-top:8px"><span class="catbtn" data-cmd="cat design-spec.md">cat design-spec.md →</span></div>`+
+  `</div></div>`;
+}
+function diagramBlock(){
+  const d=
+`        ┌──────────────────────────┐
+        │  chat widget (core DS) │
+        └────────────┬─────────────┘
+                     ▼
+             ┌───────────────┐
+             │  chatbot-svc  │  intent · confidence
+             └───┬───────┬───┘
+        low conf │       │ resolved
+                 ▼       ▼
+        ┌─────────────┐ ┌──────────────┐
+        │ handoff-svc │ │ account-svc  │  read-only
+        │  (existing) │ │  (existing)  │
+        └─────────────┘ └──────────────┘`;
+  return `<div class="block"><div class="bh"><span class="bi">◈</span> architecture.md<span class="bx">generated</span></div>`+
+    `<div class="bb"><div class="diagram">${d}</div>`+
+    `<div style="margin-top:8px"><span class="catbtn" data-cmd="cat architecture.md">cat architecture.md →</span></div></div></div>`;
+}
+function epicsBlock(){
+  return `<div class="block"><div class="bh"><span class="bi">◈</span> backlog.md<span class="bx">generated</span></div><div class="bb">`+
+  `<div class="sh">epic A · conversation core <span class="dim">· 5 stories</span></div>`+
+  `<div class="li">A1 render conversation + confidence tag</div>`+
+  `<div class="li">A3 opening message states capability limits</div>`+
+  `<div class="sh">epic B · warm handoff <span class="dim">· 4 stories</span></div>`+
+  `<div class="li">B1 low-confidence → offer handoff (+ transcript)</div>`+
+  `<div class="sh">epic C · read-only lookups <span class="dim">· 3 stories</span></div>`+
+  `<div class="li">C2 mask PII in transcript + logs</div>`+
+  `<div style="margin-top:8px"><span class="catbtn" data-cmd="cat backlog.md">cat backlog.md →</span></div>`+
+  `</div></div>`;
+}
+function closingCard(){
+  return `<div class="close"><div class="cl-h">◈ concept → QA-ready · one WAVE session</div>`+
+  `<div class="cl-row"><span>artifacts produced</span><b>8 · all schema-valid, all in the repo</b></div>`+
+  `<div class="cl-row"><span>human gates</span><b>3 · incl. hard research verification</b></div>`+
+  `<div class="cl-row"><span>feedback loops</span><b>4 · compressed inside WAVE via Canvas</b></div>`+
+  `<div class="cl-row"><span>handoff</span><b>auto-assembled from 4 enterprise repos</b></div>`+
+  `<div class="cl-row"><span>the point</span><b>the whole cycle, minus the translation tax</b></div>`+
+  `<div style="margin-top:9px;font-size:11.5px" class="dim">inspect anything · <span class="catbtn" data-cmd="cat research-findings.md">cat research-findings.md</span> · <span class="catbtn" data-cmd="ls">ls</span> · <span class="catbtn" data-cmd="wave reset">wave reset</span></div>`+
+  `</div>`;
+}
+
+/* ---- onboarding wizard (full screens) ---- */
+const ONB_TOTAL=7;
+function field(label,val,filled){
+  return `<div class="onb-field"><div class="fl">${label}</div>`+
+    `<div class="onb-input ${filled?'filled':'empty'}">${val}</div></div>`;
+}
+function onbInner(step){
+  switch(step){
+    case 1:
+      return `<div class="onb-logo">W A V E</div>`+
+        `<div class="onb-sub">AI Orchestration Framework<br>11 specialized agents that plan, build, test &amp; ship your software.</div>`;
+    case 2:
+      return `<div class="onb-h">Tell us about yourself</div><div class="onb-sub">WAVE tailors its defaults to your role.</div>`+
+        field("Your name","Saniya Arora",1)+field("Your role","UX Designer",1)+field("Team","Identity Platform",1);
+    case 3:
+      return `<div class="onb-h">Environment Setup</div><div class="onb-sub">Choose how WAVE integrates with Claude on your machine.</div>`+
+        `<div class="onb-opts">`+
+        `<div class="onb-opt sel"><span class="rec">Recommended</span><div class="ohd">▸ Project-Local Install</div>`+
+        `<div class="od">Agents + settings live in your project — <code>.claude/</code>. Best for teams: every repo gets its own config. Portable, git-friendly.</div></div>`+
+        `<div class="onb-opt"><div class="ohd">⌂ Global Install</div>`+
+        `<div class="od">Installs to your home dir — <code>~/.claude/</code>. Shared across projects. Good for solo use or personal defaults.</div></div>`+
+        `</div><div class="onb-note">project-local overrides global when both exist</div>`;
+    case 4:
+      return `<div class="onb-h">Choose Your IDE</div><div class="onb-sub">WAVE adapts its delegation strategy to your primary tool.</div>`+
+        `<div class="onb-opts">`+
+        `<div class="onb-opt sel"><div class="ohd">›_ Claude Code (CLI)<span class="badge">Full Support</span></div>`+
+        `<div class="od">The official Anthropic CLI. Full agent delegation, background agents, parallel execution. Best WAVE experience.</div>`+
+        `<div class="onb-tags"><span>Task tool</span><span>Parallel agents</span><span>Worktrees</span><span>MCP servers</span></div></div>`+
+        `<div class="onb-opt"><div class="ohd">≋ Windsurf<span class="badge dim">Supported</span></div>`+
+        `<div class="od">Codeium's AI IDE. Works via inline persona switching; some parallel delegation needs workarounds.</div>`+
+        `<div class="onb-tags"><span>Cascade</span><span>Inline agents</span><span>Flows</span><span>Extensions</span></div></div>`+
+        `</div>`;
+    case 5:{
+      const team=[["Chris","Director"],["Shah","PM"],["Fallon","Researcher"],["Saniya","UX"],["James","Architect"],
+        ["Josh","PO"],["Soroush","Dev"],["Andy","Reviewer"],["Dan","QA"],["Miju","Presenter"]];
+      return `<div class="onb-h">Build Your Team</div><div class="onb-sub">Toggle agents on/off · the gear ⚙ configures each one's workflow rules + skills.</div>`+
+        `<div class="onb-presets"><span>Design Studio</span><span>Dev Workbench</span><span>Strategy Desk</span><span class="on">Full Team</span><span>Custom</span></div>`+
+        `<div class="roster">`+team.map(([n,r])=>
+          `<div class="rcard"><span class="rc">✓</span><span class="rg">⚙</span><div class="rk">${n}</div><div class="rr">${r}</div></div>`).join("")+
+        `</div><div class="onb-note">e.g. <code>Soroush / Dev</code> → test strategy, PR workflow, lint-before-commit · skills: jira, github, aws, otel-onboard, api-standards</div>`;
+    }
+    case 6:
+      return `<div class="onb-h">Create your first project</div><div class="onb-sub">Point WAVE at where the work lives.</div>`+
+        field("Project name","support-chatbot",1)+
+        field("Description","Scoped support bot — deflect top-10 intents",1)+
+        field("Repository URL","github.com/acme-eng/chatbot-feature",1);
+    case 7:{
+      const ints=[["⎋","Jira","IDS · project key",1],["⑂","GitHub","acme-eng org",1],["❏","Confluence","ENG space",1],
+        ["⛭","Jenkins","CI/CD",0],["▭","Slack","#chatbot-build",0],["◈","SonarQube","quality gate",0]];
+      return `<div class="onb-h">Connect Your Tools</div><div class="onb-sub">WAVE uses these for Jira tracking, PR management, and CI/CD monitoring.</div>`+
+        ints.map(([ic,n,m,on])=>
+          `<div class="integ ${on?'on':''}"><span class="in-ic">${ic}</span><span class="in-n">${n}</span>`+
+          `<span class="in-m">${m}</span><span class="tog"><i></i></span></div>`).join("");
+    }
+    case 8:
+      return `<div class="onb-done"><div class="oc">✓</div><div class="onb-h">Setup Complete</div>`+
+        `<div class="onb-sub">Your WAVE workspace is ready.<br>Launch it to run your first feature end-to-end.</div></div>`;
+  }
+  return "";
+}
+
+/* onboarding controller */
+let mode="onb", onbStep=1;
+function onbKey(e){
+  const k=e.key;
+  if(k==="ArrowRight"||k==="Enter"||k===" "){ e.preventDefault();
+    if(onbStep>ONB_TOTAL) startTerminal(); else onbAdvance(); return; }
+  if(k==="ArrowLeft"||k==="Backspace"){ e.preventDefault(); onbBack(); }
+}
+function onbProgress(step){
+  let d="";
+  for(let i=1;i<=ONB_TOTAL;i++) d+=`<i class="${i<step?'done':i===step?'on':''}"></i>`;
+  return `<div class="onb-progress">${d}</div>`;
+}
+function renderOnb(){
+  const page=$("#onbPage");
+  const complete = onbStep>ONB_TOTAL;
+  let nav;
+  if(complete){
+    nav=`<div class="onb-nav" style="justify-content:center">`+
+      `<button class="onb-next launch" id="onbLaunch" type="button">Launch WAVE  ▸</button></div>`;
+  }else{
+    const label = onbStep===1 ? "Continue  ›" : onbStep===ONB_TOTAL ? "Get Started  ›" : "Continue  ›";
+    nav=`<div class="onb-nav">`+
+      `<button class="onb-back ${onbStep===1?'hidden':''}" id="onbBack" type="button">‹ Back</button>`+
+      `<button class="onb-next" id="onbNext" type="button">${label}</button></div>`;
+  }
+  page.innerHTML = onbProgress(Math.min(onbStep,ONB_TOTAL))+
+    `<div class="onb-screen">${onbInner(onbStep)}</div>`+ nav;
+  const nx=$("#onbNext"), bk=$("#onbBack"), ln=$("#onbLaunch");
+  if(nx) nx.addEventListener("click",onbAdvance);
+  if(bk) bk.addEventListener("click",onbBack);
+  if(ln) ln.addEventListener("click",startTerminal);
+  $("#onbPage").parentElement.scrollTop=0;
+}
+function onbAdvance(){ if(onbStep<=ONB_TOTAL){ onbStep++; renderOnb(); } }
+function onbBack(){ if(onbStep>1){ onbStep--; renderOnb(); } }
+function startTerminal(){
+  if(mode!=="onb") return;
+  const onb=$("#onbView"), term=$("#term");
+  mode="loading";
+  onb.classList.add("leaving");
+  setTimeout(()=>{
+    onb.style.display="none";
+    term.style.display="flex";
+    timers=[]; reset();
+    mode="term";
+  }, reduce?0:430);
+}
+
+/* ---------------- pacing ---------------- */
+function delayFor(k){
+  if(reduce)return 0;
+  return ({sys:200,act:300,think:430,res:280,ok:340,warn:360,crit:400,sub:260,mem:460,write:340,
+    say:520,sayyou:520,logo:260,canvas:360,email:420,chips:300,spec:360,diagram:360,epics:360,
+    iter:360,checklist:340,closing:400,setPrompt:60,cmd:160})[k]||320;
+}
+
+/* ---------------- engine ---------------- */
+function advance(){
+  if(awaitingGate) return;
+  if(animating){ flush(); return; }
+  if(beatIdx>=SCRIPT.length) return;
+  runBeat(SCRIPT[beatIdx]);
+}
+function runBeat(b){
+  if(b.type==="gate"){ if(b.phase!=null){phaseIdx=b.phase;renderRail();} beatIdx++; openGate(b); renderComposer(); return; }
+  if(b.phase!=null){ phaseIdx=b.phase; renderRail(); }
+  pending=b.lines.slice(); animating=true; renderComposer();
+  playNext(b);
+}
+function playNext(b){
+  if(pending.length===0){ finishBeat(b); return; }
+  const l=pending.shift();
+  if(l.k==="cmdType"){ typeCommand(l.t, ()=>schedule(b,l)); return; }
+  renderLine(l);
+  schedule(b,l);
+}
+function schedule(b,l){
+  if(pending.length){
+    const t=setTimeout(()=>playNext(b), delayFor(l.k));
+    timers.push(t);
+  } else { finishBeat(b); }
+}
+function typeCommand(spec, done){
+  curPrompt=spec.prompt;
+  const d=el(`<span class="pr">${esc(spec.prompt)}</span> <span class="cmdtxt" id="typing"></span><span class="cur"></span>`);
+  const cell=d.querySelector("#typing");
+  const cur=d.querySelector(".cur");
+  const text=spec.text;
+  if(reduce){ cell.textContent=text; cur.remove(); done&&done(); return; }
+  let i=0;
+  (function step(){
+    if(i>=text.length){ cur.remove(); const t=setTimeout(()=>done&&done(),260); timers.push(t); return; }
+    cell.textContent+=text[i++];
+    screen.scrollTop=screen.scrollHeight;
+    const t=setTimeout(step, 42);
+    timers.push(t);
+  })();
+}
+function flush(){
+  timers.forEach(clearTimeout); timers=[];
+  while(pending.length){
+    const l=pending.shift();
+    if(l.k==="cmdType"){
+      curPrompt=l.t.prompt;
+      el(`<span class="pr">${esc(l.t.prompt)}</span> <span class="cmdtxt">${esc(l.t.text)}</span>`);
+    } else renderLine(l);
+  }
+  finishBeat(SCRIPT[beatIdx]);
+}
+function finishBeat(b){
+  animating=false;
+  if(b.artifact) S.done.add(b.artifact);
+  beatIdx++;
+  renderComposer();
+}
+
+/* ---------------- gates ---------------- */
+function openGate(b){ awaitingGate=true; curGate=b; revision=0; drawGate(); }
+function drawGate(){
+  const g=curGate.gate;
+  const verify = g.kind==="verify";
+  const checks=g.checks.map(c=>{
+    let st=c.status;
+    if(verify){ st = "review"; }
+    else if(st==="review"&&revision>0) st="pass";
+    const cb = st==="pass"?"✔":(verify?"☐":"⚠");
+    const tag = st==="pass"?(verify?"confirmed":"cleared"):(verify?"confirm":"needs human");
+    return `<div class="gc ${st}"><span class="cb">${cb}</span><span>${c.label}</span><span class="tag">${tag}</span></div>`;
+  }).join("");
+  const revNote = (!verify && revision>0)
+    ? `<div class="gc"><span class="dim">⟲ revision ${revision} · agent re-ran with reviewer notes — open items resolved</span></div>` : "";
+  const box=document.createElement("div"); box.className="row";
+  box.innerHTML=`<div class="gatebox"><div class="gtitle"><span class="lock">◆</span> ${verify?"hard gate":"approval gate"} <span class="dim">· ${g.scope}</span>`+
+    `<span class="risk ${g.risk}">risk ${g.risk}</span></div>`+
+    `<div class="glead">${g.lead}</div><div>${checks}${revNote}</div>`+
+    `<div class="gfoot">human-in-the-lead · no stage advances without this decision</div></div>`;
+  screen.appendChild(box);
+  const p=document.createElement("div"); p.className="row gprompt";
+  p.innerHTML = verify
+    ? `<span class="pr">❯</span> <span class="k">a</span> confirm — i have reviewed this   <span class="k kr">r</span> not yet`
+    : `<span class="pr">❯</span> <span class="k">a</span> approve   <span class="k kr">r</span> request changes`;
+  screen.appendChild(p); gatePromptEl=p;
+  screen.scrollTop=screen.scrollHeight;
+}
+function approveGate(){
+  const verify=curGate.gate.kind==="verify";
+  gatePromptEl.className="row gprompt resolved";
+  gatePromptEl.innerHTML=`<span class="con">⎿</span>  <span class="ok">✔ ${verify?"verified by saniya@wave — synthesis confirmed":"approved by saniya@wave · "+curGate.gate.scope+" cleared"}</span>`;
+  awaitingGate=false; curGate=null; gatePromptEl=null;
+  renderComposer();
+}
+function rejectGate(){
+  const verify=curGate.gate.kind==="verify";
+  revision++;
+  gatePromptEl.className="row gprompt resolved";
+  gatePromptEl.innerHTML=`<span class="con">⎿</span>  <span class="warn">${verify?"⟲ sent back — re-reading synthesis against raw sessions":"⟲ changes requested · re-running agent with reviewer notes"}</span>`;
+  drawGate(); renderComposer();
+}
+
+/* ---------------- commands ---------------- */
+function runCommand(raw){
+  const cmd=raw.trim();
+  if(cmd==="") { advance(); return; }
+  el(`<span class="pr">${esc(curPrompt)}</span> <span class="cmdtxt">${esc(cmd)}</span>`);
+  const parts=cmd.split(/\s+/); const c=parts[0].toLowerCase();
+  if(c==="cat"){ catFile(parts.slice(1).join(" ")); }
+  else if(c==="ls"){ lsFiles(); }
+  else if(c==="clear"){ screen.innerHTML=""; }
+  else if(c==="help"||c==="?"){ helpText(); }
+  else if(c==="open"){ el(`<span class="dim">opening Feedback Canvas… (prototype demo — link is illustrative)</span>`); }
+  else if((c==="wave"&&parts[1]==="reset")||c==="reset"){ reset(); return; }
+  else if((c==="wave"&&(parts[1]==="run"||parts[1]==="step"||!parts[1]))||c==="run"||c==="step"||c==="/handoff"||c==="handoff"){ advance(); }
+  else { el(`<span class="err">zsh: command not found: ${esc(parts[0])}</span> <span class="dim">— try 'help'</span>`); }
+  renderComposer();
+}
+function catFile(name){
+  if(!FILES[name] || !S.done.has(name)){ el(`<span class="err">cat: ${esc(name||"?")}: no such file or directory</span>`); return; }
+  FILES[name].split("\n").forEach(line=>{
+    let cls="catf";
+    if(line.startsWith("# "))cls="catf h1";
+    else if(line.startsWith("## "))cls="catf h2";
+    else if(line==="---")cls="catf fm";
+    el(`<span class="${cls}">${esc(line)||"&nbsp;"}</span>`);
+  });
+}
+function lsFiles(){
+  const files=[...ARTS.filter(a=>S.done.has(a))];
+  if(S.done.has("handoff-package.zip"))files.push("handoff-package.zip");
+  if(S.done.has("prototype.html"))files.push("prototype.html");
+  el((files.length?files:["(nothing generated yet)"]).map(f=>`<span class="ext">${f}</span>`).join("   "),"lsout");
+}
+function helpText(){
+  const rows=[
+    ["→ / ⏎","advance the presentation one beat"],
+    ["a / r","decide at a gate (approve / send back)"],
+    ["cat <file>","print an artifact — "+ARTS.slice(0,3).join(" · ")+" …"],
+    ["ls","list generated files"],
+    ["clear","clear the screen"],
+    ["wave reset","replay from the top"],
+  ];
+  el(`<span class="dim">controls</span>`);
+  rows.forEach(([a,b])=>el(`  <span class="tool">${a.padEnd(12)}</span><span class="dim">${b}</span>`));
+}
+
+/* ---------------- composer ---------------- */
+function renderComposer(){
+  const cline=$("#cline"), cbox=$("#cbox"), hint=$("#hint"), cp=$("#cprompt");
+  cp.textContent=curPrompt;
+  const cur=`<span class="cur"></span>`;
+  cbox.classList.toggle("gate",awaitingGate);
+  let body;
+  if(buffer.length) body=`<span class="cbuf">${esc(buffer)}</span>${cur}`;
+  else if(awaitingGate) body=`${cur}<span class="ghost"> a / r</span>`;
+  else if(!started) body=`${cur}<span class="ghost"> press → to begin</span>`;
+  else if(animating) body=`${cur}<span class="ghost"> …</span>`;
+  else if(beatIdx>=SCRIPT.length) body=`${cur}<span class="ghost"> cat &lt;file&gt; · wave reset</span>`;
+  else body=`${cur}<span class="ghost"> → continue</span>`;
+  cline.innerHTML=body;
+
+  const H=[];
+  if(awaitingGate){ H.push(hk("a","confirm","acc")); H.push(hk("r","send back","warn")); }
+  else if(animating){ H.push(hk("→","skip","acc")); }
+  else if(beatIdx>=SCRIPT.length){ H.push(hk("cat","inspect","acc")); H.push(hk("ls","files","opt")); H.push(hk("wave reset","replay","opt")); }
+  else if(!started){ H.push(hk("→","begin","acc")); H.push(hk("?","help","opt")); }
+  else { H.push(hk("→","continue","acc")); H.push(hk("cat","inspect","opt")); H.push(hk("?","help","opt")); }
+  hint.innerHTML=H.join("");
+}
+function hk(k,label,cls=""){return `<span class="h ${cls}"><kbd>${k}</kbd>${label}</span>`;}
+
+/* ---------------- reset ---------------- */
+function reset(){
+  initState(); renderRail();
+  el(`<span class="dim">last login: a fresh terminal — nothing here yet</span>`);
+  el(`&nbsp;`);
+  renderComposer();
+}
+
+/* ---------------- input ---------------- */
+document.addEventListener("keydown",e=>{
+  if(e.metaKey||e.ctrlKey||e.altKey) return;
+  if(mode==="onb"){ onbKey(e); return; }
+  if(mode!=="term") return;
+  const k=e.key;
+  if(k==="Escape"){ if(animating)flush(); else {buffer="";renderComposer();} e.preventDefault(); return; }
+  if(k==="ArrowRight"){ e.preventDefault(); started=true; advance(); renderComposer(); return; }
+  if(k==="Enter"){
+    e.preventDefault(); started=true;
+    if(awaitingGate){ if(buffer.trim()===""){return;} runCommand(buffer); buffer=""; return; }
+    if(buffer.trim()!==""){ runCommand(buffer); buffer=""; } else advance();
+    renderComposer(); return;
+  }
+  if(k===" "){ if(buffer.length===0){ e.preventDefault(); started=true; advance(); renderComposer(); return; } }
+  if(k==="Backspace"){ if(buffer.length){buffer=buffer.slice(0,-1);renderComposer();} e.preventDefault(); return; }
+  if(awaitingGate && buffer.length===0){
+    if(k==="a"||k==="A"){ e.preventDefault(); approveGate(); return; }
+    if(k==="r"||k==="R"){ e.preventDefault(); rejectGate(); return; }
+  }
+  if(k.length===1){ buffer+=k; started=true; renderComposer(); e.preventDefault(); }
+});
+screen.addEventListener("click",e=>{
+  const t=e.target.closest("[data-cmd]");
+  if(t){ started=true; runCommand(t.dataset.cmd); }
+});
+document.querySelectorAll("[data-theme-btn]").forEach(b=>b.addEventListener("click",()=>{
+  const r=document.documentElement;
+  const cur=r.getAttribute("data-theme")||(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light");
+  r.setAttribute("data-theme",cur==="dark"?"light":"dark");
+}));
+
+/* ---------------- boot ---------------- */
+timers=[]; mode="onb"; onbStep=1; renderOnb();
+</script>
+</body>
+</html>
