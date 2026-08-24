@@ -424,7 +424,12 @@
   <script>
     (function(){
       var gate=document.getElementById('pw-gate'),inp=document.getElementById('pw-input'),err=document.getElementById('pw-error'),btn=document.getElementById('pw-submit');
-      function check(){if(inp.value==='s@n'){gate.remove();}else{err.style.display='block';inp.value='';inp.focus();}}
+      var KEY='wave-unlocked';
+      function unlocked(){try{return localStorage.getItem(KEY)==='1';}catch(e){return false;}}
+      function remember(){try{localStorage.setItem(KEY,'1');}catch(e){}}
+      // already cleared the gate on this device — don't ask again
+      if(unlocked()){gate.remove();return;}
+      function check(){if(inp.value==='s@n'){remember();gate.remove();}else{err.style.display='block';inp.value='';inp.focus();}}
       btn.addEventListener('click',check);
       inp.addEventListener('keydown',function(e){if(e.key==='Enter')check();});
     })();
